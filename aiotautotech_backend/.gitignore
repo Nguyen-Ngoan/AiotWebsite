@@ -1,0 +1,26 @@
+# ==================================
+# Quy tắc Backend (Django/Python)
+# ==================================
+
+# 1. Môi trường ảo Python
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyd
+*.so
+
+# 2. Thư mục Build và Logs
+dist/
+build/
+*.egg-info/
+/logs/
+
+# 3. File cấu hình và bảo mật
+# KHÔNG LƯU CÁC FILE CHỨA BÍ MẬT!
+# Django Secret Key:
+*.env
+.secret
+local_settings.py
+# Khóa dịch vụ Google/Firebase (Ví dụ từ dự án của bạn):
+aiotautotech-*.json

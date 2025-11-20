@@ -1,0 +1,21 @@
+# aiotautotech_frontend/cloudbuild.yaml
+steps:
+  # Bước 1: Build Docker Image
+  - name: "gcr.io/cloud-builders/docker"
+    args: [
+        "build",
+        "-t",
+        "gcr.io/${PROJECT_ID}/nextjs-frontend",
+        ".",
+        # Truyền biến môi trường vào Build Time:
+        "--build-arg",
+        "NEXT_PUBLIC_API_URL=${_NEXT_PUBLIC_API_URL}",
+      ]
+    # Truyền biến môi trường NEXT_PUBLIC_API_URL vào container build
+    # Biến này được định nghĩa ở phần substitutes bên dưới
+    env:
+      - "NEXT_PUBLIC_API_URL=${_NEXT_PUBLIC_API_URL}"
+
+images:
+  # Tag Image cuối cùng để đẩy lên Artifact Registry
+  - "gcr.io/${PROJECT_ID}/nextjs-frontend"

@@ -1,0 +1,20 @@
+# ==================================
+# Quy tắc Tổng thể (AiotWebsite/.gitignore)
+# ==================================
+
+# 1. IDE và Editor
+.vscode/
+.idea/
+*.swp
+*.bak
+*.swo
+note.md
+# 2. Files hệ thống/cache
+.DS_Store
+Thumbs.db
+
+# 3. Các thư mục dự án được bao gồm riêng
+# Chúng ta sẽ xử lý các thư mục này trong .gitignore cục bộ
+# /aiotautotech_backend/
+# /aiotautotech_frontend/
+venv/
