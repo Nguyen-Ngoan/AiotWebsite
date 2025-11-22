@@ -9,7 +9,7 @@ import { MobileMenu, NavItem } from "@/components/layout/MobileMenu";
 const navItems: NavItem[] = [
   {
     href: "#diy-maker",
-    title: "Sản phẩm DIY & Maker",
+    title: "Sản phẩm DIY",
     subtitle: "Linh kiện – ESP32 – CNC nhỏ",
   },
   {

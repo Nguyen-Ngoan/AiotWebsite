@@ -3,15 +3,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link"; // Import Link
-import Header from "@/components/layout/Header"; // Import Header component
+import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import DiyMakerSection from "@/components/home/DiyMakerSection";
 import TechDocsSection from "@/components/home/TechDocsSection";
 import BlogSection from "@/components/home/BlogSection";
+import { getApiUrl } from "@/lib/apiConfig";
 
-// Định nghĩa kiểu dữ liệu (Interface) cho bài viết
-interface Post {
+// Kiểu dữ liệu bài viết
+export interface Post {
   id: string;
   title: string;
   content: string;
@@ -25,20 +25,12 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
   useEffect(() => {
     setIsMounted(true);
 
-    if (!API_URL) {
-      setError("Biến môi trường NEXT_PUBLIC_API_URL chưa được thiết lập.");
-      setLoading(false);
-      return;
-    }
-
     const fetchPosts = async () => {
       try {
-        const url = `${API_URL}/posts/`;
+        const url = getApiUrl(`/posts/`);
         console.log(`Fetching data from: ${url}`);
 
         const response = await fetch(url);
@@ -51,7 +43,7 @@ export default function Home() {
         setPosts(data);
       } catch (err) {
         if (err instanceof Error) {
-          setError(`Không thể kết nối đến Backend: ${err.message}. Kiểm tra Django Server và cấu hình CORS.`);
+          setError(`Không thể kết nối đến Backend: ${err.message}.`);
         } else {
           setError("Đã xảy ra lỗi không xác định khi tải dữ liệu.");
         }
@@ -61,13 +53,12 @@ export default function Home() {
     };
 
     fetchPosts();
-  }, [API_URL]);
+  });
 
   if (!isMounted) {
     return <div className="min-h-screen bg-apple-gray" />;
   }
 
-  // Nếu có lỗi hoặc đang tải, hiển thị thông báo thay vì toàn bộ trang
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-apple-gray text-center p-4">
@@ -87,11 +78,14 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-apple-gray dark:bg-apple-gray-dark dark:text-apple-text-dark">
-      <Header /> {/* Sử dụng Header component */}
+      <Header />
       <main className="pt-20">
         <DiyMakerSection />
         <TechDocsSection />
-        <BlogSection />
+
+        {/* ⭐ Truyền posts thật từ Firestore vào BlogSection */}
+        <BlogSection posts={posts} />
+
         <Footer />
       </main>
     </div>

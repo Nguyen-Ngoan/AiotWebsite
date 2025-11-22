@@ -68,12 +68,6 @@ export default function Footer() {
 
             <p className="mb-3 leading-relaxed text-gray-600 dark:text-gray-400">Chuyên cung cấp linh kiện IoT, bộ điều khiển chuyển động và giải pháp tự động hóa giá rẻ cho DIY, xưởng sản xuất nhỏ và nông nghiệp công nghệ.</p>
 
-            <ul className="mb-3 space-y-1">
-              <li>• Sản phẩm được thiết kế &amp; lắp ráp tại Việt Nam</li>
-              <li>• Miễn phí tài liệu kỹ thuật (code, sơ đồ, file 3D)</li>
-              <li>• Hỗ trợ kỹ thuật nhanh qua Zalo</li>
-            </ul>
-
             <div className="flex flex-wrap items-center gap-2">
               <a href="#" className="underline-offset-2 hover:underline">
                 Facebook
@@ -96,7 +90,7 @@ export default function Footer() {
           <hr className="mb-2 border-gray-200 dark:border-gray-800" />
 
           {/* Khối 2 — Sản phẩm theo nhóm khách hàng */}
-          <MobileAccordionSection id="products" title="Sản phẩm theo nhóm khách hàng" isOpen={openSection === "products"} onToggle={() => toggleSection("products")} withBorderBottom={true}>
+          <MobileAccordionSection id="products" title="Sản phẩm" isOpen={openSection === "products"} onToggle={() => toggleSection("products")} withBorderBottom={true}>
             <p className="mt-1 font-semibold text-gray-700 dark:text-gray-200">Sản phẩm DIY &amp; Maker</p>
             <ul className="mt-1 space-y-1">
               <li>
@@ -121,7 +115,7 @@ export default function Footer() {
               </li>
             </ul>
 
-            <p className="mt-3 font-semibold text-gray-700 dark:text-gray-200">Giải pháp tự động hóa cho xưởng</p>
+            <p className="mt-3 font-semibold text-gray-700 dark:text-gray-200">Máy tự động hoá nhỏ</p>
             <ul className="mt-1 space-y-1">
               <li>
                 <Link href="#" className="hover:underline">
@@ -145,7 +139,7 @@ export default function Footer() {
               </li>
             </ul>
 
-            <p className="mt-3 font-semibold text-gray-700 dark:text-gray-200">IoT nông nghiệp</p>
+            <p className="mt-3 font-semibold text-gray-700 dark:text-gray-200">Thiết bị IoT nông nghiệp</p>
             <ul className="mt-1 space-y-1">
               <li>
                 <Link href="#" className="hover:underline">
@@ -186,7 +180,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="#" className="hover:underline">
-                  Code mẫu ESP32/STM32
+                  Code mẫu ESP32
                 </Link>
               </li>
               <li>
@@ -200,17 +194,7 @@ export default function Footer() {
             <ul className="mt-1 space-y-1">
               <li>
                 <Link href="#" className="hover:underline">
-                  Zalo hỗ trợ nhanh
-                </Link>
-              </li>
-              <li>
-                <Link href="mailto:contact@xxxx.com" className="hover:underline">
-                  Email hỗ trợ
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Trung tâm trợ giúp
+                  Zalo
                 </Link>
               </li>
               <li>
@@ -224,51 +208,20 @@ export default function Footer() {
           {/* Khối 4 — Thông tin liên hệ & pháp lý (KHÔNG border-bottom) */}
           <MobileAccordionSection
             id="contact"
-            title="Thông tin liên hệ & pháp lý"
+            title="Thông tin liên hệ"
             isOpen={openSection === "contact"}
             onToggle={() => toggleSection("contact")}
             withBorderBottom={false} // <-- bỏ đường phân cách dưới
           >
             <p className="mt-1 font-semibold text-gray-700 dark:text-gray-200">Thông tin liên hệ:</p>
             <ul className="mt-1 space-y-1">
-              <li>Hotline: 0xxx xxx xxx</li>
               <li>
                 Zalo hỗ trợ kỹ thuật:{" "}
                 <a href="#" className="hover:underline">
                   link
                 </a>
               </li>
-              <li>
-                Email:{" "}
-                <a href="mailto:contact@xxxx.com" className="hover:underline">
-                  contact@xxxx.com
-                </a>
-              </li>
               <li>Địa chỉ: (ghi ngắn gọn)</li>
-            </ul>
-
-            <p className="mt-3 font-semibold text-gray-700 dark:text-gray-200">Pháp lý:</p>
-            <ul className="mt-1 space-y-1">
-              <li>
-                <Link href="#" className="hover:underline">
-                  Điều khoản sử dụng
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Chính sách bảo hành
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Chính sách đổi trả
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Chính sách bảo mật
-                </Link>
-              </li>
             </ul>
           </MobileAccordionSection>
         </div>
@@ -284,11 +237,7 @@ export default function Footer() {
                 <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{brandName}</span>
               </div>
               <p className="mb-3 leading-relaxed text-gray-600 dark:text-gray-400">Chuyên cung cấp linh kiện IoT, bộ điều khiển chuyển động và giải pháp tự động hóa giá rẻ cho DIY, xưởng sản xuất nhỏ và nông nghiệp công nghệ.</p>
-              <ul className="mb-3 space-y-1">
-                <li>• Sản phẩm được thiết kế &amp; lắp ráp tại Việt Nam</li>
-                <li>• Miễn phí tài liệu kỹ thuật (code, sơ đồ, file 3D)</li>
-                <li>• Hỗ trợ kỹ thuật nhanh qua Zalo</li>
-              </ul>
+
               <div className="flex flex-wrap items-center gap-2">
                 <a href="#" className="underline-offset-2 hover:underline">
                   Facebook
@@ -310,7 +259,7 @@ export default function Footer() {
 
             {/* Khối 2 */}
             <div>
-              <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Sản phẩm theo nhóm khách hàng</h3>
+              <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Sản phẩm</h3>
               <div className="space-y-3">
                 <div>
                   <p className="font-semibold text-gray-700 dark:text-gray-200">Sản phẩm DIY &amp; Maker</p>
@@ -428,16 +377,6 @@ export default function Footer() {
                       </Link>
                     </li>
                     <li>
-                      <Link href="mailto:contact@xxxx.com" className="hover:underline">
-                        Email hỗ trợ
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Trung tâm trợ giúp
-                      </Link>
-                    </li>
-                    <li>
                       <Link href="#" className="hover:underline">
                         Câu hỏi thường gặp (FAQ)
                       </Link>
@@ -468,31 +407,6 @@ export default function Footer() {
                       </a>
                     </li>
                     <li>Địa chỉ: (ghi ngắn gọn)</li>
-                  </ul>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-700 dark:text-gray-200">Pháp lý:</p>
-                  <ul className="mt-1 space-y-1">
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Điều khoản sử dụng
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Chính sách bảo hành
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Chính sách đổi trả
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Chính sách bảo mật
-                      </Link>
-                    </li>
                   </ul>
                 </div>
               </div>

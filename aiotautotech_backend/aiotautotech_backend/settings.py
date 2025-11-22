@@ -7,164 +7,194 @@ import os
 from pathlib import Path
 
 # ==============================================================================
-# 1. CẤU HÌNH CƠ BẢN VÀ BIẾN MÔI TRƯỜNG
+# 1. CẤU HÌNH CƠ BẢN & BIẾN MÔI TRƯỜNG
 # ==============================================================================
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Lấy SECRET_KEY từ biến môi trường (Bắt buộc cho Production)
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-key-for-local-dev-fallback')
+# Lấy SECRET_KEY từ biến môi trường (bắt buộc phải set khi chạy Production)
+SECRET_KEY = os.environ.get(
+    "SECRET_KEY",
+    "django-insecure-default-key-for-local-dev-fallback",  # chỉ dùng local/dev
+)
 
-# Xác định môi trường Production: K_SERVICE là biến môi trường do Cloud Run cung cấp.
-IS_CLOUD_RUN = bool(os.environ.get('K_SERVICE'))
+# Xác định đang chạy trên Cloud Run hay không
+# Cloud Run tự set biến môi trường K_SERVICE
+IS_CLOUD_RUN = bool(os.environ.get("K_SERVICE"))
 
-# SECURITY WARNING: Tắt DEBUG khi triển khai lên Cloud Run
-DEBUG = not IS_CLOUD_RUN 
+# Khi chạy trên Cloud Run → DEBUG = False
+DEBUG = not IS_CLOUD_RUN
 
-
-# Cấu hình ALLOWED_HOSTS
+# ALLOWED_HOSTS
 if IS_CLOUD_RUN:
-    # Nếu chạy trên Cloud Run, chấp nhận tất cả hostnames (An toàn khi DEBUG=False)
-    ALLOWED_HOSTS = ['*']
+    # Trên Cloud Run, thường đặt '*' (vì Cloud Run đã đứng trước với HTTPS/Proxy)
+    # Nếu muốn chặt hơn, bạn có thể set cụ thể domain sau này.
+    ALLOWED_HOSTS = ["*"]
 else:
-    # Môi trường Local
-    ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
-
+    ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 # ==============================================================================
-# 2. CẤU HÌNH CLOUD FIRESTORE
+# 2. CẤU HÌNH CLOUD FIRESTORE (KHÔNG DÙNG FILE JSON)
 # ==============================================================================
 
-FIRESTORE_PROJECT_ID = 'aiotautotech'
-# Nếu bạn đã gán Service Account cho Cloud Run, bạn không cần file key.
-# Nếu bạn cần file key trong môi trường local, hãy giữ lại các dòng sau:
-FIRESTORE_KEY_FILE = 'aiotautotech-42240dcf71e4.json'
-FIRESTORE_CREDENTIALS_PATH = BASE_DIR / FIRESTORE_KEY_FILE
+# Nên set FIRESTORE_PROJECT_ID qua biến môi trường để linh hoạt:
+#   export FIRESTORE_PROJECT_ID="aiotautotech"
+FIRESTORE_PROJECT_ID = os.environ.get("FIRESTORE_PROJECT_ID", "aiotautotech")
 
+# Không dùng service account key file ở đây nữa.
+# Xác thực sẽ dùng Application Default Credentials (ADC):
+#   - Local:   gcloud auth application-default login
+#   - Cloud:   gán service account cho Cloud Run
+# Việc khởi tạo client thực hiện trong firestore_client.py
 
 # ==============================================================================
-# 3. CẤU HÌNH ỨNG DỤNG VÀ MIDDLEWARE
+# 3. APPS & MIDDLEWARE
 # ==============================================================================
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    
-    # Third-party apps
-    'rest_framework',
-    'corsheaders', 
-    
-    # Local apps
-    'core_api', 
+    # Django core
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+
+    # Third-party
+    "rest_framework",
+    "corsheaders",
+
+    # Local
+    "core_api",
 ]
 
 MIDDLEWARE = [
-    # CORS phải được đặt ở đầu để xử lý các yêu cầu preflight (OPTIONS)
-    'corsheaders.middleware.CorsMiddleware', 
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # CORS nên đặt ở rất cao để bắt preflight (OPTIONS)
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'aiotautotech_backend.urls'
+ROOT_URLCONF = "aiotautotech_backend.urls"
 
 # ==============================================================================
-# 4. CẤU HÌNH CORS (Giải quyết lỗi Failed to fetch)
+# 4. CẤU HÌNH CORS – TÁCH RÕ LOCAL VS CLOUD RUN
 # ==============================================================================
 
-# Lấy URL của Frontend Cloud Run từ biến môi trường (Nếu bạn thiết lập)
-# Tên dịch vụ Cloud Run Frontend của bạn
-FRONTEND_SERVICE_NAME = 'aiotautotech-frontend' 
-FRONTEND_REGION = 'asia-southeast1' # Vùng triển khai Frontend
-
+# 4.1. Xác định các origin được phép
 if IS_CLOUD_RUN:
-    # # Production: Cho phép Frontend Cloud Run và Frontend Local truy cập
-    # CORS_ALLOW_ALL_ORIGINS = False # Tắt tính năng cho phép tất cả, sử dụng danh sách rõ ràng
-    
-    # # Xây dựng URL Frontend Cloud Run để cho phép nó truy cập Backend
-    # FRONTEND_CLOUD_RUN_URL = f"https://{FRONTEND_SERVICE_NAME}-{FIRESTORE_PROJECT_ID}.{FRONTEND_REGION}.run.app"
-    
-    # CORS_ALLOWED_ORIGINS = [
-    #     # Cho phép Frontend đã triển khai truy cập Backend
-    #     FRONTEND_CLOUD_RUN_URL,
-        
-    #     # Thêm địa chỉ local để nếu bạn chạy Production build local, nó vẫn hoạt động
-    #     "http://localhost:3000",
-    #     "http://127.0.0.1:3000",
-    # ]
-    CORS_ALLOW_ALL_ORIGINS = True 
-    CORS_ALLOWED_ORIGINS = []
+    # Trên Cloud Run:
+    # Ưu tiên dùng FRONTEND_ORIGINS: danh sách origin, ngăn cách bởi dấu phẩy
+    #   VD:
+    #   FRONTEND_ORIGINS="https://url1,https://url2"
+    raw_origins = os.environ.get("FRONTEND_ORIGINS", "")
+
+    if raw_origins:
+        FRONTEND_ORIGINS = [
+            o.strip().rstrip("/") for o in raw_origins.split(",") if o.strip()
+        ]
+    else:
+        # Backward-compatible: nếu chưa dùng FRONTEND_ORIGINS thì vẫn đọc FRONTEND_ORIGIN
+        FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "").rstrip("/")
+        FRONTEND_ORIGINS = [FRONTEND_ORIGIN] if FRONTEND_ORIGIN else []
 else:
-    # Local Development: Chỉ cho phép nguồn gốc Next.js local
-    CORS_ALLOW_ALL_ORIGINS = False
-    CORS_ALLOWED_ORIGINS = [
+    # Local dev: chỉ cho phép frontend chạy ở localhost:3000
+    FRONTEND_ORIGINS = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ]
 
-# Cấu hình Headers và Methods cần thiết (Giữ nguyên)
-CORS_ALLOW_HEADERS = [
-    'accept',
-    # ... (Các tiêu đề khác) ...
-    'x-requested-with',
-]
+
+# 4.2. Cấu hình CORS mặc định: KHÔNG cho tất cả origin, chỉ cho danh sách rõ ràng
+CORS_ALLOW_ALL_ORIGINS = False
+
+# Lọc bỏ chuỗi rỗng (phòng khi FRONTEND_ORIGIN chưa set trên Cloud Run)
+CORS_ALLOWED_ORIGINS = [o for o in FRONTEND_ORIGINS if o]
+
+# Tuỳ chọn: mở full CORS trên Cloud Run khi debug,
+#   chỉ nên dùng tạm thời:
+#   CORS_ALLOW_ALL="1"
+if IS_CLOUD_RUN and os.environ.get("CORS_ALLOW_ALL") == "1":
+    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOWED_ORIGINS = []  # không cần khi đã cho phép tất cả
+
+# 4.3. Các option CORS khác
+
+# Nếu sau này bạn dùng cookie/session từ frontend, để True
+CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'POST',
-    'PUT',
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+]
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+# Header mà frontend có thể đọc được
+CORS_EXPOSE_HEADERS = [
+    "Content-Type",
 ]
 
 # ==============================================================================
-# 5. CẤU HÌNH TEMPLATES
+# 5. TEMPLATES
 # ==============================================================================
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'aiotautotech_backend.wsgi.application'
+WSGI_APPLICATION = "aiotautotech_backend.wsgi.application"
 
 # ==============================================================================
-# 6. CẤU HÌNH STATIC FILES (BẮT BUỘC)
+# 6. STATIC FILES
 # ==============================================================================
 
-# URL mà Django sẽ sử dụng để phục vụ các tệp tĩnh
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
 
-# Đường dẫn vật lý nơi các tệp tĩnh sẽ được thu thập khi chạy 'collectstatic'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Thư mục đích cho collectstatic (phù hợp với Cloud Run)
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
-# ... (Các cấu hình khác: LANGUAGE_CODE, TIME_ZONE, STATIC_URL giữ nguyên) ...
-LANGUAGE_CODE = 'en-us'
+# ==============================================================================
+# 7. NGÔN NGỮ, TIMEZONE, PRIMARY KEY
+# ==============================================================================
 
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = "en-us"
+
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
 USE_TZ = True
 
-# Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

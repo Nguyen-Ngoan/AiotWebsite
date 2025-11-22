@@ -26,3 +26,19 @@ body {
 .hide-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Edge mới */
 }
+
+/* Tiptap editor – bỏ viền trắng quanh vùng nhập nội dung */
+.ProseMirror {
+  outline: none;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+/* Khi focus cũng không vẽ outline/border */
+.ProseMirror:focus,
+.ProseMirror:focus-visible {
+  outline: none;
+  border: none;
+  box-shadow: none;
+}
