@@ -57,7 +57,7 @@ export default function BlogSection({ posts }: BlogSectionProps) {
                 <p className="mb-4 text-xs leading-relaxed text-gray-600 dark:text-gray-300 sm:text-[13px] line-clamp-4">{getPlainText(post.content)}</p>
 
                 <div className="mt-auto">
-                  <Link href={`/blog/${post.id}`} className="inline-flex items-center text-xs font-semibold text-[#0066CC] hover:underline dark:text-[#2997FF]">
+                  <Link href={`/blog/${post.slug}-${post.id}`} className="inline-flex items-center text-xs font-semibold text-[#0066CC] hover:underline dark:text-[#2997FF]">
                     <span>Đọc bài viết</span>
                     <ChevronRightIcon className="ml-1 h-3.5 w-3.5" />
                   </Link>

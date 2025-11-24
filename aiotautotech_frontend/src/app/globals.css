@@ -1,6 +1,7 @@
 /* aiotautotech_frontend/src/app/globals.css */
 
 @import "tailwindcss";
+@import "katex/dist/katex.min.css";
 
 /* MẶC ĐỊNH (LIGHT MODE) */
 body {
@@ -41,4 +42,13 @@ body {
   outline: none;
   border: none;
   box-shadow: none;
+}
+
+/* Ẩn thanh scroll dọc nhưng vẫn cho scroll */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE, Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }

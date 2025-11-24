@@ -17,6 +17,7 @@ export interface Post {
   content: string;
   author: string;
   created_at: string;
+  slug: string;
 }
 
 export default function Home() {
@@ -81,11 +82,8 @@ export default function Home() {
       <Header />
       <main className="pt-20">
         <DiyMakerSection />
-        <TechDocsSection />
-
-        {/* ⭐ Truyền posts thật từ Firestore vào BlogSection */}
         <BlogSection posts={posts} />
-
+        <TechDocsSection />
         <Footer />
       </main>
     </div>

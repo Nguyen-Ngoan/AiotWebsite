@@ -39,7 +39,6 @@ export default function EditPostPage() {
 
     const fetchPost = async () => {
       try {
-        // const url = `${API_URL}/posts/${id}/`;
         const url = getApiUrl(`/posts/${id}/`);
         console.log("Fetching post for edit from:", url);
         const res = await fetch(url);
@@ -114,6 +113,7 @@ export default function EditPostPage() {
       } else {
         setError("Đã xảy ra lỗi không xác định khi lưu bài viết.");
       }
+      console.error(err);
     } finally {
       setSaving(false);
     }
@@ -174,10 +174,13 @@ export default function EditPostPage() {
 
             {/* Editor */}
             <div>
+              {/* Nếu sau này bạn muốn bỏ text này thì chỉ cần xoá label */}
               <label className="mb-2 block text-sm font-medium text-gray-800 dark:text-gray-200">Nội dung bài viết</label>
+
               {/* Chỉ render editor khi đã có contentHtml (sau khi load xong) */}
               <PostEditor initialContent={contentHtml} onChange={setContentHtml} />
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Bạn có thể dùng tiêu đề (H1–H3), danh sách, in đậm, in nghiêng và chèn ảnh (bằng URL).</p>
+
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Bạn có thể dùng tiêu đề (H1–H3), danh sách, in đậm, in nghiêng, chèn ảnh (URL) và bảng (table).</p>
             </div>
 
             <div className="pt-4 flex gap-3">

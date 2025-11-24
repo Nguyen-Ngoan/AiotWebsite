@@ -1,26 +1,27 @@
 # core_api/views.py
 
-from datetime import datetime, timezone
-
+from django.utils import timezone
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
 from aiotautotech_backend.firestore_client import db
+from .utils import slugify
 
 
-def _serialize_post(doc) -> dict:
-  """Chuyển 1 document Firestore thành dict trả về cho API."""
-  data = doc.to_dict() or {}
-  return {
-      "id": doc.id,
-      "title": data.get("title", ""),
-      "content": data.get("content", ""),
-      "author": data.get("author", ""),
-      "created_at": data.get("created_at"),
-      "updated_at": data.get("updated_at"),
-  }
+def _serialize_post(doc):
+    data = doc.to_dict() or {}
+
+    return {
+        "id": doc.id,
+        "title": data.get("title", ""),
+        "content": data.get("content", ""),
+        "author": data.get("author", ""),
+        "slug": data.get("slug", ""),  
+        "created_at": data.get("created_at"),
+        "updated_at": data.get("updated_at"),
+    }
 
 
 class RootView(APIView):
@@ -65,39 +66,35 @@ class PostListView(APIView):
 
         return Response(posts)
 
-    def post(self, request, *args, **kwargs):
-        """
-        Tạo bài viết mới. (Tuỳ bạn có dùng UI cho phần này hay không,
-        API vẫn hữu ích để test qua Insomnia/Postman.)
-        """
-        payload = request.data or {}
-
-        title = payload.get("title", "").strip()
-        content = payload.get("content", "").strip()
-        author = payload.get("author", "").strip() or "AiotAutotech"
+    def post(self, request):
+        data = request.data
+        title = (data.get("title") or "").strip()
+        content = (data.get("content") or "").strip()
+        author = (data.get("author") or "").strip()
+        slug_input = (data.get("slug") or "").strip()  # cho phép client gửi slug custom
 
         if not title:
-            return Response(
-                {"detail": "Thiếu trường 'title'."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"error": "Title is required"}, status=400)
 
-        now = datetime.now(timezone.utc)
+        # Ưu tiên slug client gửi, nếu trống thì tự sinh từ title
+        slug = slugify(slug_input or title)
+
+        now = timezone.now()
+
+        payload = {
+            "title": title,
+            "content": content,
+            "author": author or "Unknown",
+            "slug": slug,  # BẮT BUỘC CÓ SLUG
+            "created_at": now,
+            "updated_at": now,
+        }
 
         doc_ref = db.collection("posts").document()
-        doc_ref.set(
-            {
-                "title": title,
-                "content": content,
-                "author": author,
-                "created_at": now.isoformat(),
-                "updated_at": now.isoformat(),
-            }
-        )
+        doc_ref.set(payload)
 
-        # Lấy lại doc vừa tạo để trả về
         doc = doc_ref.get()
-        return Response(_serialize_post(doc), status=status.HTTP_201_CREATED)
+        return Response(_serialize_post(doc), status=201)
 
 
 class PostDetailView(APIView):
@@ -118,38 +115,45 @@ class PostDetailView(APIView):
         doc = self.get_object(post_id)
         return Response(_serialize_post(doc))
 
-    def put(self, request, post_id: str, *args, **kwargs):
-        """
-        Cập nhật tiêu đề / nội dung / tác giả.
-        Body JSON: { "title": "...", "content": "<html>", "author": "..." }
-        Các field không gửi sẽ không bị đổi.
-        """
-        doc = self.get_object(post_id)
-        data = request.data
+    def put(self, request, post_id):
+        doc_ref = db.collection("posts").document(post_id)
+        doc = doc_ref.get()
+        if not doc.exists:
+            return Response({"error": "Post not found"}, status=404)
 
+        data = request.data
         update_data = {}
+
         title = data.get("title")
         content = data.get("content")
         author = data.get("author")
+        slug_input = data.get("slug")
 
         if title is not None:
+            title = title.strip()
             update_data["title"] = title
+
         if content is not None:
             update_data["content"] = content
+
         if author is not None:
             update_data["author"] = author
 
-        if not update_data:
-            return Response(
-                {"detail": "Không có dữ liệu nào để cập nhật."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        # Chính sách slug khi update:
+        # - Nếu client gửi slug → dùng slug đó (slug custom)
+        # - Nếu không gửi slug:
+        #   - GIỮ slug cũ (không auto đổi theo title mới, tránh gãy link)
+        if slug_input is not None:
+            slug_input = slug_input.strip()
+            update_data["slug"] = slugify(slug_input) if slug_input else ""
 
-        update_data["updated_at"] = datetime.utcnow()
+        update_data["updated_at"] = timezone.now()
 
-        doc.reference.update(update_data)
-        updated_doc = doc.reference.get()
-        return Response(_serialize_post(updated_doc), status=status.HTTP_200_OK)
+        if update_data:
+            doc_ref.update(update_data)
+
+        doc = doc_ref.get()
+        return Response(_serialize_post(doc))
 
     def delete(self, request, post_id: str, *args, **kwargs):
         """
