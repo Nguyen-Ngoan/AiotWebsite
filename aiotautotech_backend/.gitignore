@@ -21,6 +21,9 @@ build/
 # Django Secret Key:
 *.env
 .secret
+db.sh
 local_settings.py
+r2_setenv_local.sh
+r2_setenv_cloud.sh
 # Khóa dịch vụ Google/Firebase (Ví dụ từ dự án của bạn):
 aiotautotech-*.json

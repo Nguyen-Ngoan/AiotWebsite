@@ -67,7 +67,22 @@ class ProductSerializer(serializers.ModelSerializer):
             "stock_qty",
             "min_order_qty",
             "tags",
+            "main_image_url",
+            "gallery_urls",
             "created_at",
             "updated_at",
             "items",  # danh sách sản phẩm con (nếu là bundle)
         ]
+
+
+class ProductImageUploadSerializer(serializers.Serializer):
+  file = serializers.ImageField()
+  seo_file_name = serializers.CharField(max_length=255)
+  alt = serializers.CharField(max_length=500)
+  title = serializers.CharField(max_length=500, required=False, allow_blank=True)
+  type = serializers.ChoiceField(choices=["cover", "gallery", "detail", "dimension"])
+  is_primary = serializers.BooleanField(default=False)
+
+  ai_description = serializers.CharField(required=False, allow_blank=True)
+  ai_tags = serializers.CharField(required=False, allow_blank=True)
+  ai_context = serializers.CharField(required=False, allow_blank=True)

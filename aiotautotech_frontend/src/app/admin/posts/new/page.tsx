@@ -17,11 +17,13 @@ export default function NewPostPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // URL backend: local vs Cloud Run
-  // const DEFAULT_LOCAL_API = "http://127.0.0.1:8000/api";
-  // const PROD_API = "https://aiotautotech-backend-sb5sz45ysq-as.a.run.app/api";
-
-  // const API_URL = typeof window !== "undefined" && window.location.hostname.endsWith("run.app") ? PROD_API : DEFAULT_LOCAL_API;
+  // Thêm symbol vào cuối nội dung HTML (state dùng để submit)
+  const handleAddSymbol = (symbol: string) => {
+    setContentHtml((prev) => {
+      const base = prev || "";
+      return base + symbol;
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,11 +103,27 @@ export default function NewPostPage() {
             {/* Editor */}
             <div>
               <label className="mb-2 block text-sm font-medium text-gray-800 dark:text-gray-200">Nội dung bài viết</label>
+
+              {/* PostEditor hiện tại chỉ nhận onChange */}
               <PostEditor onChange={setContentHtml} />
+
+              {/* Thanh symbol nhanh */}
+              <div className="mt-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-700 dark:border-gray-700 dark:bg-[#141414] dark:text-gray-200">
+                <div className="mb-1 font-medium">Symbol thường dùng (click để chèn vào nội dung gửi lên Firestore):</div>
+                <div className="flex flex-wrap gap-2">
+                  {["°C", "Ω", "µ", "µF", "kΩ", "MΩ", "±", "→", "←", "⇄", "²", "³", "≤", "≥"].map((sym) => (
+                    <button key={sym} type="button" onClick={() => handleAddSymbol(sym)} className="rounded border border-gray-300 bg-white px-2 py-1 text-xs font-semibold text-gray-800 hover:bg-gray-100 dark:border-gray-600 dark:bg-[#111] dark:text-gray-100 dark:hover:bg-[#222]">
+                      {sym}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-gray-500 dark:text-gray-400">Dùng cho các ký hiệu điện – điện tử: nhiệt độ, điện trở, micro, sai số, mũ 2, mũ 3…</p>
+              </div>
+
               <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Bạn có thể dùng tiêu đề (H1–H3), danh sách, in đậm, in nghiêng và chèn ảnh (bằng URL). Sau này có thể nâng cấp thêm chức năng upload ảnh lên GCS.</p>
             </div>
 
-            <div className="pt-4 flex gap-3">
+            <div className="flex gap-3 pt-4">
               <button type="submit" disabled={submitting} className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-500 disabled:opacity-60">
                 {submitting ? "Đang lưu..." : "Lưu bài viết"}
               </button>

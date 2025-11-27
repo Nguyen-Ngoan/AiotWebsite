@@ -9,22 +9,22 @@ import { MobileMenu, NavItem } from "@/components/layout/MobileMenu";
 const navItems: NavItem[] = [
   {
     href: "#diy-maker",
-    title: "Sản phẩm DIY",
+    title: "Sản phẩm cho DIY",
     subtitle: "Linh kiện – ESP32 – CNC nhỏ",
   },
   {
     href: "#automation",
-    title: "Giải pháp tự động hóa cho xưởng",
+    title: "Máy tự động cho sản xuất nhỏ",
     subtitle: "Máy phun men – bơm hồ – trục tuyến tính",
   },
   {
     href: "#iot-farm",
-    title: "Bộ tưới & IoT nông nghiệp",
+    title: "Sản phẩm nông nghiệp thông minh",
     subtitle: "Tưới tự động – giám sát độ ẩm",
   },
   {
     href: "#docs-support",
-    title: "Tài liệu & Hỗ trợ",
+    title: "Hướng dẫn kỹ thuật",
     subtitle: "Code mẫu – sơ đồ – tư vấn kỹ thuật",
   },
 ];
@@ -57,7 +57,7 @@ export default function Header() {
           {/* ICONS BÊN PHẢI */}
           <div className="flex items-center space-x-4">
             {/* SEARCH ICON */}
-            <Link href="/search" className="text-gray-700 hover:text-apple-blue dark:text-gray-300 dark:hover:text-apple-blue transition-colors duration-200">
+            <Link href="#" className="text-gray-700 hover:text-apple-blue dark:text-gray-300 dark:hover:text-apple-blue transition-colors duration-200">
               <MagnifyingGlassIcon className="h-5 w-5" />
             </Link>
 

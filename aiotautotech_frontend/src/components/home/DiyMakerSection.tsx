@@ -4,8 +4,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { CpuChipIcon, WrenchScrewdriverIcon, CubeTransparentIcon, PlusIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import { useRef } from "react";
+import { CpuChipIcon, WrenchScrewdriverIcon, CubeTransparentIcon, Squares2X2Icon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { useRef, type ReactNode } from "react";
 
 export default function DiyMakerSection() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -15,32 +15,27 @@ export default function DiyMakerSection() {
     const container = scrollRef.current;
     if (!container) return;
 
-    const cards = Array.from(container.querySelectorAll<HTMLDivElement>("[data-card]"));
+    const cards = Array.from(container.querySelectorAll<HTMLDivElement>("[data-diy-card]"));
     if (!cards.length) return;
 
     const containerRect = container.getBoundingClientRect();
     const containerCenter = containerRect.left + containerRect.width / 2;
 
-    // Tìm card hiện tại gần giữa nhất
+    // Tìm card gần trung tâm
     let closestIndex = 0;
-    let closestDist = Infinity;
+    let minDistance = Number.POSITIVE_INFINITY;
 
-    cards.forEach((el, idx) => {
-      const rect = el.getBoundingClientRect();
-      const cardCenter = rect.left + rect.width / 2;
-      const dist = Math.abs(cardCenter - containerCenter);
-      if (dist < closestDist) {
-        closestDist = dist;
-        closestIndex = idx;
+    cards.forEach((card, index) => {
+      const rect = card.getBoundingClientRect();
+      const center = rect.left + rect.width / 2;
+      const distance = Math.abs(center - containerCenter);
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = index;
       }
     });
 
-    let targetIndex = closestIndex;
-    if (direction === "left") {
-      targetIndex = Math.max(0, closestIndex - 1);
-    } else {
-      targetIndex = Math.min(cards.length - 1, closestIndex + 1);
-    }
+    const targetIndex = direction === "left" ? Math.max(0, closestIndex - 1) : Math.min(cards.length - 1, closestIndex + 1);
 
     const target = cards[targetIndex];
     const targetRect = target.getBoundingClientRect();
@@ -57,7 +52,7 @@ export default function DiyMakerSection() {
         <div className="flex-1">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">DIY &amp; Maker</p>
 
-          <h2 className="mb-3 text-3xl font-semibold leading-tight sm:text-4xl md:text-5xl">Dành cho Maker &amp; người yêu công nghệ.</h2>
+          <h2 className="mb-3 text-3xl font-semibold leading-tight md:text-4xl">Sản phẩm cho DIY</h2>
 
           <p className="mb-6 max-w-xl text-sm leading-relaxed text-gray-300 sm:text-base">
             Linh kiện IoT, board ESP32/STM32, trục tuyến tính in 3D, CNC mini.
@@ -65,29 +60,36 @@ export default function DiyMakerSection() {
             Miễn phí tài liệu. Dễ học. Dễ làm.
           </p>
 
-          <Link href="/diy-maker" className="inline-flex items-center text-sm font-semibold text-blue-400 hover:text-blue-300">
-            Xem sản phẩm DIY
-            <span className="ml-1 text-base">→</span>
-          </Link>
+          {/* Hàng nút: xem sản phẩm + thêm sản phẩm */}
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/diy-maker" className="inline-flex items-center text-sm font-semibold text-blue-400 hover:text-blue-300">
+              Xem sản phẩm DIY
+              <span className="ml-1 text-base">→</span>
+            </Link>
+
+            <Link href="/admin/products/new" className="inline-flex items-center rounded-full border border-gray-600 px-3 py-1.5 text-xs font-medium text-gray-100 hover:bg-white/5">
+              <PlusIcon className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
 
-        {/* RIGHT: CARDS – horizontal scroll + snap + arrow buttons (góc dưới phải) */}
+        {/* RIGHT: CARDS – horizontal scroll + arrow buttons */}
         <div className="relative flex-1 pb-10">
           {/* Dải card trượt ngang */}
           <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-3 md:pb-4 snap-x snap-mandatory hide-scrollbar">
-            <DiyCard label="Board ESP32 / STM32" icon={<CpuChipIcon className="h-5 w-5" />} title="Bắt đầu lập trình IoT dễ dàng." description="WiFi/BLE, nhiều ví dụ mẫu, tài liệu tiếng Việt. Phù hợp cho cả người mới và maker nâng cao." imageSrc="/images/diy-esp32-board.jpg" imageAlt="Board ESP32 trên nền trắng" />
+            <DiyCard label="Board ESP32 / STM32" icon={<CpuChipIcon className="h-5 w-5" />} description="Các board phát triển cho dự án IoT, robot nhỏ, hệ thống điều khiển bước." bullets={["ESP32 DevKit, ESP32-S3, STM32 Bluepill", "Tài liệu ví dụ, code mẫu"]} imageSrc="/images/diy-esp32-board.jpg" imageAlt="Board ESP32 trên nền trắng" />
 
-            <DiyCard label="Trục tuyến tính 3D-print" icon={<CubeTransparentIcon className="h-5 w-5" />} title="Xây CNC mini & robot nhỏ." description="Module trục tuyến tính in 3D, dùng cho CNC mini, plotter, robot gắp đồ chơi." imageSrc="/images/diy-linear-axis.jpg" imageAlt="Trục tuyến tính 3D-print trên nền trắng" />
+            <DiyCard label="Trục tuyến tính 3D-print" icon={<CubeTransparentIcon className="h-5 w-5" />} description="Module trục X/Y in 3D cho máy tự động hoá nhỏ & hệ thống tưới cây." bullets={["NEMA17 + GT2", "Tuỳ chỉnh hành trình theo nhu cầu"]} imageSrc="/images/diy-linear-axis.jpg" imageAlt="Trục tuyến tính 3D-print trên nền trắng" />
 
-            <DiyCard label="Bộ kit DIY hoàn chỉnh" icon={<WrenchScrewdriverIcon className="h-5 w-5" />} title="Từ ý tưởng tới sản phẩm nhanh hơn." description="Combo nguồn, driver, motor, cảm biến, kèm sơ đồ & code. Cắm là chạy." imageSrc="/images/diy-kit.jpg" imageAlt="Bộ kit DIY linh kiện IoT" />
+            <DiyCard label="Bộ kit DIY hoàn chỉnh" icon={<WrenchScrewdriverIcon className="h-5 w-5" />} description="Combo linh kiện + tài liệu để tự ráp bộ điều khiển step motor, tưới cây tự động." bullets={["Có sơ đồ đấu dây", "Hướng dẫn từng bước chi tiết"]} imageSrc="/images/diy-kit.jpg" imageAlt="Bộ kit DIY linh kiện IoT" />
           </div>
 
-          {/* Nút trái/phải luôn hiển thị, đặt cạnh nhau góc dưới phải */}
+          {/* Nút trái/phải – góc dưới phải */}
           <div className="pointer-events-none absolute bottom-0 right-0 flex gap-2">
-            <button type="button" onClick={() => scrollToNext("left")} className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#1a1a1d] text-gray-200 hover:bg-[#2a2a30]" aria-label="Cuộn sang trái">
+            <button type="button" onClick={() => scrollToNext("left")} className="pointer-events-auto inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-700 bg-black/70 text-gray-200 hover:bg-[#2a2a30]" aria-label="Cuộn sang trái">
               <ChevronLeftIcon className="h-4 w-4" />
             </button>
-            <button type="button" onClick={() => scrollToNext("right")} className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-[#1a1a1d] text-gray-200 hover:bg-[#2a2a30]" aria-label="Cuộn sang phải">
+            <button type="button" onClick={() => scrollToNext("right")} className="pointer-events-auto inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-700 bg-black/70 text-gray-200 hover:bg-[#2a2a30]" aria-label="Cuộn sang phải">
               <ChevronRightIcon className="h-4 w-4" />
             </button>
           </div>
@@ -97,27 +99,37 @@ export default function DiyMakerSection() {
   );
 }
 
-type DiyCardProps = {
+interface DiyCardProps {
   label: string;
-  icon: React.ReactNode;
-  title: string;
+  icon: ReactNode;
   description: string;
+  bullets: string[];
   imageSrc: string;
   imageAlt: string;
-};
+}
 
-function DiyCard({ label, icon, title, description, imageSrc, imageAlt }: DiyCardProps) {
+function DiyCard({ label, icon, description, bullets, imageSrc, imageAlt }: DiyCardProps) {
   return (
-    <div data-card className="relative flex min-w-[260px] max-w-[280px] flex-col rounded-[28px] bg-[#111111] shadow-[0_16px_40px_rgba(0,0,0,0.6)] snap-center md:min-w-[280px]">
-      {/* Phần trên: text trên nền tối */}
-      <div className="px-5 pt-5 pb-4">
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-[11px] font-semibold text-gray-300">{label}</p>
-          <span className="text-gray-400">{icon}</span>
+    <div data-diy-card className="flex w-72 flex-shrink-0 snap-center flex-col overflow-hidden rounded-[28px] border border-gray-800 bg-[#050509] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
+      {/* Phần trên: text */}
+      <div className="flex flex-1 flex-col p-4">
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-gray-700 px-2.5 py-1">
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-900/70">{icon}</span>
+          <span className="text-xs font-semibold text-gray-100">{label}</span>
         </div>
 
-        <h3 className="mb-2 text-[17px] font-semibold leading-snug text-white">{title}</h3>
-        <p className="text-[11px] leading-relaxed text-gray-300">{description}</p>
+        <p className="mb-3 text-xs leading-relaxed text-gray-300">{description}</p>
+
+        <ul className="mb-3 space-y-1 text-xs text-gray-400">
+          {bullets.map((item) => (
+            <li key={item} className="flex items-start gap-1.5">
+              <Squares2X2Icon className="mt-[2px] h-3.5 w-3.5 flex-shrink-0" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+
+        <p className="mt-auto text-[11px] text-gray-500">Tài liệu kèm theo file 3D / code mẫu.</p>
       </div>
 
       {/* Phần dưới: ảnh cover toàn bộ nửa dưới card */}
@@ -127,7 +139,7 @@ function DiyCard({ label, icon, title, description, imageSrc, imageAlt }: DiyCar
         </div>
 
         {/* Nút tròn + trong vùng ảnh, góc dưới phải */}
-        <button type="button" className="absolute bottom-3 right-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/80 text-white hover:bg-black" aria-label="Xem chi tiết">
+        <button type="button" className="absolute bottom-3 right-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/80 text-white hover:bg-black" aria-label="Xem chi tiết">
           <PlusIcon className="h-4 w-4" />
         </button>
       </div>

@@ -48,6 +48,25 @@ FIRESTORE_PROJECT_ID = os.environ.get("FIRESTORE_PROJECT_ID", "aiotautotech")
 # Việc khởi tạo client thực hiện trong firestore_client.py
 
 # ==============================================================================
+# 2.1. CẤU HÌNH CLOUDFLARE R2 (UPLOAD ẢNH SẢN PHẨM)
+# ==============================================================================
+
+# Các biến này dùng cho module upload R2 (boto3 client)
+# Nên set trong Cloud Run:
+#   R2_BUCKET_NAME, R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY
+#   R2_PUBLIC_BASE_URL: domain CDN public, ví dụ: https://cdn.aiotautotech.com
+R2_BUCKET_NAME = os.environ.get("R2_BUCKET_NAME", "aiot-images")
+R2_ACCOUNT_ID = os.environ.get("R2_ACCOUNT_ID", "")
+R2_ACCESS_KEY_ID = os.environ.get("R2_ACCESS_KEY_ID", "")
+R2_SECRET_ACCESS_KEY = os.environ.get("R2_SECRET_ACCESS_KEY", "")
+
+# Domain public dùng để build URL ảnh trả về cho frontend
+R2_PUBLIC_BASE_URL = os.environ.get(
+    "R2_PUBLIC_BASE_URL",
+    "https://cdn.aiotautotech.com",  
+)
+
+# ==============================================================================
 # 3. APPS & MIDDLEWARE
 # ==============================================================================
 

@@ -5,8 +5,6 @@ import { useEffect, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
-
-// 👉 Table extensions
 import { TableKit } from "@tiptap/extension-table";
 
 interface PostEditorProps {
@@ -14,8 +12,92 @@ interface PostEditorProps {
   onChange: (html: string) => void;
 }
 
+/* ================= ICONS (SVG) ================= */
+
+const IconBold = () => (
+  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M7 5h6a3 3 0 010 6H7z" />
+    <path d="M7 11h7a3 3 0 010 6H7z" />
+  </svg>
+);
+
+const IconItalic = () => (
+  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M10 5h8" />
+    <path d="M6 19h8" />
+    <path d="M14 5L10 19" />
+  </svg>
+);
+
+const IconBulletList = () => (
+  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <circle cx="5" cy="7" r="1.5" />
+    <circle cx="5" cy="12" r="1.5" />
+    <circle cx="5" cy="17" r="1.5" />
+    <path d="M10 7h9" />
+    <path d="M10 12h9" />
+    <path d="M10 17h9" />
+  </svg>
+);
+
+const IconNumberList = () => (
+  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M5 6h2v8" />
+    <path d="M4 18h4" />
+    <path d="M11 7h9" />
+    <path d="M11 12h9" />
+    <path d="M11 17h9" />
+  </svg>
+);
+
+const IconQuote = () => (
+  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M7 7h5v5H8a3 3 0 00-3 3v1" />
+    <path d="M17 7h5v5h-4a3 3 0 00-3 3v1" />
+  </svg>
+);
+
+const IconCite = () => (
+  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M5 12h14" />
+    <path d="M7 8h10" />
+    <path d="M9 16h6" />
+  </svg>
+);
+
+const IconImage = () => (
+  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <rect x="4" y="5" width="16" height="14" rx="2" />
+    <circle cx="9" cy="10" r="1.5" />
+    <path d="M8 17l3.5-4 3 3 2.5-3" />
+  </svg>
+);
+
+const IconSymbol = () => (
+  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M7 5h7a3 3 0 010 6H9a3 3 0 000 6h7" />
+  </svg>
+);
+
+const IconUndo = () => (
+  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M9 5L5 9l4 4" />
+    <path d="M5 9h6a5 5 0 015 5v1" />
+  </svg>
+);
+
+const IconRedo = () => (
+  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <path d="M15 5l4 4-4 4" />
+    <path d="M19 9h-6a5 5 0 00-5 5v1" />
+  </svg>
+);
+
+/* ================= COMPONENT ================= */
+
 export default function PostEditor({ initialContent = "", onChange }: PostEditorProps) {
   const [mounted, setMounted] = useState(false);
+  const [showSymbols, setShowSymbols] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -52,82 +134,88 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
   if (!mounted || !editor) return null;
 
   const addImage = () => {
-    const url = window.prompt("Nhập URL hình ảnh:");
+    const url = window.prompt("Enter image URL:");
     if (!url) return;
     editor.chain().focus().setImage({ src: url }).run();
   };
 
-  // 👉 CHÈN CITE CÓ CLASS ĐỂ FORMAT: .aiot-cite
   const insertCite = () => {
-    editor.chain().focus().insertContent('<p class="aiot-cite">— Tên người, chức danh (có thể sửa)</p>').run();
+    editor.chain().focus().insertContent('<p class="aiot-cite">— Name, position (you can edit)</p>').run();
   };
 
-  // style button toolbar
-  const btnBase = "inline-flex items-center justify-center h-7 w-7 rounded-[4px] border border-transparent text-[13px] text-gray-300 hover:bg-[#2b2b2b] active:bg-[#333333]";
-  const btnActive = "bg-[#3a3a3a] border-[#5e5e5e] text-gray-50";
+  const insertSymbol = (symbol: string) => {
+    editor.chain().focus().insertContent(symbol).run();
+  };
+
+  const symbolList = ["°C", "Ω", "µ", "µF", "kΩ", "MΩ", "±", "→", "←", "⇄", "²", "³", "≤", "≥"];
+
+  const btnBase = "inline-flex items-center justify-center h-8 px-2 rounded-md border border-[#3b3b3b] bg-[#262626] text-[13px] font-semibold text-gray-100 hover:bg-[#333333] hover:border-[#5a5a5a] active:bg-[#3b3b3b] active:border-[#777777]";
+  const btnActive = "bg-[#404040] border-[#8a8a8a] text-white shadow-inner shadow-black/60";
   const iconButtonClass = (active: boolean) => `${btnBase} ${active ? btnActive : ""}`;
 
-  const Separator = () => <div className="mx-1 h-6 w-px bg-[#303030] opacity-80" />;
+  const Separator = () => <div className="mx-1 h-7 w-px bg-[#303030] opacity-80" />;
+
+  const getCurrentHeading = () => {
+    if (editor.isActive("heading", { level: 1 })) return "h1";
+    if (editor.isActive("heading", { level: 2 })) return "h2";
+    if (editor.isActive("heading", { level: 3 })) return "h3";
+    return "paragraph";
+  };
+
+  const handleHeadingChange = (value: string) => {
+    const chain = editor.chain().focus();
+    if (value === "paragraph") {
+      chain.setParagraph().run();
+    } else if (value === "h1") {
+      chain.setHeading({ level: 1 }).run();
+    } else if (value === "h2") {
+      chain.setHeading({ level: 2 }).run();
+    } else if (value === "h3") {
+      chain.setHeading({ level: 3 }).run();
+    }
+  };
 
   return (
-    // Giới hạn chiều cao theo viewport, body editor scroll riêng
     <div className="relative flex max-h-[calc(100vh-220px)] flex-col rounded-2xl border border-[#2a2a2a] bg-[#121212] shadow-sm">
-      {/* Toolbar */}
-      <div className="rounded-t-2xl border-b border-[#2b2b2b] bg-[#1e1e1e] px-3 py-1.5 text-xs shadow-sm">
-        <div className="flex flex-wrap items-center gap-1.5">
+      {/* TOOLBAR – horizontal scrollable */}
+      <div className="rounded-t-2xl border-b border-[#2b2b2b] bg-[#1a1a1a] px-2 py-1 text-xs shadow-sm overflow-x-auto">
+        <div className="flex w-max items-center gap-1.5">
           {/* Bold / Italic */}
           <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={iconButtonClass(editor.isActive("bold"))}>
-            <span className="font-semibold leading-none">B</span>
+            <IconBold />
             <span className="sr-only">Bold</span>
           </button>
           <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={iconButtonClass(editor.isActive("italic"))}>
-            <span className="italic leading-none">I</span>
+            <IconItalic />
             <span className="sr-only">Italic</span>
           </button>
 
           <Separator />
 
-          {/* Heading H1 / H2 / H3 */}
-          <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={iconButtonClass(editor.isActive("heading", { level: 1 }))}>
-            <span className="text-[14px] font-semibold leading-none">T</span>
-            <span className="sr-only">Heading 1</span>
-          </button>
-          <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={iconButtonClass(editor.isActive("heading", { level: 2 }))}>
-            <span className="text-[12px] font-semibold leading-none">T</span>
-            <span className="sr-only">Heading 2</span>
-          </button>
-          <button type="button" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className={iconButtonClass(editor.isActive("heading", { level: 3 }))}>
-            <span className="text-[11px] font-semibold leading-none">T</span>
-            <span className="sr-only">Heading 3</span>
-          </button>
+          {/* Heading combobox (English) */}
+          <div className="relative inline-flex items-center">
+            <select className="h-8 appearance-none rounded-md border border-[#3a3a3a] bg-[#181818] px-2 pr-6 text-[12px] font-medium text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500" value={getCurrentHeading()} onChange={(e) => handleHeadingChange(e.target.value)}>
+              <option value="paragraph">Paragraph</option>
+              <option value="h1">Heading 1</option>
+              <option value="h2">Heading 2</option>
+              <option value="h3">Heading 3</option>
+            </select>
+            <span className="pointer-events-none absolute right-1 text-gray-400">
+              <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.25 8.29a.75.75 0 01-.02-1.08z" clipRule="evenodd" />
+              </svg>
+            </span>
+          </div>
 
           <Separator />
 
-          {/* List */}
+          {/* Lists */}
           <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} className={iconButtonClass(editor.isActive("bulletList"))}>
-            <span className="flex flex-col items-start justify-center gap-[1px] leading-none">
-              <span className="flex items-center gap-[3px]">
-                <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
-                <span className="h-[1px] w-[10px] bg-gray-400" />
-              </span>
-              <span className="flex items-center gap-[3px]">
-                <span className="h-[3px] w-[3px] rounded-full bg-gray-300" />
-                <span className="h-[1px] w-[10px] bg-gray-400" />
-              </span>
-            </span>
+            <IconBulletList />
             <span className="sr-only">Bullet list</span>
           </button>
           <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} className={iconButtonClass(editor.isActive("orderedList"))}>
-            <span className="flex flex-col items-start justify-center gap-[1px] leading-none text-[10px]">
-              <span className="flex items-center gap-[3px]">
-                <span>1.</span>
-                <span className="h-[1px] w-[10px] bg-gray-400" />
-              </span>
-              <span className="flex items-center gap-[3px]">
-                <span>2.</span>
-                <span className="h-[1px] w-[10px] bg-gray-400" />
-              </span>
-            </span>
+            <IconNumberList />
             <span className="sr-only">Numbered list</span>
           </button>
 
@@ -135,11 +223,11 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
 
           {/* Quote / Cite */}
           <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={iconButtonClass(editor.isActive("blockquote"))}>
-            <span className="text-[13px] leading-none">“ ”</span>
+            <IconQuote />
             <span className="sr-only">Blockquote</span>
           </button>
           <button type="button" onClick={insertCite} className={iconButtonClass(false)}>
-            <span className="text-[14px] leading-none">—</span>
+            <IconCite />
             <span className="sr-only">Cite</span>
           </button>
 
@@ -147,29 +235,45 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
 
           {/* Image */}
           <button type="button" onClick={addImage} className={iconButtonClass(false)}>
-            <span className="relative h-4 w-5 rounded-[3px] border border-gray-400">
-              <span className="absolute left-[2px] bottom-[3px] h-[4px] w-[6px] rotate-[315deg] border-b border-l border-gray-400" />
-              <span className="absolute right-[3px] top-[3px] h-[2px] w-[2px] rounded-full bg-gray-400" />
-            </span>
+            <IconImage />
             <span className="sr-only">Image</span>
           </button>
 
-          {/* đẩy Undo/Redo sang phải */}
+          {/* Symbols */}
+          <button type="button" onClick={() => setShowSymbols((v) => !v)} className={iconButtonClass(showSymbols)}>
+            <IconSymbol />
+            <span className="sr-only">Symbols</span>
+          </button>
+
           <div className="flex-1" />
 
           {/* Undo / Redo */}
           <button type="button" onClick={() => editor.chain().focus().undo().run()} className={iconButtonClass(false)}>
-            <span className="text-[13px] leading-none">↺</span>
+            <IconUndo />
             <span className="sr-only">Undo</span>
           </button>
           <button type="button" onClick={() => editor.chain().focus().redo().run()} className={iconButtonClass(false)}>
-            <span className="text-[13px] leading-none">↻</span>
+            <IconRedo />
             <span className="sr-only">Redo</span>
           </button>
         </div>
       </div>
 
-      {/* Body editor scroll riêng, format giống post detail + TABLE */}
+      {/* SYMBOL BAR */}
+      {showSymbols && (
+        <div className="border-b border-[#2b2b2b] bg-[#181818] px-3 py-2 text-[11px] text-gray-300">
+          <div className="mb-1 font-medium">Common symbols (click to insert at caret):</div>
+          <div className="flex flex-wrap gap-2">
+            {symbolList.map((sym) => (
+              <button key={sym} type="button" onClick={() => insertSymbol(sym)} className="rounded border border-[#3a3a3a] bg-[#111111] px-2.5 py-1.5 text-[12px] font-semibold text-gray-100 hover:bg-[#222222]">
+                {sym}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* BODY */}
       <div className="flex-1 overflow-y-auto px-4 py-3">
         <div className="min-h-[220px] rounded-b-2xl border border-[#2b2b2b] bg-black px-3 py-2 text-sm text-gray-100 shadow-inner">
           <EditorContent
@@ -183,53 +287,41 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
               [&_p]:not-italic
               [&_li]:not-italic
 
-              /* Paragraph */
               [&_p]:my-4
               [&_p:first-of-type]:mt-0
 
-              /* Heading trong bài */
               [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:mt-8 [&_h1]:mb-3
               [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mt-8 [&_h2]:mb-3
               [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-2
-              [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mt-5 [&_h4]:mb-2
 
-              /* Danh sách */
               [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-5
               [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-5
               [&_li]:my-1
 
-              /* Link */
               [&_a]:text-blue-400
               [&_a]:underline-offset-2
               [&_a]:hover:text-blue-300 [&_a]:hover:underline
 
-              /* Strong / em */
               [&_strong]:font-semibold
               [&_em]:italic
 
-              /* Ảnh & figure */
               [&_figure]:my-8 [&_figure]:mx-auto [&_figure]:max-w-full
               [&_figure_img]:rounded-xl [&_figure_img]:shadow-lg
               [&_img]:my-6 [&_img]:mx-auto [&_img]:block [&_img]:max-w-full [&_img]:rounded-xl [&_img]:shadow-md
 
-              /* Caption */
               [&_figcaption]:mt-3 [&_figcaption]:text-[11px] [&_figcaption]:leading-snug [&_figcaption]:text-gray-400
 
-              /* Blockquote */
               [&_blockquote]:my-6 [&_blockquote]:border-l [&_blockquote]:border-gray-700
               [&_blockquote]:pl-4 [&_blockquote]:text-gray-100
               [&_blockquote_p]:my-0
 
-              /* Divider */
               [&_hr]:my-10 [&_hr]:border-gray-800
 
-              /* Citation */
               [&_p.aiot-cite]:mt-1
               [&_p.aiot-cite]:text-[13px] sm:[&_p.aiot-cite]:text-[14px]
               [&_p.aiot-cite]:text-gray-400
               [&_p.aiot-cite]:not-italic
 
-              /* TABLE: trong editor */
               [&_table]:w-full
               [&_table]:border-collapse
               [&_table]:text-[14px]
@@ -239,7 +331,6 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
               [&_tr:nth-child(even)]:bg-[#020617]
               [&_tr:nth-child(odd)]:bg-black
               [&_thead]:bg-[#111827]
-              /* responsive: cho phép kéo ngang nếu bảng rộng */
               [&_table]:block
               [&_table]:overflow-x-auto
               [&_table]:whitespace-nowrap
