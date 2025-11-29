@@ -261,7 +261,7 @@ export function ProductMediaAndPrice({
           <div className="space-y-3">
             {/* Mô tả ngắn */}
             {short_description && (
-              <p className="mb-4 text-xs leading-relaxed text-gray-300">
+              <p className="mb-4 text-sm leading-relaxed text-gray-300">
                 {short_description}
               </p>
             )}

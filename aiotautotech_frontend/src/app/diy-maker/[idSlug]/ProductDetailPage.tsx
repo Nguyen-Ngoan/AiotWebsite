@@ -11,7 +11,6 @@ import {
 } from '@/lib/productMedia';
 import { ProductHero } from './components/ProductHero';
 import { ProductMediaAndPrice } from './components/ProductMediaAndPrice';
-import { ProductFeatures } from './components/ProductFeatures';
 import { ProductTechDocs } from './components/ProductTechDocs';
 import { ProductAdminPanel } from './components/ProductAdminPanel';
 import { ProductDescription } from './components/ProductDescription';
@@ -277,7 +276,7 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
         {/* Nội dung chính */}
         <div className="mt-2 grid gap-6 lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1.1fr)]">
           {/* Cột trái: media, mô tả, features, docs */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             <ProductMediaAndPrice
               mainImage={mainImage}
               short_description={short_description}
@@ -294,15 +293,6 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
             />
 
             <ProductDescription descriptionHtml={description_html} />
-
-            <ProductFeatures
-              hasAnyFeatures={hasAnyFeatures}
-              key_features={key_features}
-              use_cases={use_cases}
-              limitations={limitations}
-              compatibility={compatibility}
-              specs={specs}
-            />
 
             <ProductTechDocs
               datasheet_url={datasheet_url}
@@ -324,6 +314,11 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
               typeLabel={typeLabel}
               created_at={created_at}
               updated_at={updated_at}
+              key_features={key_features}
+              use_cases={use_cases}
+              limitations={limitations}
+              compatibility={compatibility}
+              specs={specs}
             />
           </aside>
         </div>
