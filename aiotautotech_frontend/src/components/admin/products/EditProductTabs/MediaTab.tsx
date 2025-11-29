@@ -1,9 +1,9 @@
 // src/components/admin/products/EditProductTabs/MediaTab.tsx
 
-"use client";
+'use client';
 
-import { ProductFormState } from "@/app/admin/products/productFormTypes";
-import ProductImageUploader from "@/components/admin/ProductImageUploader";
+import { ProductFormState } from '@/app/admin/products/productFormTypes';
+import ProductImageUploader from '@/components/admin/ProductImageUploader';
 
 interface MediaTabProps {
   productId: string;
@@ -11,85 +11,333 @@ interface MediaTabProps {
   setForm: (f: ProductFormState) => void;
 }
 
+type ProductImageMeta = {
+  id?: string;
+  url?: string; // large
+  url_medium?: string;
+  url_thumb?: string;
+  fileName?: string;
+  type?: string;
+  isPrimary?: boolean;
+  alt?: string;
+  title?: string;
+  aiDescription?: string;
+  aiTags?: string;
+  aiContext?: string;
+};
+
 export default function MediaTab({ productId, form, setForm }: MediaTabProps) {
-  const handleGalleryChange = (value: string) => {
-    const lines = value
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0);
-    setForm({ ...form, gallery: lines });
+  const images = (form.images || []) as ProductImageMeta[];
+
+  // Main image = ảnh có isPrimary = true (large url)
+  const primaryImage = images.find((img) => img.isPrimary && img.url);
+  const mainPreviewUrl = primaryImage?.url || '';
+
+  const handleSetPrimary = (index: number) => {
+    const img = images[index];
+    if (!img || !img.url) return;
+
+    const updatedImages = images.map((im, idx) => ({
+      ...im,
+      isPrimary: idx === index,
+    }));
+
+    setForm({
+      ...form,
+      images: updatedImages,
+    });
+  };
+
+  const handleClearPrimary = () => {
+    const updatedImages = images.map((im) => ({
+      ...im,
+      isPrimary: false,
+    }));
+
+    setForm({
+      ...form,
+      images: updatedImages,
+    });
+  };
+
+  const handleCopyUrl = async (url?: string) => {
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      console.log('Copied image URL:', url);
+    } catch (err) {
+      console.error('Cannot copy to clipboard', err);
+    }
+  };
+
+  const handleUpdateImageField = (
+    index: number,
+    field: keyof ProductImageMeta,
+    value: string | boolean
+  ) => {
+    const updatedImages = images.map((img, idx) =>
+      idx === index
+        ? {
+            ...img,
+            [field]: value,
+          }
+        : img
+    );
+
+    setForm({
+      ...form,
+      images: updatedImages,
+    });
+  };
+
+  const handleDeleteImage = (index: number) => {
+    const img = images[index];
+    if (!img) return;
+
+    const updatedImages = images.filter((_, idx) => idx !== index);
+
+    // KHÔNG auto set primary mới.
+    // Nếu ảnh bị xoá là primary thì sau khi xoá có thể không còn main image.
+    setForm({
+      ...form,
+      images: updatedImages,
+    });
   };
 
   return (
     <div className="space-y-6">
-      {/* URL ảnh chính + gallery (giữ logic hiện tại) */}
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Ảnh chính (main_image_url)</label>
-          <input type="text" className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500" value={form.mainImageUrl} onChange={(e) => setForm({ ...form, mainImageUrl: e.target.value })} placeholder="https://..." />
-          <p className="text-xs text-gray-500 mt-1">Có thể trỏ đến 1 URL trong danh sách ảnh đã upload bên dưới.</p>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Gallery URLs (mỗi dòng 1 URL)</label>
-          <textarea className="mt-1 block w-full min-h-[160px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500" value={form.gallery.join("\n")} onChange={(e) => handleGalleryChange(e.target.value)} placeholder={"https://...\nhttps://...\nhttps://..."} />
-          <p className="text-xs text-gray-500 mt-1">
-            Backend sẽ lưu vào field <code>gallery_urls</code> (array string).
-          </p>
-        </div>
-      </div>
-
-      {/* Danh sách ảnh đã upload từ Firestore.images */}
-      <div className="border-t pt-4 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-800">Ảnh đã upload (Cloudflare R2)</h3>
-        {form.images && form.images.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {form.images.map((img: any, idx: number) => (
-              <div key={img.id || img.url || idx} className="flex gap-2 rounded-md border border-gray-200 p-2 bg-white">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img.url || img.image_url || ""} alt={img.alt || ""} className="w-24 h-24 rounded-md object-cover border" />
-                <div className="flex-1 text-xs space-y-1">
-                  <div className="font-semibold text-gray-800">{img.title || "Không có title"}</div>
-                  <div className="text-gray-600">
-                    <span className="text-gray-400">Type: </span>
-                    {img.type || "—"}
-                  </div>
-                  <div className="text-gray-600">
-                    <span className="text-gray-400">Primary: </span>
-                    {img.is_primary ? "Yes" : "No"}
-                  </div>
-                  {img.alt && (
-                    <div className="text-gray-600">
-                      <span className="text-gray-400">Alt: </span>
-                      {img.alt}
-                    </div>
-                  )}
-                  {img.ai_tags && (
-                    <div className="text-gray-500">
-                      <span className="text-gray-400">AI tags: </span>
-                      {img.ai_tags}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+      {/* 1. MAIN IMAGE (derived from isPrimary) */}
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">
+              Main product image
+            </h3>
+            <p className="mt-1 text-xs text-gray-500">
+              Main image is chosen from the <code>images</code> list by setting{' '}
+              <code>isPrimary = true</code>. If no image is primary, the product
+              has no main image.
+            </p>
           </div>
-        ) : (
-          <p className="text-xs text-gray-500">
-            Chưa có ảnh nào trong Firestore (field <code>images</code>).
-          </p>
-        )}
+          <button
+            type="button"
+            onClick={handleClearPrimary}
+            className="inline-flex items-center rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:border-red-400 hover:text-red-600"
+          >
+            Clear main image
+          </button>
+        </div>
+
+        <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1.2fr)]">
+          {/* Preview main image */}
+          <div>
+            <div className="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+              {mainPreviewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={mainPreviewUrl}
+                  alt={primaryImage?.alt || primaryImage?.title || 'Main image'}
+                  className="h-56 w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-56 items-center justify-center text-sm text-gray-400">
+                  No main image selected.
+                </div>
+              )}
+            </div>
+            {primaryImage && (
+              <p className="mt-2 text-xs text-gray-500">
+                Primary image:{' '}
+                <span className="font-mono break-all text-gray-700">
+                  {primaryImage.fileName || primaryImage.id || primaryImage.url}
+                </span>
+              </p>
+            )}
+          </div>
+
+          {/* Giải thích logic main image */}
+          <div className="space-y-2 text-xs text-gray-600">
+            <p>
+              • Main image is not stored in a separate{' '}
+              <code>main_image_url</code> field anymore.
+            </p>
+            <p>
+              • Instead, the frontend and SEO logic should use{' '}
+              <code>product.images</code> and pick the one with{' '}
+              <code>isPrimary = true</code> as main image.
+            </p>
+            <p>
+              • If you delete the primary image and don&apos;t set another one
+              as primary, the product will have <strong>no main image</strong>.
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Upload ảnh mới */}
-      <div className="border-t pt-4 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-800">Upload ảnh mới</h3>
-        <p className="text-xs text-gray-500 mb-1">
-          Chọn ảnh, nhập SEO file name, alt, title, type, isPrimary, AI tags... rồi upload. Backend sẽ:
-          <br />- lưu file vào Cloudflare R2
-          <br />- cập nhật metadata vào Firestore (<code>products/:id/images</code>).
+      {/* 2. LIST OF UPLOADED IMAGES */}
+      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-900">
+          Uploaded images (Cloudflare R2)
+        </h3>
+        <p className="mt-1 text-xs text-gray-500">
+          All image metadata is stored in the <code>images</code> field of the
+          product document.
         </p>
-        <ProductImageUploader productId={productId} onUploaded={(newImages) => setForm({ ...form, images: newImages })} />
+
+        {images.length === 0 ? (
+          <p className="mt-3 text-sm text-gray-400">
+            No images uploaded for this product yet.
+          </p>
+        ) : (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {images.map((img, idx) => {
+              const urlLarge = img.url || '';
+              const urlMedium = img.url_medium || urlLarge;
+              const urlThumb = img.url_thumb || urlMedium;
+
+              const displayUrl = urlThumb || urlMedium || urlLarge;
+              const shortUrl =
+                displayUrl.length > 50
+                  ? displayUrl.slice(0, 47) + '...'
+                  : displayUrl;
+
+              return (
+                <div
+                  key={img.id || displayUrl || idx}
+                  className="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
+                >
+                  <div className="relative bg-black/5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    {displayUrl ? (
+                      <img
+                        src={displayUrl}
+                        alt={img.alt || img.title || `Image ${idx + 1}`}
+                        className="h-40 w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-40 items-center justify-center text-xs text-gray-400">
+                        No preview
+                      </div>
+                    )}
+
+                    {img.isPrimary && (
+                      <span className="absolute left-2 top-2 rounded bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white shadow">
+                        PRIMARY
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-1 flex-col gap-2 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-medium text-gray-900">
+                        {img.fileName || img.id || `Image ${idx + 1}`}
+                      </span>
+                      <span className="text-[11px] text-gray-500">
+                        {img.type || 'gallery'}
+                      </span>
+                    </div>
+
+                    {/* Editable fields */}
+                    <div className="space-y-1">
+                      <div>
+                        <label className="block text-[11px] text-gray-500">
+                          Alt text
+                        </label>
+                        <input
+                          type="text"
+                          className="mt-0.5 w-full rounded border border-gray-300 px-2 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          value={img.alt || ''}
+                          onChange={(e) =>
+                            handleUpdateImageField(idx, 'alt', e.target.value)
+                          }
+                          placeholder="Mô tả ngắn cho SEO / accessibility"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] text-gray-500">
+                          Title
+                        </label>
+                        <input
+                          type="text"
+                          className="mt-0.5 w-full rounded border border-gray-300 px-2 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          value={img.title || ''}
+                          onChange={(e) =>
+                            handleUpdateImageField(idx, 'title', e.target.value)
+                          }
+                          placeholder="Tiêu đề hiển thị khi hover"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] text-gray-500">
+                          Type
+                        </label>
+                        <input
+                          type="text"
+                          className="mt-0.5 w-full rounded border border-gray-300 px-2 py-1 text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          value={img.type || ''}
+                          onChange={(e) =>
+                            handleUpdateImageField(idx, 'type', e.target.value)
+                          }
+                          placeholder="cover / gallery / detail / dimension..."
+                        />
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-gray-500">
+                      Thumb:{' '}
+                      <span className="font-mono break-all text-gray-700">
+                        {shortUrl || '—'}
+                      </span>
+                    </p>
+
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleSetPrimary(idx)}
+                        className="inline-flex items-center rounded border border-gray-300 bg-white px-2 py-1 text-[11px] font-medium text-gray-700 hover:border-blue-500 hover:text-blue-600"
+                      >
+                        Set as Primary
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyUrl(urlLarge || urlMedium)}
+                        className="inline-flex items-center rounded border border-gray-300 bg-white px-2 py-1 text-[11px] font-medium text-gray-600 hover:border-gray-400"
+                      >
+                        Copy large URL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteImage(idx)}
+                        className="inline-flex items-center rounded border border-red-300 bg-white px-2 py-1 text-[11px] font-medium text-red-600 hover:border-red-400"
+                      >
+                        Delete image
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <hr className="my-4 border-dashed border-gray-200" />
+
+        <p className="mb-2 text-xs text-gray-500">
+          Upload new images. They will be resized and stored on Cloudflare R2.
+          After upload, the <code>images</code> field (and this list) will be
+          updated automatically.
+        </p>
+        <ProductImageUploader
+          productId={productId}
+          onUploaded={(newImages) =>
+            setForm({
+              ...form,
+              images: newImages,
+            })
+          }
+        />
       </div>
     </div>
   );

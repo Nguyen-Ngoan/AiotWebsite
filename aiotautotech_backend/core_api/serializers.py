@@ -76,13 +76,18 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ProductImageUploadSerializer(serializers.Serializer):
-  file = serializers.ImageField()
-  seo_file_name = serializers.CharField(max_length=255)
-  alt = serializers.CharField(max_length=500)
-  title = serializers.CharField(max_length=500, required=False, allow_blank=True)
-  type = serializers.ChoiceField(choices=["cover", "gallery", "detail", "dimension"])
-  is_primary = serializers.BooleanField(default=False)
+    file = serializers.ImageField()
+    seo_file_name = serializers.CharField(max_length=255)
+    alt = serializers.CharField(
+        max_length=500,
+        required=False,
+        allow_blank=True,   
+    )
+    title = serializers.CharField(max_length=500, required=False, allow_blank=True)
+    type = serializers.ChoiceField(choices=["cover", "gallery", "detail", "dimension"])
+    is_primary = serializers.BooleanField(default=False)
 
-  ai_description = serializers.CharField(required=False, allow_blank=True)
-  ai_tags = serializers.CharField(required=False, allow_blank=True)
-  ai_context = serializers.CharField(required=False, allow_blank=True)
+    ai_description = serializers.CharField(required=False, allow_blank=True)
+    ai_tags = serializers.CharField(required=False, allow_blank=True)
+    ai_context = serializers.CharField(required=False, allow_blank=True)
+

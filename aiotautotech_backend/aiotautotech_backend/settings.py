@@ -65,6 +65,7 @@ R2_PUBLIC_BASE_URL = os.environ.get(
     "R2_PUBLIC_BASE_URL",
     "https://cdn.aiotautotech.com",  
 )
+CDN_URL = os.environ.get("CDN_URL", "https://cdn.aiotautotech.com")
 
 # ==============================================================================
 # 3. APPS & MIDDLEWARE

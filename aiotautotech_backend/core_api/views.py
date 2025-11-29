@@ -16,6 +16,12 @@ from .serializers import ProductImageUploadSerializer
 from storage.r2 import upload_file_to_r2, generate_image_key
 from services.firestore_products import add_product_image_metadata
 
+import io
+from PIL import Image
+import boto3
+from django.conf import settings
+
+
 def _serialize_post(doc):
     data = doc.to_dict() or {}
 
@@ -29,9 +35,39 @@ def _serialize_post(doc):
         "updated_at": data.get("updated_at"),
     }
 
-
 def _serialize_product(doc):
     data = doc.to_dict() or {}
+
+    # ===== ẢNH (SOURCE OF TRUTH) =====
+    images = data.get("images") or []
+    if not isinstance(images, list):
+        images = []
+
+    # Lấy danh sách URL từ images (nếu có)
+    gallery_urls_from_images: List[str] = []
+    for img in images:
+        if isinstance(img, dict):
+            url = img.get("url")
+            if url:
+                gallery_urls_from_images.append(str(url))
+
+    # Dữ liệu cũ: nếu trong Firestore từng lưu gallery_urls thì vẫn đọc
+    stored_gallery = data.get("gallery_urls") or []
+    if isinstance(stored_gallery, str):
+        # Cho phép dạng string xuống dòng / phẩy – convert về list
+        stored_gallery = [
+            u.strip()
+            for part in stored_gallery.splitlines()
+            for u in part.split(",")
+            if u.strip()
+        ]
+    elif isinstance(stored_gallery, (list, tuple)):
+        stored_gallery = [str(u).strip() for u in stored_gallery if str(u).strip()]
+    else:
+        stored_gallery = []
+
+    # Ưu tiên dữ liệu mới từ images; nếu chưa có images thì fallback stored_gallery
+    gallery_urls = gallery_urls_from_images or stored_gallery
 
     return {
         "id": doc.id,
@@ -53,7 +89,10 @@ def _serialize_product(doc):
 
         # Media
         "main_image_url": data.get("main_image_url") or "",
-        "gallery_urls": data.get("gallery_urls") or [],
+        # gallery_urls giờ là field DERIVED từ images
+        "gallery_urls": gallery_urls,
+        # images là source of truth
+        "images": images,
 
         # SEO
         "seo_title": data.get("seo_title", "") or "",
@@ -68,7 +107,6 @@ def _serialize_product(doc):
         "user_manual_url": data.get("user_manual_url", "") or "",
         "github_repo_url": data.get("github_repo_url", "") or "",
     }
-
 
 class RootView(APIView):
     """
@@ -232,125 +270,96 @@ class ProductListView(APIView):
         return Response(products)
 
     def post(self, request, *args, **kwargs):
-        data = request.data
+        data = request.data or {}
 
         title = (data.get("title") or "").strip()
-        slug_input = (data.get("slug") or "").strip()
-
         if not title:
-            return Response({"error": "Title is required"}, status=400)
+            return Response(
+                {"detail": "Title is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        slug = slugify(slug_input or title)
+        slug = data.get("slug") or slugify(title)
 
-        short_description = (data.get("short_description") or "").strip()
-        description_html = (data.get("description_html") or "").strip()
-        product_type = (data.get("product_type") or "simple").strip()
-        status_value = (data.get("status") or "draft").strip()
+        # Đọc các field features (support cả snake_case và camelCase)
+        key_features = data.get("key_features")
+        if key_features is None:
+            key_features = data.get("keyFeatures", [])
 
-        # Các trường số: chấp nhận cả string lẫn number
-        def to_int(value, default=None):
-            if value in (None, ""):
-                return default
-            try:
-                return int(value)
-            except (TypeError, ValueError):
-                try:
-                    return int(float(value))
-                except (TypeError, ValueError):
-                    return default
+        use_cases = data.get("use_cases")
+        if use_cases is None:
+            use_cases = data.get("useCases", [])
 
-        def to_float(value, default=None):
-            if value in (None, ""):
-                return default
-            try:
-                return float(value)
-            except (TypeError, ValueError):
-                return default
+        limitations = data.get("limitations")
+        if limitations is None:
+            limitations = data.get("limitations", [])
 
-        base_price = to_float(data.get("base_price"), default=None)
-        currency = (data.get("currency") or "VND").strip() or "VND"
-        sku = (data.get("sku") or "").strip()
-        stock_tracking = bool(data.get("stock_tracking", True))
-        stock_qty = to_int(data.get("stock_qty"), default=0) or 0
-        min_order_qty = to_int(data.get("min_order_qty"), default=1) or 1
+        compatibility = data.get("compatibility")
+        if compatibility is None:
+            compatibility = data.get("compatibility", [])
 
-        # Tags: có thể là list hoặc string
-        tags = data.get("tags") or []
-        if isinstance(tags, str):
-            tags = [t.strip() for t in tags.split(",") if t.strip()]
+        specs = data.get("specs", [])
 
-        # Media
-        main_image_url = (data.get("main_image_url") or "").strip()
-        gallery_raw = data.get("gallery_urls") or []
-        if isinstance(gallery_raw, str):
-            # Cho phép gửi string phân tách bằng xuống dòng hoặc dấu phẩy
-            gallery_urls = [
-                u.strip()
-                for part in gallery_raw.splitlines()
-                for u in part.split(",")
-                if u.strip()
-            ]
-        elif isinstance(gallery_raw, (list, tuple)):
-            gallery_urls = [str(u).strip() for u in gallery_raw if str(u).strip()]
-        else:
-            gallery_urls = []
-
-        # SEO
-        seo_title = (data.get("seo_title") or "").strip()
-        seo_description = (data.get("seo_description") or "").strip()
-        og_image = (data.get("og_image") or "").strip()
-
-        # Tech docs
-        datasheet_url = (data.get("datasheet_url") or "").strip()
-        schematic_url = (data.get("schematic_url") or "").strip()
-        step_model_url = (data.get("step_model_url") or "").strip()
-        stl_files_url = (data.get("stl_files_url") or "").strip()
-        user_manual_url = (data.get("user_manual_url") or "").strip()
-        github_repo_url = (data.get("github_repo_url") or "").strip()
-
-        now = timezone.now()
+        # Đảm bảo list
+        if not isinstance(key_features, list):
+            key_features = []
+        if not isinstance(use_cases, list):
+            use_cases = []
+        if not isinstance(limitations, list):
+            limitations = []
+        if not isinstance(compatibility, list):
+            compatibility = []
+        if not isinstance(specs, list):
+            specs = []
 
         payload = {
             "title": title,
             "slug": slug,
-            "short_description": short_description,
-            "description_html": description_html,
-            "product_type": product_type,
-            "status": status_value,
-            "base_price": base_price,
-            "currency": currency,
-            "sku": sku,
-            "stock_tracking": stock_tracking,
-            "stock_qty": stock_qty,
-            "min_order_qty": min_order_qty,
-            "tags": tags,
+            "short_description": data.get("short_description", ""),
+            "description_html": data.get("description_html", ""),
+            "product_type": data.get("product_type", ""),
+            "status": data.get("status", ""),
+            "base_price": data.get("base_price"),
+            "currency": data.get("currency", "VND"),
+            "sku": data.get("sku", ""),
+            "stock_tracking": data.get("stock_tracking", True),
+            "stock_qty": data.get("stock_qty", 0),
+            "min_order_qty": data.get("min_order_qty", 1),
+            "tags": data.get("tags", []),
 
             # Media
-            "main_image_url": main_image_url,
-            "gallery_urls": gallery_urls,
+            "main_image_url": data.get("main_image_url") or "",
+            "gallery_urls": data.get("gallery_urls") or [],
 
             # SEO
-            "seo_title": seo_title,
-            "seo_description": seo_description,
-            "og_image": og_image,
+            "seo_title": data.get("seo_title", "") or "",
+            "seo_description": data.get("seo_description", "") or "",
+            "og_image": data.get("og_image", "") or "",
 
             # Tech docs
-            "datasheet_url": datasheet_url,
-            "schematic_url": schematic_url,
-            "step_model_url": step_model_url,
-            "stl_files_url": stl_files_url,
-            "user_manual_url": user_manual_url,
-            "github_repo_url": github_repo_url,
+            "datasheet_url": data.get("datasheet_url", "") or "",
+            "schematic_url": data.get("schematic_url", "") or "",
+            "step_model_url": data.get("step_model_url", "") or "",
+            "stl_files_url": data.get("stl_files_url", "") or "",
+            "user_manual_url": data.get("user_manual_url", "") or "",
+            "github_repo_url": data.get("github_repo_url", "") or "",
 
-            "created_at": now,
-            "updated_at": now,
+            # === Features (NEW) ===
+            "key_features": key_features,
+            "use_cases": use_cases,
+            "limitations": limitations,
+            "compatibility": compatibility,
+            "specs": specs,
         }
+
+        now = timezone.now()
+        payload["created_at"] = now
+        payload["updated_at"] = now
 
         doc_ref = db.collection("products").document()
         doc_ref.set(payload)
 
-        doc = doc_ref.get()
-        return Response(_serialize_product(doc), status=201)
+        return Response(_serialize_product(doc_ref.get()), status=status.HTTP_201_CREATED)
 
 
 class ProductDetailView(APIView):
@@ -378,8 +387,8 @@ class ProductDetailView(APIView):
         if not doc.exists:
             return Response({"error": "Product not found"}, status=404)
 
-        data = request.data
-        update_data = {}
+        data = request.data or {}
+        update_data: Dict[str, Any] = {}
 
         # Các trường text cơ bản
         if "title" in data:
@@ -387,10 +396,14 @@ class ProductDetailView(APIView):
             update_data["title"] = title
 
         if "short_description" in data:
-            update_data["short_description"] = (data.get("short_description") or "").strip()
+            update_data["short_description"] = (
+                data.get("short_description") or ""
+            ).strip()
 
         if "description_html" in data:
-            update_data["description_html"] = (data.get("description_html") or "").strip()
+            update_data["description_html"] = (
+                data.get("description_html") or ""
+            ).strip()
 
         if "product_type" in data:
             update_data["product_type"] = (data.get("product_type") or "").strip()
@@ -431,16 +444,22 @@ class ProductDetailView(APIView):
                 return default
 
         if "base_price" in data:
-            update_data["base_price"] = to_float(data.get("base_price"), default=None)
+            update_data["base_price"] = to_float(
+                data.get("base_price"), default=None
+            )
 
         if "stock_tracking" in data:
             update_data["stock_tracking"] = bool(data.get("stock_tracking"))
 
         if "stock_qty" in data:
-            update_data["stock_qty"] = to_int(data.get("stock_qty"), default=0) or 0
+            update_data["stock_qty"] = to_int(
+                data.get("stock_qty"), default=0
+            ) or 0
 
         if "min_order_qty" in data:
-            update_data["min_order_qty"] = to_int(data.get("min_order_qty"), default=1) or 1
+            update_data["min_order_qty"] = to_int(
+                data.get("min_order_qty"), default=1
+            ) or 1
 
         if "tags" in data:
             tags = data.get("tags") or []
@@ -449,9 +468,6 @@ class ProductDetailView(APIView):
             update_data["tags"] = tags
 
         # Media
-        if "main_image_url" in data:
-            update_data["main_image_url"] = (data.get("main_image_url") or "").strip()
-
         if "gallery_urls" in data:
             gallery_raw = data.get("gallery_urls") or []
             if isinstance(gallery_raw, str):
@@ -462,40 +478,106 @@ class ProductDetailView(APIView):
                     if u.strip()
                 ]
             elif isinstance(gallery_raw, (list, tuple)):
-                gallery_urls = [str(u).strip() for u in gallery_raw if str(u).strip()]
+                gallery_urls = [
+                    str(u).strip() for u in gallery_raw if str(u).strip()
+                ]
             else:
                 gallery_urls = []
             update_data["gallery_urls"] = gallery_urls
+
+        # images: full metadata list từ UI admin (xoá / edit image)
+        if "images" in data:
+            images = data.get("images") or []
+            if isinstance(images, (list, tuple)):
+                # không validate sâu – tin tưởng dữ liệu từ admin UI
+                update_data["images"] = list(images)
+
 
         # SEO
         if "seo_title" in data:
             update_data["seo_title"] = (data.get("seo_title") or "").strip()
 
         if "seo_description" in data:
-            update_data["seo_description"] = (data.get("seo_description") or "").strip()
+            update_data["seo_description"] = (
+                data.get("seo_description") or ""
+            ).strip()
 
         if "og_image" in data:
             update_data["og_image"] = (data.get("og_image") or "").strip()
 
         # Tech docs
         if "datasheet_url" in data:
-            update_data["datasheet_url"] = (data.get("datasheet_url") or "").strip()
+            update_data["datasheet_url"] = (
+                data.get("datasheet_url") or ""
+            ).strip()
 
         if "schematic_url" in data:
-            update_data["schematic_url"] = (data.get("schematic_url") or "").strip()
+            update_data["schematic_url"] = (
+                data.get("schematic_url") or ""
+            ).strip()
 
         if "step_model_url" in data:
-            update_data["step_model_url"] = (data.get("step_model_url") or "").strip()
+            update_data["step_model_url"] = (
+                data.get("step_model_url") or ""
+            ).strip()
 
         if "stl_files_url" in data:
-            update_data["stl_files_url"] = (data.get("stl_files_url") or "").strip()
+            update_data["stl_files_url"] = (
+                data.get("stl_files_url") or ""
+            ).strip()
 
         if "user_manual_url" in data:
-            update_data["user_manual_url"] = (data.get("user_manual_url") or "").strip()
+            update_data["user_manual_url"] = (
+                data.get("user_manual_url") or ""
+            ).strip()
 
         if "github_repo_url" in data:
-            update_data["github_repo_url"] = (data.get("github_repo_url") or "").strip()
+            update_data["github_repo_url"] = (
+                data.get("github_repo_url") or ""
+            ).strip()
 
+        # === Features (NEW) ===
+
+        # key_features: chấp nhận cả key_features & keyFeatures
+        if "key_features" in data or "keyFeatures" in data:
+            key_features = data.get("key_features")
+            if key_features is None:
+                key_features = data.get("keyFeatures", [])
+            if not isinstance(key_features, list):
+                key_features = []
+            update_data["key_features"] = key_features
+
+        # use_cases: chấp nhận cả use_cases & useCases
+        if "use_cases" in data or "useCases" in data:
+            use_cases = data.get("use_cases")
+            if use_cases is None:
+                use_cases = data.get("useCases", [])
+            if not isinstance(use_cases, list):
+                use_cases = []
+            update_data["use_cases"] = use_cases
+
+        # limitations
+        if "limitations" in data:
+            limitations = data.get("limitations", [])
+            if not isinstance(limitations, list):
+                limitations = []
+            update_data["limitations"] = limitations
+
+        # compatibility
+        if "compatibility" in data:
+            compatibility = data.get("compatibility", [])
+            if not isinstance(compatibility, list):
+                compatibility = []
+            update_data["compatibility"] = compatibility
+
+        # specs
+        if "specs" in data:
+            specs = data.get("specs", [])
+            if not isinstance(specs, list):
+                specs = []
+            update_data["specs"] = specs
+
+        # updated_at
         update_data["updated_at"] = timezone.now()
 
         if update_data:
@@ -504,7 +586,6 @@ class ProductDetailView(APIView):
         doc = doc_ref.get()
         return Response(_serialize_product(doc))
 
-
     def delete(self, request, product_id: str, *args, **kwargs):
         doc = self.get_object(product_id)
         doc.reference.delete()
@@ -512,93 +593,85 @@ class ProductDetailView(APIView):
 
 
 class ProductImageUploadView(APIView):
-    """
-    POST /api/products/<product_id>/images/
-
-    Multipart form-data:
-      - file: ảnh
-      - seo_file_name
-      - alt
-      - title
-      - type
-      - is_primary
-      - ai_description
-      - ai_tags (comma separated)
-      - ai_context
-    """
-
-    parser_classes = [MultiPartParser, FormParser]
-
-    def post(self, request, product_id: str, format=None):
-        serializer = ProductImageUploadSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        validated = serializer.validated_data
-        file_obj = validated["file"]
-
-        seo_file_name: str = validated["seo_file_name"]
-        alt: str = validated["alt"]
-        title: str = validated.get("title") or ""
-        img_type: str = validated["type"]
-        is_primary: bool = validated.get("is_primary", False)
-
-        ai_description: str = validated.get("ai_description", "")
-        ai_tags_raw: str = validated.get("ai_tags", "")
-        ai_context: str = validated.get("ai_context", "")
-
-        # Parse AI tags: "linear_rail, stepper_motor" -> ["linear_rail", "stepper_motor"]
-        ai_tags: List[str] = [
-            tag.strip() for tag in ai_tags_raw.split(",") if tag.strip()
-        ]
-
-        # Content-Type
-        content_type, _ = mimetypes.guess_type(file_obj.name)
-        if not content_type:
-            content_type = "image/jpeg"
-
-        # Key trên R2
-        key = generate_image_key(product_id, seo_file_name)
-
-        # Upload lên R2
+    def post(self, request, product_id):
         try:
-            public_url = upload_file_to_r2(
-                file_obj=file_obj,
-                key=key,
-                content_type=content_type,
+            file = request.FILES.get("file")
+            if not file:
+                return Response({"error": "No file uploaded"}, status=400)
+
+            # ---- Read image ----
+            img = Image.open(file).convert("RGB")
+
+            # ---- Define sizes (3:2) ----
+            SIZES = {
+                "large":  (1500, 1000),
+                "medium": (1200, 800),
+                "thumb":  (600, 400),
+            }
+
+            resized_files = {}
+
+            for key, (w, h) in SIZES.items():
+                buf = io.BytesIO()
+                resized = img.resize((w, h), Image.Resampling.LANCZOS)
+                resized.save(buf, format="JPEG", quality=85)
+                buf.seek(0)
+                resized_files[key] = buf
+
+            # ---- Upload 3 files to R2 ----
+            session = boto3.session.Session()
+            s3 = session.client(
+                "s3",
+                endpoint_url=f"https://{settings.R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+                aws_access_key_id=settings.R2_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
             )
+
+            base_name = file.name.rsplit(".", 1)[0]
+            folder = f"images/products/{product_id}"
+
+            urls = {}
+
+            for key, buf in resized_files.items():
+                r2_key = f"{folder}/{base_name}-{key}.jpg"
+
+                s3.upload_fileobj(
+                    buf,
+                    settings.R2_BUCKET_NAME,
+                    r2_key,
+                    ExtraArgs={"ContentType": "image/jpeg"}
+                )
+
+                urls[key] = (
+                    f"{settings.CDN_URL}/{r2_key}"
+                )
+
+            # ---- Lưu metadata vào Firestore ----
+            doc_ref = db.collection("products").document(product_id)
+            doc = doc_ref.get()
+            data = doc.to_dict() or {}
+
+            images = data.get("images", [])
+            new_img_meta = {
+                "id": f"{base_name}",
+                "fileName": base_name,
+                "type": "gallery",
+                "isPrimary": False,
+                "url": urls["large"],
+                "url_medium": urls["medium"],
+                "url_thumb": urls["thumb"],
+                "alt": "",
+                "title": "",
+            }
+
+            images.append(new_img_meta)
+            doc_ref.update({"images": images})
+
+            return Response({"images": images}, status=200)
+
         except Exception as e:
+            print("Resize/Upload error:", e)
             return Response(
-                {"detail": f"Cannot upload to R2: {e}"},
+                {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-        # Build metadata
-        image_data: Dict[str, Any] = {
-            "id": key,  # hoặc uuid, tuỳ bạn
-            "url": public_url,
-            "fileName": seo_file_name,
-            "alt": alt,
-            "title": title,
-            "type": img_type,
-            "isPrimary": is_primary,
-            "aiDescription": ai_description,
-            "aiTags": ai_tags,
-            "aiContext": ai_context,
-        }
-
-        # Lưu vào Firestore
-        try:
-            add_product_image_metadata(product_id=product_id, image_data=image_data)
-        except ValueError as ve:
-            # Product chưa tồn tại
-            return Response(
-                {"detail": str(ve)}, status=status.HTTP_400_BAD_REQUEST
-            )
-        except Exception as e:
-            return Response(
-                {"detail": f"Cannot save metadata to Firestore: {e}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-        return Response(image_data, status=status.HTTP_201_CREATED)

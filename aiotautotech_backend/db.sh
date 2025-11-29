@@ -21,7 +21,7 @@ FRONTEND_ORIGINS_DEFAULT="https://aiotautotech.com,https://www.aiotautotech.com,
 FRONTEND_ORIGINS="${FRONTEND_ORIGINS:-$FRONTEND_ORIGINS_DEFAULT}"
 
 # SECRET_KEY (nên set từ biến môi trường / Secret Manager khi deploy thật)
-SECRET_KEY="${SECRET_KEY:-change-me-secret-key}"
+SECRET_KEY="${SECRET_KEY:-%9uwmst5f!o&\*ccc-=@1v&@7^9@tu%vneaecg0#))u&#c3v^bo}"
 
 ########################################
 # CẤU HÌNH CLOUDFLARE R2
@@ -32,11 +32,12 @@ R2_BUCKET_NAME="${R2_BUCKET_NAME:-aiotautotech}"
 R2_ACCOUNT_ID="${R2_ACCOUNT_ID:-de158de4efc0b5dcbb268f4483912cfc}"
 
 # KHÔNG nên commit thẳng key thật lên git, chỉ để demo
-R2_ACCESS_KEY_ID="${R2_ACCESS_KEY_ID:-de158de4efc0b5dcbb268f4483912cfc}"
-R2_SECRET_ACCESS_KEY="${R2_SECRET_ACCESS_KEY:-a278905ec66de947b5ddf0d5cb8dd1b5}"
+R2_ACCESS_KEY_ID="${R2_ACCESS_KEY_ID:-a278905ec66de947b5ddf0d5cb8dd1b5}"
+R2_SECRET_ACCESS_KEY="${R2_SECRET_ACCESS_KEY:-f76cfbfbb1843b49460033cd82344aaad94864f5b90f1abaef02133ee46e9708}"
 
 # Public URL của bucket hoặc custom domain CDN
 R2_PUBLIC_BASE_URL="${R2_PUBLIC_BASE_URL:-https://cdn.aiotautotech.com}"
+CDN_URL="${CDN_URL:-https://cdn.aiotautotech.com}"
 
 ########################################
 # THÔNG TIN TRIỂN KHAI
@@ -68,7 +69,7 @@ gcloud run deploy "$SERVICE_NAME" \
   --platform managed \
   --region "$REGION" \
   --allow-unauthenticated \
-  --set-env-vars="^;^SECRET_KEY=$SECRET_KEY;FIRESTORE_PROJECT_ID=$PROJECT_ID;FRONTEND_ORIGINS=$FRONTEND_ORIGINS;R2_BUCKET_NAME=$R2_BUCKET_NAME;R2_ACCOUNT_ID=$R2_ACCOUNT_ID;R2_ACCESS_KEY_ID=$R2_ACCESS_KEY_ID;R2_SECRET_ACCESS_KEY=$R2_SECRET_ACCESS_KEY;R2_PUBLIC_BASE_URL=$R2_PUBLIC_BASE_URL"
+  --set-env-vars="^;^SECRET_KEY=$SECRET_KEY;FIRESTORE_PROJECT_ID=$PROJECT_ID;FRONTEND_ORIGINS=$FRONTEND_ORIGINS;R2_BUCKET_NAME=$R2_BUCKET_NAME;R2_ACCOUNT_ID=$R2_ACCOUNT_ID;R2_ACCESS_KEY_ID=$R2_ACCESS_KEY_ID;R2_SECRET_ACCESS_KEY=$R2_SECRET_ACCESS_KEY;R2_PUBLIC_BASE_URL=$R2_PUBLIC_BASE_URL;CDN_URL=$CDN_URL"
 
 echo ">>> Backend deployed!"
 
