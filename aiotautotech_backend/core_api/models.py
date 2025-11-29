@@ -88,18 +88,6 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    main_image_url = models.URLField(
-        max_length=500,
-        blank=True,
-        help_text="Ảnh chính của sản phẩm (URL, thường từ CDN/R2).",
-    )
-    gallery_urls = models.JSONField(
-        blank=True,
-        null=True,
-        default=list,
-        help_text="Danh sách URL ảnh phụ (gallery).",
-    )
-
     class Meta:
         ordering = ["title"]
 

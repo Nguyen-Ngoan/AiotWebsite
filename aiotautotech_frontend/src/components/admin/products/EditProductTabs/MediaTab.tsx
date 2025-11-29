@@ -29,10 +29,6 @@ type ProductImageMeta = {
 export default function MediaTab({ productId, form, setForm }: MediaTabProps) {
   const images = (form.images || []) as ProductImageMeta[];
 
-  // Main image = ảnh có isPrimary = true (large url)
-  const primaryImage = images.find((img) => img.isPrimary && img.url);
-  const mainPreviewUrl = primaryImage?.url || '';
-
   const handleSetPrimary = (index: number) => {
     const img = images[index];
     if (!img || !img.url) return;
@@ -40,18 +36,6 @@ export default function MediaTab({ productId, form, setForm }: MediaTabProps) {
     const updatedImages = images.map((im, idx) => ({
       ...im,
       isPrimary: idx === index,
-    }));
-
-    setForm({
-      ...form,
-      images: updatedImages,
-    });
-  };
-
-  const handleClearPrimary = () => {
-    const updatedImages = images.map((im) => ({
-      ...im,
-      isPrimary: false,
     }));
 
     setForm({
@@ -106,74 +90,6 @@ export default function MediaTab({ productId, form, setForm }: MediaTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* 1. MAIN IMAGE (derived from isPrimary) */}
-      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900">
-              Main product image
-            </h3>
-            <p className="mt-1 text-xs text-gray-500">
-              Main image is chosen from the <code>images</code> list by setting{' '}
-              <code>isPrimary = true</code>. If no image is primary, the product
-              has no main image.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleClearPrimary}
-            className="inline-flex items-center rounded border border-gray-300 bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:border-red-400 hover:text-red-600"
-          >
-            Clear main image
-          </button>
-        </div>
-
-        <div className="mt-4 grid gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1.2fr)]">
-          {/* Preview main image */}
-          <div>
-            <div className="relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
-              {mainPreviewUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={mainPreviewUrl}
-                  alt={primaryImage?.alt || primaryImage?.title || 'Main image'}
-                  className="h-56 w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-56 items-center justify-center text-sm text-gray-400">
-                  No main image selected.
-                </div>
-              )}
-            </div>
-            {primaryImage && (
-              <p className="mt-2 text-xs text-gray-500">
-                Primary image:{' '}
-                <span className="font-mono break-all text-gray-700">
-                  {primaryImage.fileName || primaryImage.id || primaryImage.url}
-                </span>
-              </p>
-            )}
-          </div>
-
-          {/* Giải thích logic main image */}
-          <div className="space-y-2 text-xs text-gray-600">
-            <p>
-              • Main image is not stored in a separate{' '}
-              <code>main_image_url</code> field anymore.
-            </p>
-            <p>
-              • Instead, the frontend and SEO logic should use{' '}
-              <code>product.images</code> and pick the one with{' '}
-              <code>isPrimary = true</code> as main image.
-            </p>
-            <p>
-              • If you delete the primary image and don&apos;t set another one
-              as primary, the product will have <strong>no main image</strong>.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* 2. LIST OF UPLOADED IMAGES */}
       <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <h3 className="text-sm font-semibold text-gray-900">
@@ -331,6 +247,8 @@ export default function MediaTab({ productId, form, setForm }: MediaTabProps) {
         </p>
         <ProductImageUploader
           productId={productId}
+          productTitle={form.title}
+          existingImagesCount={images.length}
           onUploaded={(newImages) =>
             setForm({
               ...form,

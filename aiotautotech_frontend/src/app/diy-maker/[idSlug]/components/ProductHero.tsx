@@ -21,7 +21,7 @@ export function ProductHero({ title, idSlug }: ProductHeroProps) {
           </Link>
           <span className="mx-1">/</span>
           <Link href="/diy-maker" className="hover:text-gray-300">
-            DIY &amp; Maker
+            Sản phẩm DIY
           </Link>
           <span className="mx-1">/</span>
           <span className="text-gray-300 line-clamp-1 max-w-[260px] sm:max-w-[360px]">

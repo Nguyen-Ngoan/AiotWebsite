@@ -1,28 +1,43 @@
 // src/components/admin/PostEditor.tsx
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { EditorContent, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Image from "@tiptap/extension-image";
-import { TableKit } from "@tiptap/extension-table";
+import { useEffect, useState } from 'react';
+import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Image from '@tiptap/extension-image';
+import { TableKit } from '@tiptap/extension-table';
 
 interface PostEditorProps {
   initialContent?: string;
   onChange: (html: string) => void;
+  placeholder?: string;
 }
 
 /* ================= ICONS (SVG) ================= */
 
 const IconBold = () => (
-  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg
+    className="h-4 w-4"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
     <path d="M7 5h6a3 3 0 010 6H7z" />
     <path d="M7 11h7a3 3 0 010 6H7z" />
   </svg>
 );
 
 const IconItalic = () => (
-  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2">
+  <svg
+    className="h-4 w-4"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
     <path d="M10 5h8" />
     <path d="M6 19h8" />
     <path d="M14 5L10 19" />
@@ -30,7 +45,15 @@ const IconItalic = () => (
 );
 
 const IconBulletList = () => (
-  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+  <svg
+    className="h-4 w-4"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
     <circle cx="5" cy="7" r="1.5" />
     <circle cx="5" cy="12" r="1.5" />
     <circle cx="5" cy="17" r="1.5" />
@@ -41,7 +64,15 @@ const IconBulletList = () => (
 );
 
 const IconNumberList = () => (
-  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+  <svg
+    className="h-4 w-4"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
     <path d="M5 6h2v8" />
     <path d="M4 18h4" />
     <path d="M11 7h9" />
@@ -51,14 +82,30 @@ const IconNumberList = () => (
 );
 
 const IconQuote = () => (
-  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+  <svg
+    className="h-4 w-4"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
     <path d="M7 7h5v5H8a3 3 0 00-3 3v1" />
     <path d="M17 7h5v5h-4a3 3 0 00-3 3v1" />
   </svg>
 );
 
 const IconCite = () => (
-  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+  <svg
+    className="h-4 w-4"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
     <path d="M5 12h14" />
     <path d="M7 8h10" />
     <path d="M9 16h6" />
@@ -66,7 +113,15 @@ const IconCite = () => (
 );
 
 const IconImage = () => (
-  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+  <svg
+    className="h-4 w-4"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
     <rect x="4" y="5" width="16" height="14" rx="2" />
     <circle cx="9" cy="10" r="1.5" />
     <path d="M8 17l3.5-4 3 3 2.5-3" />
@@ -74,20 +129,44 @@ const IconImage = () => (
 );
 
 const IconSymbol = () => (
-  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+  <svg
+    className="h-4 w-4"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
     <path d="M7 5h7a3 3 0 010 6H9a3 3 0 000 6h7" />
   </svg>
 );
 
 const IconUndo = () => (
-  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+  <svg
+    className="h-4 w-4"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
     <path d="M9 5L5 9l4 4" />
     <path d="M5 9h6a5 5 0 015 5v1" />
   </svg>
 );
 
 const IconRedo = () => (
-  <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+  <svg
+    className="h-4 w-4"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
     <path d="M15 5l4 4-4 4" />
     <path d="M19 9h-6a5 5 0 00-5 5v1" />
   </svg>
@@ -95,7 +174,11 @@ const IconRedo = () => (
 
 /* ================= COMPONENT ================= */
 
-export default function PostEditor({ initialContent = "", onChange }: PostEditorProps) {
+export default function PostEditor({
+  initialContent = '',
+  onChange,
+  placeholder,
+}: PostEditorProps) {
   const [mounted, setMounted] = useState(false);
   const [showSymbols, setShowSymbols] = useState(false);
 
@@ -112,13 +195,13 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
       }),
       TableKit.configure({
         table: {
-          HTMLAttributes: { class: "aiot-table" },
+          HTMLAttributes: { class: 'aiot-table' },
         },
       }),
       Image,
     ],
-    content: initialContent || "<p>Nhập nội dung bài viết tại đây...</p>",
-    autofocus: "end",
+    content: initialContent || (placeholder ? `<p>${placeholder}</p>` : ''),
+    autofocus: 'end',
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
@@ -134,43 +217,67 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
   if (!mounted || !editor) return null;
 
   const addImage = () => {
-    const url = window.prompt("Enter image URL:");
+    const url = window.prompt('Enter image URL:');
     if (!url) return;
     editor.chain().focus().setImage({ src: url }).run();
   };
 
   const insertCite = () => {
-    editor.chain().focus().insertContent('<p class="aiot-cite">— Name, position (you can edit)</p>').run();
+    editor
+      .chain()
+      .focus()
+      .insertContent('<p class="aiot-cite">— Name, position (you can edit)</p>')
+      .run();
   };
 
   const insertSymbol = (symbol: string) => {
     editor.chain().focus().insertContent(symbol).run();
   };
 
-  const symbolList = ["°C", "Ω", "µ", "µF", "kΩ", "MΩ", "±", "→", "←", "⇄", "²", "³", "≤", "≥"];
+  const symbolList = [
+    '°C',
+    'Ω',
+    'µ',
+    'µF',
+    'kΩ',
+    'MΩ',
+    '±',
+    '→',
+    '←',
+    '⇄',
+    '²',
+    '³',
+    '≤',
+    '≥',
+  ];
 
-  const btnBase = "inline-flex items-center justify-center h-8 px-2 rounded-md border border-[#3b3b3b] bg-[#262626] text-[13px] font-semibold text-gray-100 hover:bg-[#333333] hover:border-[#5a5a5a] active:bg-[#3b3b3b] active:border-[#777777]";
-  const btnActive = "bg-[#404040] border-[#8a8a8a] text-white shadow-inner shadow-black/60";
-  const iconButtonClass = (active: boolean) => `${btnBase} ${active ? btnActive : ""}`;
+  const btnBase =
+    'inline-flex items-center justify-center h-8 px-2 rounded-md border border-[#3b3b3b] bg-[#262626] text-[13px] font-semibold text-gray-100 hover:bg-[#333333] hover:border-[#5a5a5a] active:bg-[#3b3b3b] active:border-[#777777]';
+  const btnActive =
+    'bg-[#404040] border-[#8a8a8a] text-white shadow-inner shadow-black/60';
+  const iconButtonClass = (active: boolean) =>
+    `${btnBase} ${active ? btnActive : ''}`;
 
-  const Separator = () => <div className="mx-1 h-7 w-px bg-[#303030] opacity-80" />;
+  const Separator = () => (
+    <div className="mx-1 h-7 w-px bg-[#303030] opacity-80" />
+  );
 
   const getCurrentHeading = () => {
-    if (editor.isActive("heading", { level: 1 })) return "h1";
-    if (editor.isActive("heading", { level: 2 })) return "h2";
-    if (editor.isActive("heading", { level: 3 })) return "h3";
-    return "paragraph";
+    if (editor.isActive('heading', { level: 1 })) return 'h1';
+    if (editor.isActive('heading', { level: 2 })) return 'h2';
+    if (editor.isActive('heading', { level: 3 })) return 'h3';
+    return 'paragraph';
   };
 
   const handleHeadingChange = (value: string) => {
     const chain = editor.chain().focus();
-    if (value === "paragraph") {
+    if (value === 'paragraph') {
       chain.setParagraph().run();
-    } else if (value === "h1") {
+    } else if (value === 'h1') {
       chain.setHeading({ level: 1 }).run();
-    } else if (value === "h2") {
+    } else if (value === 'h2') {
       chain.setHeading({ level: 2 }).run();
-    } else if (value === "h3") {
+    } else if (value === 'h3') {
       chain.setHeading({ level: 3 }).run();
     }
   };
@@ -181,11 +288,19 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
       <div className="rounded-t-2xl border-b border-[#2b2b2b] bg-[#1a1a1a] px-2 py-1 text-xs shadow-sm overflow-x-auto">
         <div className="flex w-max items-center gap-1.5">
           {/* Bold / Italic */}
-          <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={iconButtonClass(editor.isActive("bold"))}>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={iconButtonClass(editor.isActive('bold'))}
+          >
             <IconBold />
             <span className="sr-only">Bold</span>
           </button>
-          <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={iconButtonClass(editor.isActive("italic"))}>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={iconButtonClass(editor.isActive('italic'))}
+          >
             <IconItalic />
             <span className="sr-only">Italic</span>
           </button>
@@ -194,15 +309,28 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
 
           {/* Heading combobox (English) */}
           <div className="relative inline-flex items-center">
-            <select className="h-8 appearance-none rounded-md border border-[#3a3a3a] bg-[#181818] px-2 pr-6 text-[12px] font-medium text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500" value={getCurrentHeading()} onChange={(e) => handleHeadingChange(e.target.value)}>
+            <select
+              className="h-8 appearance-none rounded-md border border-[#3a3a3a] bg-[#181818] px-2 pr-6 text-[12px] font-medium text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={getCurrentHeading()}
+              onChange={(e) => handleHeadingChange(e.target.value)}
+            >
               <option value="paragraph">Paragraph</option>
               <option value="h1">Heading 1</option>
               <option value="h2">Heading 2</option>
               <option value="h3">Heading 3</option>
             </select>
             <span className="pointer-events-none absolute right-1 text-gray-400">
-              <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.25 8.29a.75.75 0 01-.02-1.08z" clipRule="evenodd" />
+              <svg
+                className="h-3 w-3"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.25 8.29a.75.75 0 01-.02-1.08z"
+                  clipRule="evenodd"
+                />
               </svg>
             </span>
           </div>
@@ -210,11 +338,19 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
           <Separator />
 
           {/* Lists */}
-          <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} className={iconButtonClass(editor.isActive("bulletList"))}>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            className={iconButtonClass(editor.isActive('bulletList'))}
+          >
             <IconBulletList />
             <span className="sr-only">Bullet list</span>
           </button>
-          <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} className={iconButtonClass(editor.isActive("orderedList"))}>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            className={iconButtonClass(editor.isActive('orderedList'))}
+          >
             <IconNumberList />
             <span className="sr-only">Numbered list</span>
           </button>
@@ -222,11 +358,19 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
           <Separator />
 
           {/* Quote / Cite */}
-          <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={iconButtonClass(editor.isActive("blockquote"))}>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            className={iconButtonClass(editor.isActive('blockquote'))}
+          >
             <IconQuote />
             <span className="sr-only">Blockquote</span>
           </button>
-          <button type="button" onClick={insertCite} className={iconButtonClass(false)}>
+          <button
+            type="button"
+            onClick={insertCite}
+            className={iconButtonClass(false)}
+          >
             <IconCite />
             <span className="sr-only">Cite</span>
           </button>
@@ -234,13 +378,21 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
           <Separator />
 
           {/* Image */}
-          <button type="button" onClick={addImage} className={iconButtonClass(false)}>
+          <button
+            type="button"
+            onClick={addImage}
+            className={iconButtonClass(false)}
+          >
             <IconImage />
             <span className="sr-only">Image</span>
           </button>
 
           {/* Symbols */}
-          <button type="button" onClick={() => setShowSymbols((v) => !v)} className={iconButtonClass(showSymbols)}>
+          <button
+            type="button"
+            onClick={() => setShowSymbols((v) => !v)}
+            className={iconButtonClass(showSymbols)}
+          >
             <IconSymbol />
             <span className="sr-only">Symbols</span>
           </button>
@@ -248,11 +400,19 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
           <div className="flex-1" />
 
           {/* Undo / Redo */}
-          <button type="button" onClick={() => editor.chain().focus().undo().run()} className={iconButtonClass(false)}>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().undo().run()}
+            className={iconButtonClass(false)}
+          >
             <IconUndo />
             <span className="sr-only">Undo</span>
           </button>
-          <button type="button" onClick={() => editor.chain().focus().redo().run()} className={iconButtonClass(false)}>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().redo().run()}
+            className={iconButtonClass(false)}
+          >
             <IconRedo />
             <span className="sr-only">Redo</span>
           </button>
@@ -262,10 +422,17 @@ export default function PostEditor({ initialContent = "", onChange }: PostEditor
       {/* SYMBOL BAR */}
       {showSymbols && (
         <div className="border-b border-[#2b2b2b] bg-[#181818] px-3 py-2 text-[11px] text-gray-300">
-          <div className="mb-1 font-medium">Common symbols (click to insert at caret):</div>
+          <div className="mb-1 font-medium">
+            Common symbols (click to insert at caret):
+          </div>
           <div className="flex flex-wrap gap-2">
             {symbolList.map((sym) => (
-              <button key={sym} type="button" onClick={() => insertSymbol(sym)} className="rounded border border-[#3a3a3a] bg-[#111111] px-2.5 py-1.5 text-[12px] font-semibold text-gray-100 hover:bg-[#222222]">
+              <button
+                key={sym}
+                type="button"
+                onClick={() => insertSymbol(sym)}
+                className="rounded border border-[#3a3a3a] bg-[#111111] px-2.5 py-1.5 text-[12px] font-semibold text-gray-100 hover:bg-[#222222]"
+              >
                 {sym}
               </button>
             ))}

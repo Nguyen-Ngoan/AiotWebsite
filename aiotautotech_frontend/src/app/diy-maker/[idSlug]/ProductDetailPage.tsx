@@ -6,15 +6,15 @@ import Footer from '@/components/layout/Footer';
 import { getApiUrl } from '@/lib/apiConfig';
 
 import {
-  getMainImageUrlFromImagesAndGallery,
-  getGalleryUrlsFromImagesAndLegacy,
+  getPrimaryImageUrl,
+  getGalleryUrlsFromImages,
 } from '@/lib/productMedia';
 import { ProductHero } from './components/ProductHero';
 import { ProductMediaAndPrice } from './components/ProductMediaAndPrice';
-import { ProductDescription } from './components/ProductDescription';
 import { ProductFeatures } from './components/ProductFeatures';
 import { ProductTechDocs } from './components/ProductTechDocs';
 import { ProductAdminPanel } from './components/ProductAdminPanel';
+import { ProductDescription } from './components/ProductDescription';
 
 export interface ProductSpecItem {
   key?: string;
@@ -50,10 +50,6 @@ export interface Product {
   tags?: string[];
   created_at?: string;
   updated_at?: string;
-
-  // Media cũ
-  main_image_url?: string;
-  gallery_urls?: string[];
 
   // Media mới (R2 metadata)
   images?: ProductImage[];
@@ -128,11 +124,6 @@ function getTypeLabel(product_type?: string): string {
     default:
       return product_type || 'Khác';
   }
-}
-
-function getPrimaryTag(tags?: string[]): string | null {
-  if (!tags || tags.length === 0) return null;
-  return tags[0];
 }
 
 async function fetchProduct(idSlug: string): Promise<Product | null> {
@@ -236,7 +227,6 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
     tags,
     created_at,
     updated_at,
-    gallery_urls,
     images,
     datasheet_url,
     schematic_url,
@@ -254,20 +244,16 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
   const priceLabel = formatPrice(base_price, currency);
   const statusLabel = getStatusLabel(status);
   const typeLabel = getTypeLabel(product_type);
-  const primaryTag = getPrimaryTag(tags);
 
   const productImages: ProductImage[] = Array.isArray(images) ? images : [];
 
   // Ảnh chính & gallery: ưu tiên `images`, fallback `gallery_urls`
-  const mainImage = getMainImageUrlFromImagesAndGallery<ProductImage>({
-    images: productImages,
-    gallery_urls,
-  });
+  const mainImage = getPrimaryImageUrl(productImages, 'medium');
 
-  const galleryUrlsFinal = getGalleryUrlsFromImagesAndLegacy<ProductImage>({
-    images: productImages,
-    gallery_urls,
-  });
+  // Lấy tất cả URL ảnh (bản thumb) cho gallery
+  const galleryUrlsFinal = getGalleryUrlsFromImages(productImages, 'thumb');
+  // Lấy tất cả URL ảnh (bản large) cho lightbox
+  const lightboxUrls = getGalleryUrlsFromImages(productImages, 'large');
 
   const hasAnyFeatures = Boolean(
     (key_features && key_features.length > 0) ||
@@ -284,7 +270,7 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
     <div className="min-h-screen bg-black text-gray-100">
       <Header />
 
-      <main className="mx-auto max-w-6xl px-4 pb-16 pt-6">
+      <main className="mx-auto max-w-6xl px-4 pb-8 pt-14 md:pt-32">
         {/* Breadcrumb trong ProductHero */}
         <ProductHero title={title} idSlug={breadCrumbIdSlug} />
 
@@ -295,11 +281,12 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
             <ProductMediaAndPrice
               mainImage={mainImage}
               short_description={short_description}
-              galleryUrls={galleryUrlsFinal}
+              galleryUrls={galleryUrlsFinal} // Dùng cho thumbnail
+              lightboxUrls={lightboxUrls} // Dùng cho lightbox
               priceLabel={priceLabel}
               statusLabel={statusLabel}
               typeLabel={typeLabel}
-              primaryTag={primaryTag}
+              tags={tags}
               stock_tracking={stock_tracking}
               stock_qty={stock_qty}
               min_order_qty={min_order_qty}
@@ -329,64 +316,15 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
 
           {/* Cột phải: thông tin meta + admin panel */}
           <aside className="space-y-4 lg:border-l lg:border-gray-800 lg:pl-5">
-            <section className="rounded-xl border border-gray-800 bg-[#050608] p-4">
-              <div className="mb-3 flex items-center justify-between gap-2">
-                <h2 className="text-sm font-semibold text-gray-100">
-                  Thông tin sản phẩm
-                </h2>
-                <Link
-                  href={`/admin/products/${id}/edit`}
-                  className="inline-flex items-center rounded-full border border-blue-500 bg-blue-600/80 px-3 py-1 text-[11px] font-medium text-white hover:bg-blue-500"
-                >
-                  Sửa sản phẩm
-                </Link>
-              </div>
-
-              <dl className="space-y-1">
-                <div className="flex justify-between gap-2">
-                  <dt className="text-gray-500">ID</dt>
-                  <dd className="font-mono text-xs text-gray-200">{id}</dd>
-                </div>
-                <div className="flex justify-between gap-2">
-                  <dt className="text-gray-500">SKU</dt>
-                  <dd className="font-mono text-xs text-gray-200">
-                    {sku || 'Chưa có'}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-2">
-                  <dt className="text-gray-500">Trạng thái</dt>
-                  <dd className="text-xs text-gray-100">{statusLabel}</dd>
-                </div>
-                <div className="flex justify-between gap-2">
-                  <dt className="text-gray-500">Loại</dt>
-                  <dd className="text-xs text-gray-100">{typeLabel}</dd>
-                </div>
-                <div className="flex justify-between gap-2">
-                  <dt className="text-gray-500">Giá</dt>
-                  <dd className="text-xs text-gray-100">{priceLabel}</dd>
-                </div>
-                <div className="flex justify-between gap-2">
-                  <dt className="text-gray-500">Tạo lúc</dt>
-                  <dd className="text-xs text-gray-100">
-                    {formatDate(created_at)}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-2">
-                  <dt className="text-gray-500">Cập nhật</dt>
-                  <dd className="text-xs text-gray-100">
-                    {formatDate(updated_at)}
-                  </dd>
-                </div>
-              </dl>
-
-              {/* Admin note */}
-              <div className="mt-4 rounded-lg border border-dashed border-gray-700 bg-black/30 px-3 py-2 text-[11px] text-gray-400">
-                <p>
-                  Panel này chỉ hiển thị cho admin. Bạn có thể dùng link sửa ở
-                  trên để chỉnh sửa nhanh thông tin sản phẩm.
-                </p>
-              </div>
-            </section>
+            <ProductAdminPanel
+              id={id}
+              sku={sku}
+              priceLabel={priceLabel}
+              statusLabel={statusLabel}
+              typeLabel={typeLabel}
+              created_at={created_at}
+              updated_at={updated_at}
+            />
           </aside>
         </div>
       </main>

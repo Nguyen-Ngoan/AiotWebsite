@@ -67,8 +67,6 @@ class ProductSerializer(serializers.ModelSerializer):
             "stock_qty",
             "min_order_qty",
             "tags",
-            "main_image_url",
-            "gallery_urls",
             "created_at",
             "updated_at",
             "items",  # danh sách sản phẩm con (nếu là bundle)
@@ -90,4 +88,3 @@ class ProductImageUploadSerializer(serializers.Serializer):
     ai_description = serializers.CharField(required=False, allow_blank=True)
     ai_tags = serializers.CharField(required=False, allow_blank=True)
     ai_context = serializers.CharField(required=False, allow_blank=True)
-

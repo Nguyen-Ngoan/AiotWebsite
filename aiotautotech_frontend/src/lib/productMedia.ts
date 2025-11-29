@@ -1,92 +1,74 @@
 // src/lib/productMedia.ts
 
-export type AnyProductImage = {
-  url?: string;
+export interface ProductImage {
+  id?: string;
+  url?: string; // large
   url_medium?: string;
   url_thumb?: string;
+  fileName?: string;
+  alt?: string;
+  title?: string;
   type?: string;
   isPrimary?: boolean;
-  // các field khác (alt, title, fileName, ...) sẽ được giữ nguyên nếu có
-  // nhưng không bắt buộc cho helper này
-  [key: string]: any;
-};
+}
+
+type ImageSize = 'large' | 'medium' | 'thumb';
 
 /**
- * Chọn ảnh "primary" từ mảng images:
- * 1. Ưu tiên isPrimary = true và có url/url_medium/url_thumb
- * 2. Sau đó type = "cover"
- * 3. Cuối cùng là phần tử đầu tiên có url/url_medium/url_thumb
+ * Lấy đối tượng ảnh chính (isPrimary: true) từ danh sách.
+ * Nếu không có, trả về ảnh đầu tiên trong danh sách.
+ * Nếu danh sách rỗng, trả về undefined.
  */
-export function getPrimaryImageFromImages<T extends AnyProductImage>(
-  images?: T[] | null
+export function getPrimaryImageFromImages<T extends ProductImage>(
+  images: T[]
 ): T | undefined {
-  if (!Array.isArray(images) || images.length === 0) return undefined;
-
-  const withUrl = images.filter(
-    (img) => img && (img.url || img.url_medium || img.url_thumb)
-  ) as T[];
-
-  if (withUrl.length === 0) return undefined;
-
-  return (
-    withUrl.find((img) => img.isPrimary) ||
-    withUrl.find((img) => img.type === 'cover') ||
-    withUrl[0]
-  );
+  if (!Array.isArray(images) || images.length === 0) {
+    return undefined;
+  }
+  const primary = images.find((img) => img.isPrimary);
+  return primary || images[0];
 }
 
 /**
- * Lấy URL ảnh chính:
- * - Nguồn chính: images (isPrimary / cover / phần tử đầu)
- * - Fallback cho dữ liệu cũ: phần tử đầu của gallery_urls
+ * Lấy URL của ảnh chính theo kích thước mong muốn.
+ * @param images Mảng các đối tượng ảnh.
+ * @param size Kích thước mong muốn ('large', 'medium', 'thumb').
+ * @returns URL của ảnh hoặc undefined nếu không tìm thấy.
  */
-export function getMainImageUrlFromImagesAndGallery<
-  T extends AnyProductImage
->(params: {
-  images?: T[] | null;
-  gallery_urls?: string[] | null;
-}): string | undefined {
-  const { images, gallery_urls } = params;
+export function getPrimaryImageUrl(
+  images: ProductImage[],
+  size: ImageSize = 'large'
+): string | undefined {
+  const primaryImage = getPrimaryImageFromImages(images);
+  if (!primaryImage) return undefined;
 
-  const primary = getPrimaryImageFromImages(images);
-  const candidate =
-    primary?.url_thumb || primary?.url_medium || primary?.url || undefined;
-  if (candidate) return candidate;
-
-  if (Array.isArray(gallery_urls) && gallery_urls.length > 0) {
-    const first = (gallery_urls[0] || '').trim();
-    return first.length > 0 ? first : undefined;
+  switch (size) {
+    case 'thumb':
+      return (
+        primaryImage.url_thumb || primaryImage.url_medium || primaryImage.url
+      );
+    case 'medium':
+      return (
+        primaryImage.url_medium || primaryImage.url || primaryImage.url_thumb
+      );
+    case 'large':
+    default:
+      return (
+        primaryImage.url || primaryImage.url_medium || primaryImage.url_thumb
+      );
   }
-
-  return undefined;
 }
 
 /**
- * Lấy danh sách URL gallery:
- * - Nếu gallery_urls có dữ liệu -> dùng luôn (dữ liệu cũ)
- * - Nếu không -> map từ images (ưu tiên url_medium, fallback url / url_thumb)
+ * Lấy danh sách URL của tất cả ảnh trong gallery theo kích thước mong muốn.
  */
-export function getGalleryUrlsFromImagesAndLegacy<
-  T extends AnyProductImage
->(params: { images?: T[] | null; gallery_urls?: string[] | null }): string[] {
-  const { images, gallery_urls } = params;
-
-  if (Array.isArray(gallery_urls) && gallery_urls.length > 0) {
-    return gallery_urls
-      .map((u) => (typeof u === 'string' ? u.trim() : ''))
-      .filter((u) => u.length > 0);
-  }
-
+export function getGalleryUrlsFromImages(
+  images: ProductImage[],
+  size: ImageSize = 'thumb'
+): string[] {
   if (!Array.isArray(images)) return [];
 
-  const urls: string[] = [];
-  images.forEach((img) => {
-    if (!img) return;
-    const u = (img.url_medium || img.url || img.url_thumb || '')
-      .toString()
-      .trim();
-    if (u.length > 0) urls.push(u);
-  });
-
-  return urls;
+  return images
+    .map((img) => getPrimaryImageUrl([img], size)) // Tái sử dụng logic lấy URL theo size
+    .filter((url): url is string => !!url);
 }

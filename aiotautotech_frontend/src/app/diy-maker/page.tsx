@@ -5,7 +5,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { getApiUrl } from '@/lib/apiConfig';
 
-import { getPrimaryImageFromImages } from '@/lib/productMedia';
+import { getPrimaryImageUrl } from '@/lib/productMedia';
 
 interface ProductImage {
   id?: string;
@@ -36,10 +36,6 @@ interface Product {
   tags?: string[];
   created_at?: string;
   updated_at?: string;
-
-  // Media cũ
-  main_image_url?: string;
-  gallery_urls?: string[];
 
   // Media mới
   images?: ProductImage[];
@@ -138,17 +134,10 @@ export default async function DiyMakerPage(_: DiyMakerPageProps) {
                 product.currency
               );
 
-              const primaryImageMeta = getPrimaryImageFromImages<ProductImage>(
-                product.images || []
+              const mainImage = getPrimaryImageUrl(
+                product.images || [],
+                'thumb'
               );
-
-              const mainImage =
-                primaryImageMeta?.url_thumb ||
-                primaryImageMeta?.url_medium ||
-                primaryImageMeta?.url ||
-                (product.gallery_urls && product.gallery_urls.length > 0
-                  ? product.gallery_urls[0]
-                  : undefined);
 
               const slugPart =
                 product.slug && product.slug.trim().length > 0

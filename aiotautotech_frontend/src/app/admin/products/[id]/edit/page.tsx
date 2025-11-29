@@ -1,7 +1,8 @@
 // src/app/admin/products/[id]/edit/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { slugify } from '@/lib/slugify';
 import { useRouter, useParams } from 'next/navigation';
 
 import Header from '@/components/layout/Header';
@@ -42,15 +43,6 @@ function parseNumber(value: string | number | null | undefined): number | null {
   return Number.isNaN(num) ? null : num;
 }
 
-function slugify(input: string): string {
-  return input
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
 // -------------------- PAGE COMPONENT --------------------
 
 export default function EditProductPage() {
@@ -65,6 +57,9 @@ export default function EditProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  const headerRef = useRef<HTMLElement>(null);
+  const [mainPaddingTop, setMainPaddingTop] = useState(0);
 
   // --------- FETCH PRODUCT DATA ---------
   useEffect(() => {
@@ -121,10 +116,6 @@ export default function EditProductPage() {
 
           descriptionHtml: data.description_html || '',
 
-          mainImageUrl: data.main_image_url || '',
-          gallery: Array.isArray(data.gallery_urls)
-            ? (data.gallery_urls as string[])
-            : [],
           images: Array.isArray(data.images) ? data.images : [],
 
           seoTitle: data.seo_title || '',
@@ -158,6 +149,38 @@ export default function EditProductPage() {
 
     fetchProduct();
   }, [productId]);
+
+  // --------- DYNAMIC HEADER PADDING ---------
+  useEffect(() => {
+    const updatePadding = () => {
+      if (headerRef.current) {
+        setMainPaddingTop(headerRef.current.offsetHeight);
+      }
+    };
+
+    updatePadding(); // Initial calculation
+
+    // Recalculate on window resize (for responsive changes)
+    window.addEventListener('resize', updatePadding);
+
+    return () => {
+      window.removeEventListener('resize', updatePadding);
+    };
+  }, []);
+
+  // --------- NAVIGATION HANDLERS ---------
+  const goToProductDetail = (slug?: string) => {
+    const slugPart = slug && slug.trim().length > 0 ? slug.trim() : 'san-pham';
+    let targetUrl = '/diy-maker'; // Fallback
+
+    if (productId) {
+      targetUrl = `/diy-maker/${productId}-${slugPart}`;
+    }
+
+    // Sử dụng window.location.href để buộc trình duyệt tải lại trang
+    // thay vì dùng router.push (client-side navigation)
+    window.location.href = targetUrl;
+  };
 
   // --------- SUBMIT HANDLER ---------
   const handleSubmit = async (e: React.FormEvent) => {
@@ -201,8 +224,6 @@ export default function EditProductPage() {
         .map((t) => t.trim())
         .filter((t) => t.length > 0),
 
-      main_image_url: form.mainImageUrl.trim(),
-      gallery_urls: form.gallery,
       images: form.images || [],
 
       seo_title: form.seoTitle.trim(),
@@ -248,7 +269,7 @@ export default function EditProductPage() {
         return;
       }
 
-      router.push('/diy-maker');
+      goToProductDetail(finalSlug);
     } catch (err: any) {
       setErrorMessage(err?.message || 'Có lỗi kết nối server');
     } finally {
@@ -274,22 +295,35 @@ export default function EditProductPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header />
-      <main className="flex-1">
+      <Header ref={headerRef} />
+      <main
+        className="flex-1"
+        style={{
+          paddingTop: mainPaddingTop > 0 ? `${mainPaddingTop}px` : '7rem',
+        }}
+      >
         <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="mb-4 flex items-center justify-between gap-2">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
-                Sửa sản phẩm
-              </h1>
+            <h1 className="text-xl font-semibold text-gray-900">
+              Sửa sản phẩm
+            </h1>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => goToProductDetail(form.slug)}
+                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+              >
+                Huỷ
+              </button>
+              <button
+                type="submit"
+                form="product-edit-form"
+                disabled={isSubmitting}
+                className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+              >
+                {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => router.push('/diy-maker')}
-              className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-            >
-              ← Quay lại danh sách
-            </button>
           </div>
 
           {isLoading ? (
@@ -301,6 +335,7 @@ export default function EditProductPage() {
           ) : (
             <form
               onSubmit={handleSubmit}
+              id="product-edit-form"
               className="grid grid-cols-1 lg:grid-cols-3 gap-6"
             >
               <div className="lg:col-span-2">
@@ -344,12 +379,7 @@ export default function EditProductPage() {
 
               <aside className="space-y-4">
                 <ProductSummaryCard form={form} />
-                <ProductPricingCard
-                  form={form}
-                  errorMessage={errorMessage}
-                  isSubmitting={isSubmitting}
-                  onCancel={() => router.push('/diy-maker')}
-                />
+                {/* Nút Lưu & Huỷ ở cuối trang đã được loại bỏ */}
               </aside>
             </form>
           )}

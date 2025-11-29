@@ -16,12 +16,13 @@ import {
 export interface ProductMediaAndPriceProps {
   mainImage?: string;
   galleryUrls?: string[];
+  lightboxUrls?: string[];
   short_description?: string;
 
   priceLabel?: string;
   statusLabel?: string;
   typeLabel?: string;
-  primaryTag?: string | null;
+  tags?: string[];
 
   stock_tracking?: boolean;
   stock_qty?: number | null;
@@ -32,11 +33,12 @@ export interface ProductMediaAndPriceProps {
 export function ProductMediaAndPrice({
   mainImage,
   galleryUrls = [],
+  lightboxUrls = [],
   short_description,
   priceLabel,
   statusLabel,
   typeLabel,
-  primaryTag,
+  tags = [],
   stock_tracking,
   stock_qty,
   min_order_qty,
@@ -59,14 +61,18 @@ export function ProductMediaAndPrice({
     setPreviousImage(undefined);
   }, [mainImage]);
 
-  const hasGallery = Array.isArray(galleryUrls) && galleryUrls.length > 0;
+  const allGalleryUrls = lightboxUrls.length > 0 ? lightboxUrls : galleryUrls;
+  const hasGallery = allGalleryUrls.length > 0;
+
   const minSwipeDistance = 50;
 
   const handleChangeImage = (newImageUrl: string) => {
     if (newImageUrl === displayedImage || animation) return;
 
-    const currentIndex = galleryUrls.findIndex((url) => url === displayedImage);
-    const newIndex = galleryUrls.findIndex((url) => url === newImageUrl);
+    const currentIndex = allGalleryUrls.findIndex(
+      (url) => url === displayedImage
+    );
+    const newIndex = allGalleryUrls.findIndex((url) => url === newImageUrl);
 
     // Xác định hướng trượt
     const direction = newIndex > currentIndex ? 'next' : 'prev';
@@ -89,19 +95,23 @@ export function ProductMediaAndPrice({
 
   const goToNextImage = () => {
     if (!hasGallery) return;
-    const currentIndex = galleryUrls.findIndex((url) => url === displayedImage);
+    const currentIndex = allGalleryUrls.findIndex(
+      (url) => url === displayedImage
+    );
     if (currentIndex === -1) return;
-    const nextIndex = (currentIndex + 1) % galleryUrls.length;
-    handleChangeImage(galleryUrls[nextIndex]);
+    const nextIndex = (currentIndex + 1) % allGalleryUrls.length;
+    handleChangeImage(allGalleryUrls[nextIndex]);
   };
 
   const goToPrevImage = () => {
     if (!hasGallery) return;
-    const currentIndex = galleryUrls.findIndex((url) => url === displayedImage);
+    const currentIndex = allGalleryUrls.findIndex(
+      (url) => url === displayedImage
+    );
     if (currentIndex === -1) return;
     const prevIndex =
-      (currentIndex - 1 + galleryUrls.length) % galleryUrls.length;
-    handleChangeImage(galleryUrls[prevIndex]);
+      (currentIndex - 1 + allGalleryUrls.length) % allGalleryUrls.length;
+    handleChangeImage(allGalleryUrls[prevIndex]);
   };
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -283,11 +293,14 @@ export function ProductMediaAndPrice({
                   {typeLabel}
                 </span>
               )}
-              {primaryTag && (
-                <span className="inline-flex items-center rounded-full border border-blue-500/50 bg-blue-500/10 px-2.5 py-1 text-[11px] font-medium text-blue-200">
-                  {primaryTag}
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center rounded-full border border-blue-500/50 bg-blue-500/10 px-2.5 py-1 text-[11px] font-medium text-blue-200"
+                >
+                  {tag}
                 </span>
-              )}
+              ))}
             </div>
 
             {/* Kho hàng */}
@@ -316,8 +329,8 @@ export function ProductMediaAndPrice({
       <Lightbox
         open={openLightbox}
         close={() => setOpenLightbox(false)}
-        slides={galleryUrls.map((url) => ({ src: url }))}
-        index={galleryUrls.findIndex((url) => url === displayedImage)}
+        slides={allGalleryUrls.map((url) => ({ src: url }))}
+        index={allGalleryUrls.findIndex((url) => url === displayedImage)}
         plugins={[Zoom]}
         zoom={{ maxZoomPixelRatio: 3 }}
         styles={{ container: { backgroundColor: 'rgba(0, 0, 0, .85)' } }}

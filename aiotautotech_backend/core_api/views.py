@@ -38,36 +38,9 @@ def _serialize_post(doc):
 def _serialize_product(doc):
     data = doc.to_dict() or {}
 
-    # ===== ẢNH (SOURCE OF TRUTH) =====
     images = data.get("images") or []
     if not isinstance(images, list):
         images = []
-
-    # Lấy danh sách URL từ images (nếu có)
-    gallery_urls_from_images: List[str] = []
-    for img in images:
-        if isinstance(img, dict):
-            url = img.get("url")
-            if url:
-                gallery_urls_from_images.append(str(url))
-
-    # Dữ liệu cũ: nếu trong Firestore từng lưu gallery_urls thì vẫn đọc
-    stored_gallery = data.get("gallery_urls") or []
-    if isinstance(stored_gallery, str):
-        # Cho phép dạng string xuống dòng / phẩy – convert về list
-        stored_gallery = [
-            u.strip()
-            for part in stored_gallery.splitlines()
-            for u in part.split(",")
-            if u.strip()
-        ]
-    elif isinstance(stored_gallery, (list, tuple)):
-        stored_gallery = [str(u).strip() for u in stored_gallery if str(u).strip()]
-    else:
-        stored_gallery = []
-
-    # Ưu tiên dữ liệu mới từ images; nếu chưa có images thì fallback stored_gallery
-    gallery_urls = gallery_urls_from_images or stored_gallery
 
     return {
         "id": doc.id,
@@ -87,11 +60,7 @@ def _serialize_product(doc):
         "created_at": data.get("created_at"),
         "updated_at": data.get("updated_at"),
 
-        # Media
-        "main_image_url": data.get("main_image_url") or "",
-        # gallery_urls giờ là field DERIVED từ images
-        "gallery_urls": gallery_urls,
-        # images là source of truth
+        # Media: `images` là nguồn dữ liệu duy nhất
         "images": images,
 
         # SEO
@@ -327,10 +296,6 @@ class ProductListView(APIView):
             "min_order_qty": data.get("min_order_qty", 1),
             "tags": data.get("tags", []),
 
-            # Media
-            "main_image_url": data.get("main_image_url") or "",
-            "gallery_urls": data.get("gallery_urls") or [],
-
             # SEO
             "seo_title": data.get("seo_title", "") or "",
             "seo_description": data.get("seo_description", "") or "",
@@ -467,24 +432,6 @@ class ProductDetailView(APIView):
                 tags = [t.strip() for t in tags.split(",") if t.strip()]
             update_data["tags"] = tags
 
-        # Media
-        if "gallery_urls" in data:
-            gallery_raw = data.get("gallery_urls") or []
-            if isinstance(gallery_raw, str):
-                gallery_urls = [
-                    u.strip()
-                    for part in gallery_raw.splitlines()
-                    for u in part.split(",")
-                    if u.strip()
-                ]
-            elif isinstance(gallery_raw, (list, tuple)):
-                gallery_urls = [
-                    str(u).strip() for u in gallery_raw if str(u).strip()
-                ]
-            else:
-                gallery_urls = []
-            update_data["gallery_urls"] = gallery_urls
-
         # images: full metadata list từ UI admin (xoá / edit image)
         if "images" in data:
             images = data.get("images") or []
@@ -599,6 +546,14 @@ class ProductImageUploadView(APIView):
             if not file:
                 return Response({"error": "No file uploaded"}, status=400)
 
+            # ---- Lấy metadata từ request.data ----
+            serializer = ProductImageUploadSerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            validated_data = serializer.validated_data
+            seo_file_name = validated_data.get("seo_file_name") or file.name.rsplit(".", 1)[0]
+
             # ---- Read image ----
             img = Image.open(file).convert("RGB")
 
@@ -627,7 +582,8 @@ class ProductImageUploadView(APIView):
                 aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
             )
 
-            base_name = file.name.rsplit(".", 1)[0]
+            # Sử dụng seo_file_name đã được validate
+            base_name = slugify(seo_file_name)
             folder = f"images/products/{product_id}"
 
             urls = {}
@@ -653,15 +609,15 @@ class ProductImageUploadView(APIView):
 
             images = data.get("images", [])
             new_img_meta = {
-                "id": f"{base_name}",
+                "id": base_name, # Dùng slugified base_name làm ID
                 "fileName": base_name,
-                "type": "gallery",
-                "isPrimary": False,
+                "type": validated_data.get("type", "gallery"),
+                "isPrimary": validated_data.get("is_primary", False),
                 "url": urls["large"],
                 "url_medium": urls["medium"],
                 "url_thumb": urls["thumb"],
-                "alt": "",
-                "title": "",
+                "alt": validated_data.get("alt", ""),
+                "title": validated_data.get("title", ""),
             }
 
             images.append(new_img_meta)

@@ -10,7 +10,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { MobileMenu, NavItem } from '@/components/layout/MobileMenu';
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 
 const navItems: NavItem[] = [
   {
@@ -35,7 +35,7 @@ const navItems: NavItem[] = [
   },
 ];
 
-export default function Header() {
+const Header = forwardRef<HTMLElement>((props, ref) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
@@ -43,15 +43,16 @@ export default function Header() {
 
   return (
     <header
+      ref={ref}
       className="
         fixed top-0 left-0 z-50 w-full 
-        bg-white/90 dark:bg-black/95 backdrop-blur-md 
-        shadow-sm dark:shadow-lg dark:shadow-gray-900 
+        bg-[#1d67b0]
+        shadow-md
         transition-colors duration-300
-        min-h-16 md:min-h-28
+        min-h-10 md:min-h-28
       "
     >
-      <nav className="mx-auto flex max-w-6xl flex-col px-4 py-3 md:px-6">
+      <nav className="mx-auto flex max-w-6xl flex-col px-4 py-2 md:py-3 md:px-6">
         {/* HÀNG TRÊN: LOGO + ICONS */}
         <div className="flex items-center justify-between">
           {/* LOGO */}
@@ -67,7 +68,7 @@ export default function Header() {
               height={20} // Đặt chiều cao thực tế của logo
               className="h-5 w-auto invert dark:invert-0"
             />
-            <span className="text-sm font-semibold tracking-tight text-gray-900 dark:text-gray-100 sm:inline">
+            <span className="text-sm font-semibold tracking-tight text-white sm:inline">
               AIOT AutoTech
             </span>
           </Link>
@@ -77,7 +78,7 @@ export default function Header() {
             {/* SEARCH ICON */}
             <Link
               href="#"
-              className="text-gray-700 transition-colors duration-200 hover:text-apple-blue dark:text-gray-300 dark:hover:text-apple-blue"
+              className="text-gray-200 transition-colors duration-200 hover:text-white"
             >
               <MagnifyingGlassIcon className="h-5 w-5" />
             </Link>
@@ -86,7 +87,7 @@ export default function Header() {
             <button
               type="button"
               onClick={toggleMenu}
-              className="text-gray-700 transition-colors duration-200 hover:text-apple-blue dark:text-gray-300 dark:hover:text-apple-blue md:hidden"
+              className="text-gray-200 transition-colors duration-200 hover:text-white md:hidden"
               aria-label="Toggle menu"
             >
               {isMenuOpen ? (
@@ -105,18 +106,14 @@ export default function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group rounded-lg px-2 py-2 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="group rounded-lg px-2 py-2 transition-colors duration-200 hover:bg-white/10"
               >
                 <div className="flex flex-col leading-tight">
-                  <span className="font-semibold text-gray-900 dark:text-gray-100">
-                    {item.title}
-                  </span>
+                  <span className="font-semibold text-white">{item.title}</span>
                   <span
                     className="
                       hidden lg:block
-                      mt-0.5 text-xs text-gray-600 
-                      group-hover:text-gray-800 
-                      dark:text-gray-400 dark:group-hover:text-gray-200
+                      mt-0.5 text-xs text-gray-300 group-hover:text-white
                     "
                   >
                     {item.subtitle}
@@ -132,4 +129,7 @@ export default function Header() {
       </nav>
     </header>
   );
-}
+});
+
+Header.displayName = 'Header';
+export default Header;
