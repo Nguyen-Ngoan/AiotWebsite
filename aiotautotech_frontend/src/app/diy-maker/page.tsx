@@ -153,12 +153,12 @@ export default async function DiyMakerPage(_: DiyMakerPageProps) {
                 >
                   {/* Vùng ảnh */}
                   {mainImage && (
-                    <div className="mb-3 overflow-hidden rounded-xl border border-gray-800 bg-black/60">
+                    <div className="mb-3 aspect-[3/2] overflow-hidden rounded-xl bg-black/60">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={mainImage}
                         alt={product.title || 'Ảnh sản phẩm'}
-                        className="h-40 w-full object-contain"
+                        className="h-full w-full object-contain"
                       />
                     </div>
                   )}

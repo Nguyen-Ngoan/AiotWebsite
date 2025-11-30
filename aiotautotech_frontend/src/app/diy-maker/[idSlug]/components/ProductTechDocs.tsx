@@ -30,7 +30,7 @@ export function ProductTechDocs({
       className="group rounded-xl border border-gray-800 bg-[#050608]"
       open
     >
-      <summary className="flex cursor-pointer list-none items-center justify-between py-2 pl-3 pr-4 sm:pl-4 sm:pr-6">
+      <summary className="flex cursor-pointer list-none items-center justify-between py-2 pl-3 pr-3 sm:pl-4 sm:pr-4">
         <div className="flex items-center">
           <h2 className="text-lg font-semibold text-[#8883c8]">
             Tài liệu kỹ thuật

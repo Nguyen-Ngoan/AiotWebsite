@@ -61,17 +61,15 @@ export function ProductAdminPanel({
       className="group rounded-xl border border-gray-800 bg-[#050608]"
       open
     >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-2 pl-3 pr-4 sm:pl-4 sm:pr-6">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-2 pl-3 pr-3 sm:pl-4 sm:pr-4 ">
         <div className="flex flex-1 items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold text-[#8883c8]">
-            Admin Product Info
-          </h2>
+          <h2 className="text-lg font-semibold text-[#8883c8]">Admin Panel</h2>
           <Link
             href={`/admin/products/${id}/edit`}
             onClick={(e) => e.stopPropagation()} // Ngăn panel đóng/mở khi click nút
-            className="hidden items-center rounded-full border border-blue-500 bg-blue-600/80 px-3 py-1 text-[11px] font-medium text-white shadow-sm hover:bg-blue-500 sm:inline-flex"
+            className="inline-flex items-center rounded-full border border-blue-500 bg-blue-600/80 px-3 py-1 text-[11px] font-medium text-white shadow-sm hover:bg-blue-500"
           >
-            Edit Product
+            Edit
           </Link>
         </div>
 
@@ -226,21 +224,6 @@ export function ProductAdminPanel({
               </div>
             )}
           </div>
-        </div>
-
-        {/* Admin note */}
-        <div className="mt-4 rounded-lg border border-dashed border-gray-700 bg-black/30 px-3 py-2 text-[11px] text-gray-400">
-          <p>
-            Panel này chỉ hiển thị cho admin. Dùng link
-            <Link
-              href={`/admin/products/${id}/edit`}
-              className="font-semibold text-blue-400 hover:underline"
-            >
-              {' '}
-              sửa sản phẩm{' '}
-            </Link>
-            để chỉnh sửa nhanh.
-          </p>
         </div>
       </div>
     </details>
