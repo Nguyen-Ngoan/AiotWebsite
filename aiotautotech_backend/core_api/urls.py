@@ -8,6 +8,7 @@ from .views import (
     ProductListView,
     ProductDetailView,
     ProductImageUploadView,
+    ProductDocUploadView,
 )
 
 urlpatterns = [
@@ -25,4 +26,7 @@ urlpatterns = [
         ProductImageUploadView.as_view(),
         name="product-image-upload",
     ),
+
+    # Product Docs
+    path("products/<str:product_id>/docs/", ProductDocUploadView.as_view(), name="product-doc-upload"),
 ]

@@ -372,7 +372,11 @@ export default function EditProductPage() {
                   )}
 
                   {activeTab === 'docs' && (
-                    <DocsTab form={form} setForm={setForm} />
+                    <DocsTab
+                      productId={productId}
+                      form={form}
+                      setForm={setForm}
+                    />
                   )}
                 </div>
               </div>

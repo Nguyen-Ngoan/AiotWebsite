@@ -1,17 +1,15 @@
 # core_api/views.py
 
-import mimetypes
 from typing import Any, Dict, List
 from django.utils import timezone
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser
 
 from aiotautotech_backend.firestore_client import db
 from .utils import slugify
-
-from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import ProductImageUploadSerializer
 from storage.r2 import upload_file_to_r2, generate_image_key
 from services.firestore_products import add_product_image_metadata
@@ -630,4 +628,57 @@ class ProductImageUploadView(APIView):
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class ProductDocUploadView(APIView):
+    """
+    POST /api/products/<product_id>/docs/
+    Upload một file tài liệu (datasheet, schematic, etc.) lên R2 và cập nhật URL vào Firestore.
+    """
+    parser_classes = [MultiPartParser]
+
+    def post(self, request, product_id):
+        try:
+            file = request.FILES.get("file")
+            doc_type = request.data.get("doc_type")
+
+            if not file:
+                return Response({"error": "No file uploaded"}, status=400)
+            
+            VALID_DOC_TYPES = [
+                "datasheet_url", "schematic_url", "step_model_url",
+                "stl_files_url", "user_manual_url", "github_repo_url"
+            ]
+            if doc_type not in VALID_DOC_TYPES:
+                return Response({"error": f"Invalid doc_type. Must be one of {VALID_DOC_TYPES}"}, status=400)
+
+            # --- Upload to R2 ---
+            # Giữ lại tên file gốc, nhưng slugify để an toàn
+            safe_filename = slugify(file.name.rsplit('.', 1)[0]) + '.' + file.name.rsplit('.', 1)[-1]
+            folder = f"docs/products/{product_id}/{doc_type.replace('_url', '')}"
+            r2_key = f"{folder}/{safe_filename}"
+
+            session = boto3.session.Session()
+            s3 = session.client(
+                "s3",
+                endpoint_url=f"https://{settings.R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+                aws_access_key_id=settings.R2_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
+            )
+
+            s3.upload_fileobj(file, settings.R2_BUCKET_NAME, r2_key, ExtraArgs={"ContentType": file.content_type})
+
+            url = f"{settings.CDN_URL}/{r2_key}"
+
+            # --- Cập nhật Firestore ---
+            doc_ref = db.collection("products").document(product_id)
+            doc_ref.update({doc_type: url, "updated_at": timezone.now()})
+
+            return Response({"field": doc_type, "url": url}, status=200)
+
+        except Exception as e:
+            print(f"Doc Upload Error ({doc_type}):", e)
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
