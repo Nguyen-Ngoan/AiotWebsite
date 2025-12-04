@@ -1,7 +1,7 @@
 // src/app/diy-maker/[idSlug]/components/ProductMedia.tsx
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { TechnicalDoc } from './technical-doc';
 import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
@@ -53,6 +53,11 @@ export function ProductMedia({
   const [viewingStlInModal, setViewingStlInModal] =
     useState<TechnicalDoc | null>(null);
 
+  // Refs và state cho thumbnail scroller
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
   useEffect(() => {
     setDisplayedImage(mainImage);
     setPreviousImage(undefined);
@@ -61,6 +66,46 @@ export function ProductMedia({
   const allGalleryUrls = lightboxUrls.length > 0 ? lightboxUrls : galleryUrls;
   const hasGallery = allGalleryUrls.length > 0;
 
+  const checkScrollability = () => {
+    const el = scrollContainerRef.current;
+    if (el) {
+      const isScrollable = el.scrollWidth > el.clientWidth;
+      setCanScrollLeft(el.scrollLeft > 0);
+      setCanScrollRight(
+        isScrollable && el.scrollLeft < el.scrollWidth - el.clientWidth - 1
+      );
+    }
+  };
+
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+
+    checkScrollability();
+
+    const resizeObserver = new ResizeObserver(() => {
+      checkScrollability();
+    });
+    resizeObserver.observe(el);
+
+    el.addEventListener('scroll', checkScrollability);
+
+    return () => {
+      resizeObserver.disconnect();
+      el.removeEventListener('scroll', checkScrollability);
+    };
+  }, [galleryUrls]); // Re-check khi gallery thay đổi
+
+  const handleThumbScroll = (direction: 'left' | 'right') => {
+    const el = scrollContainerRef.current;
+    if (el) {
+      const scrollAmount = el.clientWidth * 0.8; // Cuộn 80% chiều rộng nhìn thấy
+      el.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
   const minSwipeDistance = 50;
 
   const handleChangeImage = (newImageUrl: string) => {
@@ -144,7 +189,7 @@ export function ProductMedia({
       <section className="grid grid-cols-[auto_1fr] gap-3 lg:gap-5">
         {/* Cột: Tech Doc Thumbnails */}
         {technical_docs.length > 0 && (
-          <div className="flex flex-col items-center space-y-2 pt-2">
+          <div className="flex flex-shrink-0 flex-col items-center space-y-2">
             {technical_docs.map((doc) => {
               let thumbnailUrl = doc.thumbnail_url;
               if (!thumbnailUrl) {
@@ -206,7 +251,7 @@ export function ProductMedia({
 
         {/* Cột: Ảnh & gallery */}
         <div
-          className="space-y-3 pt-2"
+          className="min-w-0 space-y-3 pt-2 lg:pt-0"
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
@@ -273,29 +318,50 @@ export function ProductMedia({
             )}
           </div>
 
+          {/* Gallery thumbnails với thanh cuộn ngang */}
           {hasGallery && (
-            <div className="flex flex-wrap justify-center gap-2">
-              {galleryUrls.slice(0, 6).map((url, idx) => (
-                <div
-                  key={`${url}-${idx}`}
-                  onClick={() => handleChangeImage(url)}
-                  className={`h-14 w-14 cursor-pointer overflow-hidden rounded-lg bg-black/60 transition-all duration-200 ${
-                    displayedImage === url
-                      ? 'border-2 border-blue-400'
-                      : 'border-2 border-transparent hover:border-gray-500'
-                  }`}
+            <div className="relative flex items-center">
+              {canScrollLeft && (
+                <button
+                  type="button"
+                  onClick={() => handleThumbScroll('left')}
+                  className="absolute -left-3 z-10 rounded-full bg-gray-800/80 p-1 text-white shadow-md backdrop-blur-sm hover:bg-gray-700"
+                  aria-label="Cuộn thumbnail sang trái"
                 >
-                  <img
-                    src={url}
-                    alt={`Thumb ${idx + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              ))}
-              {galleryUrls.length > 6 && (
-                <span className="flex h-14 items-center justify-center rounded-lg border border-dashed border-gray-700 bg-black/50 px-3 text-[11px] text-gray-400">
-                  +{galleryUrls.length - 6} ảnh khác
-                </span>
+                  <ChevronLeftIcon className="h-4 w-4" />
+                </button>
+              )}
+              <div
+                ref={scrollContainerRef}
+                className="flex w-full snap-x snap-mandatory-x items-center gap-2 overflow-x-auto scroll-smooth pb-2 scrollbar-hide"
+              >
+                {galleryUrls.map((url, idx) => (
+                  <div
+                    key={`${url}-${idx}`}
+                    onClick={() => handleChangeImage(url)}
+                    className={`h-14 w-14 flex-shrink-0 snap-start cursor-pointer overflow-hidden rounded-lg bg-black/60 transition-all duration-200 ${
+                      displayedImage === url
+                        ? 'border-2 border-blue-400'
+                        : 'border-2 border-transparent hover:border-gray-500'
+                    }`}
+                  >
+                    <img
+                      src={url}
+                      alt={`Thumb ${idx + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+              {canScrollRight && (
+                <button
+                  type="button"
+                  onClick={() => handleThumbScroll('right')}
+                  className="absolute -right-3 z-10 rounded-full bg-gray-800/80 p-1 text-white shadow-md backdrop-blur-sm hover:bg-gray-700"
+                  aria-label="Cuộn thumbnail sang phải"
+                >
+                  <ChevronRightIcon className="h-4 w-4" />
+                </button>
               )}
             </div>
           )}

@@ -11,8 +11,7 @@ import {
   getGalleryUrlsFromImages,
 } from '@/lib/productMedia';
 import { ProductHero } from './components/ProductHero';
-import { ProductMedia } from './components/ProductMedia';
-import { ProductPriceAndInfo } from './components/ProductPriceAndInfo';
+import { ProductMediaAndPrice } from './components/ProductMediaAndPrice';
 import { ProductTechDocs } from './components/ProductTechDocs';
 import { ProductAdminPanel } from './components/ProductAdminPanel';
 import { TechnicalDoc } from './components/technical-doc';
@@ -320,26 +319,21 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
         <div className="mt-2 grid gap-6 lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1.1fr)]">
           {/* Cột trái: media, mô tả, features, docs */}
           <div className="space-y-4">
-            <div className="space-y-4 rounded-2xl bg-zinc-900 px-4 pb-4 pt-2 shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
-              <ProductMedia
-                mainImage={mainImage}
-                galleryUrls={galleryUrlsFinal} // Dùng cho thumbnail
-                lightboxUrls={lightboxUrls} // Dùng cho lightbox
-                technical_docs={technical_docs}
-              />
-
-              <ProductPriceAndInfo
-                short_description={short_description}
-                priceLabel={priceLabel}
-                statusLabel={statusLabel}
-                typeLabel={typeLabel}
-                tags={tags}
-                stock_tracking={stock_tracking}
-                stock_qty={stock_qty}
-                min_order_qty={min_order_qty}
-                currency={currency}
-              />
-            </div>
+            <ProductMediaAndPrice
+              mainImage={mainImage}
+              galleryUrls={galleryUrlsFinal}
+              lightboxUrls={lightboxUrls}
+              technical_docs={technical_docs}
+              short_description={short_description}
+              priceLabel={priceLabel}
+              statusLabel={statusLabel}
+              typeLabel={typeLabel}
+              tags={tags}
+              stock_tracking={stock_tracking}
+              stock_qty={stock_qty}
+              min_order_qty={min_order_qty}
+              currency={currency}
+            />
 
             <ProductDescription descriptionHtml={description_html} />
 

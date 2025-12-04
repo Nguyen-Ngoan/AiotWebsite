@@ -29,7 +29,7 @@ export function ProductHero({ title, idSlug }: ProductHeroProps) {
           </span>
         </nav>
 
-        <h1 className="text-2xl font-semibold leading-tight text-gray-100 sm:text-3xl">
+        <h1 className="text-xl font-semibold leading-tight text-gray-100 sm:text-3xl">
           {displayTitle}
         </h1>
       </div>

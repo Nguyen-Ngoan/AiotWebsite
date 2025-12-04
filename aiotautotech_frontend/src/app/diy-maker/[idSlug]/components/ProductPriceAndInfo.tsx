@@ -35,7 +35,7 @@ export function ProductPriceAndInfo({
   })();
 
   return (
-    <div className="text-xs text-gray-300">
+    <div className="w-full text-xs text-gray-300">
       <div className="space-y-3">
         {/* Mô tả ngắn */}
         {short_description && (
