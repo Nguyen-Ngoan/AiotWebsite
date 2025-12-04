@@ -1,91 +1,70 @@
-// src/app/page.tsx
+'use client';
 
-"use client";
+import { useEffect, useState, useRef } from 'react';
+import { getApiUrl } from '@/lib/apiConfig';
 
-import { useEffect, useState } from "react";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import DiyMakerSection from "@/components/home/DiyMakerSection";
-import TechDocsSection from "@/components/home/TechDocsSection";
-import BlogSection from "@/components/home/BlogSection";
-import { getApiUrl } from "@/lib/apiConfig";
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+import DiyMakerSection from '@/components/home/DiyMakerSection';
+import TechDocsSection from '@/components/home/TechDocsSection';
+import { navItems } from '@/components/layout/nav-items';
+import BlogSection from '@/components/home/BlogSection';
 
-// Kiểu dữ liệu bài viết
 export interface Post {
   id: string;
   title: string;
   content: string;
   author: string;
-  created_at: string;
   slug: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function Home() {
-  const [isMounted, setIsMounted] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const headerRef = useRef<HTMLElement>(null);
+  const [mainPaddingTop, setMainPaddingTop] = useState(0);
 
   useEffect(() => {
-    setIsMounted(true);
-
     const fetchPosts = async () => {
       try {
-        const url = getApiUrl(`/posts/`);
-        console.log(`Fetching data from: ${url}`);
-
-        const response = await fetch(url);
-
-        if (!response.ok) {
-          throw new Error(`Lỗi HTTP: ${response.status} - ${response.statusText}`);
+        const res = await fetch(getApiUrl('/posts/'));
+        if (!res.ok) {
+          throw new Error(`Failed to fetch posts (HTTP ${res.status})`);
         }
-
-        const data: Post[] = await response.json();
+        const data: Post[] = await res.json();
         setPosts(data);
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(`Không thể kết nối đến Backend: ${err.message}.`);
-        } else {
-          setError("Đã xảy ra lỗi không xác định khi tải dữ liệu.");
-        }
+      } catch (err: any) {
+        console.error('Error fetching posts:', err.message);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
-
     fetchPosts();
-  });
+  }, []);
 
-  if (!isMounted) {
-    return <div className="min-h-screen bg-apple-gray" />;
-  }
-
-  if (loading) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-apple-gray text-center p-4">
-        <h1 className="text-2xl font-bold text-gray-800">Đang tải dữ liệu từ API Django...</h1>
-      </main>
-    );
-  }
-
-  if (error) {
-    return (
-      <main className="min-h-screen flex flex-col items-center justify-center bg-red-100 text-center p-4">
-        <h1 className="text-2xl font-bold text-red-700">LỖI KẾT NỐI:</h1>
-        <p className="mt-2 text-red-600 max-w-lg">{error}</p>
-      </main>
-    );
-  }
+  useEffect(() => {
+    const updatePadding = () => {
+      if (headerRef.current) setMainPaddingTop(headerRef.current.offsetHeight);
+    };
+    updatePadding();
+    window.addEventListener('resize', updatePadding);
+    return () => window.removeEventListener('resize', updatePadding);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-apple-gray dark:bg-apple-gray-dark dark:text-apple-text-dark">
-      <Header />
-      <main className="pt-20">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-black">
+      <Header ref={headerRef} navItems={navItems} />
+      <main
+        className="flex-1"
+        style={{ paddingTop: mainPaddingTop > 0 ? `${mainPaddingTop}px` : '0' }}
+      >
         <DiyMakerSection />
-        <BlogSection posts={posts} />
         <TechDocsSection />
-        <Footer />
+        <BlogSection posts={posts} />
       </main>
+      <Footer />
     </div>
   );
 }

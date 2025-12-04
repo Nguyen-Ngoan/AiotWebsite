@@ -7,14 +7,16 @@ import { ClipboardDocumentIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 import { slugify } from '@/lib/slugify';
 import {
-  ProductFormState,
-  ProductType,
-  ProductStatus,
+  type ProductType,
+  type ProductStatus,
 } from '@/app/admin/products/productFormTypes';
+import type { ProductFormState } from '@/app/admin/products/[id]/edit/page';
 
 interface BasicInfoTabProps {
   form: ProductFormState;
-  setForm: (f: ProductFormState) => void;
+  setForm: (
+    f: ProductFormState | ((prev: ProductFormState) => ProductFormState)
+  ) => void;
 }
 
 export default function BasicInfoTab({ form, setForm }: BasicInfoTabProps) {
@@ -37,7 +39,7 @@ export default function BasicInfoTab({ form, setForm }: BasicInfoTabProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4 lg:p-0">
       {/* Tên & slug */}
       <div>
         <label className="block text-sm font-medium text-gray-700">

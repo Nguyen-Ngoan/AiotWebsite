@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import PostEditor from '@/components/admin/PostEditor';
+import { navItems } from '@/components/layout/nav-items';
 import { getApiUrl } from '@/lib/apiConfig';
 
 interface Post {
@@ -122,7 +123,7 @@ export default function EditPostPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-apple-gray dark:bg-apple-gray-dark dark:text-apple-text-dark">
-        <Header />
+        <Header navItems={navItems} />
         <main className="pt-20 flex items-center justify-center">
           <p className="text-sm text-gray-600 dark:text-gray-300">
             Đang tải dữ liệu bài viết...
@@ -136,7 +137,7 @@ export default function EditPostPage() {
   if (error || !post) {
     return (
       <div className="min-h-screen bg-apple-gray dark:bg-apple-gray-dark dark:text-apple-text-dark">
-        <Header />
+        <Header navItems={navItems} />
         <main className="pt-20 flex flex-col items-center justify-center px-4 text-center">
           <h1 className="mb-2 text-xl font-semibold text-red-600">
             KHÔNG CHỈNH SỬA ĐƯỢC BÀI VIẾT
@@ -152,7 +153,7 @@ export default function EditPostPage() {
 
   return (
     <div className="min-h-screen bg-apple-gray dark:bg-apple-gray-dark dark:text-apple-text-dark">
-      <Header />
+      <Header navItems={navItems} />
 
       <main className="pt-20 pb-16">
         <div className="mx-auto max-w-4xl px-4">

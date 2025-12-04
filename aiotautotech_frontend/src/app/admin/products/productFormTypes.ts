@@ -1,9 +1,16 @@
 // src/components/admin/products/productFormTypes.ts
 
-export type ProductType = "simple" | "bundle" | "service";
-export type ProductStatus = "draft" | "active" | "archived";
+export type ProductType = 'simple' | 'bundle' | 'service';
+export type ProductStatus = 'draft' | 'active' | 'archived';
 // export type TabKey = "basic" | "description" | "bundle" | "media" | "seo" | "docs";
-export type TabKey = "basic" | "description" | "features" | "bundle" | "media" | "seo" | "docs";
+export type TabKey =
+  | 'basic'
+  | 'description'
+  | 'features'
+  | 'bundle'
+  | 'media'
+  | 'seo'
+  | 'docs';
 
 /**
  * Một thông số kỹ thuật dạng key/value
@@ -12,6 +19,23 @@ export type TabKey = "basic" | "description" | "features" | "bundle" | "media" |
 export interface ProductSpecItem {
   key: string;
   value: string;
+}
+
+export type DocKey =
+  | 'datasheet'
+  | 'schematic'
+  | 'step_model'
+  | 'stl_files'
+  | 'user_manual'
+  | 'github_repo';
+
+export interface DocMetadata {
+  url: string;
+  title: string;
+  description: string;
+  version: string;
+  file_size: number;
+  uploaded_at: string;
 }
 
 export interface ProductFormState {
@@ -44,13 +68,8 @@ export interface ProductFormState {
   seoDescription: string;
   ogImage: string;
 
-  // TECH DOCS
-  datasheetUrl: string;
-  schematicUrl: string;
-  stepModelUrl: string;
-  stlFilesUrl: string;
-  userManualUrl: string;
-  githubRepoUrl: string;
+  // TECH DOCS (new structure)
+  docs: { [key in DocKey]?: DocMetadata | null };
 
   // 🔹 NEW: FEATURE FIELDS (để AI & UI hiểu sản phẩm rõ hơn)
 
@@ -99,37 +118,32 @@ export interface ProductFormState {
 
 export function createEmptyForm(): ProductFormState {
   return {
-    title: "",
-    slug: "",
-    shortDescription: "",
-    productType: "simple",
-    status: "draft",
-    tags: "",
+    title: '',
+    slug: '',
+    shortDescription: '',
+    productType: 'simple',
+    status: 'draft',
+    tags: '',
 
-    basePrice: "",
-    currency: "VND",
-    sku: "",
+    basePrice: '',
+    currency: 'VND',
+    sku: '',
     stockTracking: true,
-    stockQty: "",
-    minOrderQty: "1",
+    stockQty: '',
+    minOrderQty: '1',
 
-    descriptionHtml: "",
+    descriptionHtml: '',
 
-    mainImageUrl: "",
+    mainImageUrl: '',
     gallery: [],
     images: [],
 
-    seoTitle: "",
-    seoDescription: "",
-    ogImage: "",
+    seoTitle: '',
+    seoDescription: '',
+    ogImage: '',
 
-    datasheetUrl: "",
-    schematicUrl: "",
-    stepModelUrl: "",
-    stlFilesUrl: "",
-    userManualUrl: "",
-    githubRepoUrl: "",
-
+    // Docs
+    docs: {},
     // Feature fields mặc định rỗng
     keyFeatures: [],
     specs: [],

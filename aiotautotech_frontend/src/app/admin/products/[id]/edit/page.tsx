@@ -8,12 +8,20 @@ import { useRouter, useParams } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { getApiUrl } from '@/lib/apiConfig';
+import { navItems } from '@/components/layout/nav-items';
 
 import {
-  ProductFormState,
+  type ProductFormState as BaseProductFormState,
   createEmptyForm,
-  TabKey,
+  type TabKey,
 } from '../../productFormTypes';
+import type { TechnicalDoc } from '@/app/diy-maker/[idSlug]/components/technical-doc';
+
+// Mở rộng ProductFormState để bao gồm các trường mới, giống như trong DocsTab
+export type ProductFormState = BaseProductFormState & {
+  tech_doc_ids: string[];
+  technical_docs: TechnicalDoc[];
+};
 
 import ProductSummaryCard from '../../ProductSummaryCard';
 import ProductPricingCard from '../../ProductPricingCard';
@@ -50,8 +58,12 @@ export default function EditProductPage() {
   const params = useParams();
   const productId = (params as { id?: string }).id;
 
-  const [activeTab, setActiveTab] = useState<TabKey>('basic');
-  const [form, setForm] = useState<ProductFormState>(createEmptyForm());
+  const [activeTab, setActiveTab] = useState<TabKey>('docs');
+  const [form, setForm] = useState<ProductFormState>({
+    ...createEmptyForm(),
+    tech_doc_ids: [],
+    technical_docs: [],
+  });
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,7 +87,7 @@ export default function EditProductPage() {
         });
 
         if (!res.ok) {
-          setLoadError(`Không tải được sản phẩm (HTTP ${res.status})`);
+          setLoadError(`Failed to load product (HTTP ${res.status})`);
           return;
         }
 
@@ -122,26 +134,25 @@ export default function EditProductPage() {
           seoDescription: data.seo_description || '',
           ogImage: data.og_image || '',
 
-          datasheetUrl: data.datasheet_url || '',
-          schematicUrl: data.schematic_url || '',
-          stepModelUrl: data.step_model_url || '',
-          stlFilesUrl: data.stl_files_url || '',
-          userManualUrl: data.user_manual_url || '',
-          githubRepoUrl: data.github_repo_url || '',
+          // Docs (cấu trúc mới) - API trả về cả hai
+          tech_doc_ids: Array.isArray(data.tech_doc_ids)
+            ? data.tech_doc_ids
+            : [],
+          technical_docs: Array.isArray(data.technical_docs)
+            ? data.technical_docs
+            : [],
 
           // Features
-          keyFeatures: Array.isArray(data.key_features)
-            ? data.key_features
-            : [],
+          keyFeatures: Array.isArray(data.keyFeatures) ? data.keyFeatures : [],
           specs: Array.isArray(data.specs) ? data.specs : [],
-          useCases: Array.isArray(data.use_cases) ? data.use_cases : [],
+          useCases: Array.isArray(data.useCases) ? data.useCases : [],
           limitations: Array.isArray(data.limitations) ? data.limitations : [],
           compatibility: Array.isArray(data.compatibility)
             ? data.compatibility
             : [],
         }));
       } catch (err: any) {
-        setLoadError(err?.message || 'Lỗi kết nối server');
+        setLoadError(err?.message || 'Server connection error');
       } finally {
         setIsLoading(false);
       }
@@ -190,14 +201,14 @@ export default function EditProductPage() {
     setErrorMessage(null);
 
     if (!form.title.trim()) {
-      setErrorMessage('Vui lòng nhập tên sản phẩm');
+      setErrorMessage('Please enter a product name');
       setActiveTab('basic');
       return;
     }
 
     const finalSlug = (form.slug || slugify(form.title)).trim();
     if (!finalSlug) {
-      setErrorMessage('Slug không hợp lệ');
+      setErrorMessage('Invalid slug');
       setActiveTab('basic');
       return;
     }
@@ -230,12 +241,8 @@ export default function EditProductPage() {
       seo_description: form.seoDescription.trim(),
       og_image: form.ogImage.trim(),
 
-      datasheet_url: form.datasheetUrl.trim(),
-      schematic_url: form.schematicUrl.trim(),
-      step_model_url: form.stepModelUrl.trim(),
-      stl_files_url: form.stlFilesUrl.trim(),
-      user_manual_url: form.userManualUrl.trim(),
-      github_repo_url: form.githubRepoUrl.trim(),
+      // Docs (cấu trúc mới): Chỉ gửi lên danh sách ID
+      tech_doc_ids: form.tech_doc_ids,
 
       key_features: form.keyFeatures,
       specs: form.specs,
@@ -256,7 +263,7 @@ export default function EditProductPage() {
       });
 
       if (!res.ok) {
-        let msg = `Cập nhật sản phẩm thất bại (HTTP ${res.status})`;
+        let msg = `Product update failed (HTTP ${res.status})`;
         try {
           const data = await res.json();
           if (data && typeof data.error === 'string') {
@@ -271,7 +278,7 @@ export default function EditProductPage() {
 
       goToProductDetail(finalSlug);
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Có lỗi kết nối server');
+      setErrorMessage(err?.message || 'Server connection error');
     } finally {
       setIsSubmitting(false);
     }
@@ -282,10 +289,10 @@ export default function EditProductPage() {
   if (!productId) {
     return (
       <div className="min-h-screen flex flex-col bg-gray-50">
-        <Header />
+        <Header navItems={navItems} />
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center text-sm text-gray-600">
-            Không tìm thấy ID sản phẩm trong URL.
+            Product ID not found in URL.
           </div>
         </main>
         <Footer />
@@ -295,7 +302,7 @@ export default function EditProductPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header ref={headerRef} />
+      <Header ref={headerRef} navItems={navItems} />
       <main
         className="flex-1"
         style={{
@@ -305,7 +312,7 @@ export default function EditProductPage() {
         <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="mb-4 flex items-center justify-between gap-2">
             <h1 className="text-xl font-semibold text-gray-900">
-              Sửa sản phẩm
+              Edit Product
             </h1>
             <div className="flex items-center gap-2">
               <button
@@ -313,7 +320,7 @@ export default function EditProductPage() {
                 onClick={() => goToProductDetail(form.slug)}
                 className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
               >
-                Huỷ
+                Cancel
               </button>
               <button
                 type="submit"
@@ -321,13 +328,13 @@ export default function EditProductPage() {
                 disabled={isSubmitting}
                 className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
               >
-                {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
           </div>
 
           {isLoading ? (
-            <div className="text-sm text-gray-600">Đang tải dữ liệu...</div>
+            <div className="text-sm text-gray-600">Loading data...</div>
           ) : loadError ? (
             <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 mb-4">
               {loadError}
@@ -339,7 +346,7 @@ export default function EditProductPage() {
               className="grid grid-cols-1 lg:grid-cols-3 gap-6"
             >
               <div className="lg:col-span-2">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-5">
+                <div className="bg-white rounded-lg lg:shadow-sm lg:border lg:border-gray-200 lg:p-5">
                   <TabsHeader
                     activeTab={activeTab}
                     setActiveTab={setActiveTab}

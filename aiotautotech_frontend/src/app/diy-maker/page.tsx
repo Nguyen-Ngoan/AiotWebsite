@@ -1,9 +1,11 @@
-// src/app/diy-maker/page.tsx
+'use client';
 
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { getApiUrl } from '@/lib/apiConfig';
+import { navItems } from '@/components/layout/nav-items';
 
 import { getPrimaryImageUrl } from '@/lib/productMedia';
 
@@ -53,45 +55,89 @@ function formatPrice(base_price?: number | null, currency?: string): string {
   return `${formatted} ${cur}`;
 }
 
-async function fetchProducts(): Promise<Product[]> {
-  const url = getApiUrl('/products/?limit=24&ordering=-created_at');
+export default function DiyMakerPage(_: DiyMakerPageProps) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const [mainPaddingTop, setMainPaddingTop] = useState(0);
 
-  const res = await fetch(url, {
-    method: 'GET',
-    headers: {
-      Accept: 'application/json',
-    },
-    next: { revalidate: 30 },
-  });
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const url = getApiUrl('/products/?limit=24&ordering=-created_at');
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+          },
+          next: { revalidate: 30 },
+        });
 
-  if (!res.ok) {
-    console.error('Failed to fetch products', res.status, await res.text());
-    return [];
-  }
+        if (!res.ok) {
+          throw new Error(`Failed to fetch products (HTTP ${res.status})`);
+        }
 
-  const data = await res.json();
+        const data = await res.json();
+        let fetchedProducts: Product[] = [];
+        if (Array.isArray(data)) {
+          fetchedProducts = data as Product[];
+        } else if (data && Array.isArray((data as any).results)) {
+          fetchedProducts = (data as any).results as Product[];
+        } else {
+          console.warn('Unexpected products response shape', data);
+        }
+        setProducts(fetchedProducts);
+      } catch (err: any) {
+        setError(err.message || 'An unknown error occurred.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  // Cho phép cả 2 dạng: mảng trực tiếp hoặc { results: [...] }
-  if (Array.isArray(data)) {
-    return data as Product[];
-  }
-  if (data && Array.isArray((data as any).results)) {
-    return (data as any).results as Product[];
-  }
+    fetchProducts();
+  }, []);
 
-  console.warn('Unexpected products response shape', data);
-  return [];
-}
+  useEffect(() => {
+    const updatePadding = () => {
+      if (headerRef.current) {
+        setMainPaddingTop(headerRef.current.offsetHeight);
+      }
+    };
+    updatePadding();
+    window.addEventListener('resize', updatePadding);
+    return () => window.removeEventListener('resize', updatePadding);
+  }, []);
 
-export default async function DiyMakerPage(_: DiyMakerPageProps) {
-  const products = await fetchProducts();
   const hasProducts = products.length > 0;
 
   return (
     <div className="min-h-screen bg-black text-gray-100">
-      <Header />
+      <Header ref={headerRef} navItems={navItems} />
 
-      <main className="mx-auto max-w-6xl px-4 pb-16 pt-20 md:pt-32">
+      <main
+        className="mx-auto max-w-6xl px-4 pb-16"
+        style={{
+          paddingTop: mainPaddingTop > 0 ? `${mainPaddingTop + 16}px` : '8rem',
+        }}
+      >
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="mb-4">
+          <ol className="flex items-center space-x-2 text-xs">
+            <li>
+              <Link
+                href="/"
+                className="text-gray-400 transition-colors hover:text-white"
+              >
+                Trang chủ
+              </Link>
+            </li>
+            <li>
+              <span className="text-gray-600">/</span>
+            </li>
+            <li className="font-medium text-gray-200">Sản phẩm DIY</li>
+          </ol>
+        </nav>
         {/* Header */}
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -112,8 +158,15 @@ export default async function DiyMakerPage(_: DiyMakerPageProps) {
           </Link>
         </div>
 
-        {/* Không có sản phẩm */}
-        {!hasProducts && (
+        {isLoading && (
+          <div className="text-center text-gray-400">Đang tải sản phẩm...</div>
+        )}
+        {error && (
+          <div className="rounded-md bg-red-900/50 p-4 text-center text-red-300">
+            Lỗi tải dữ liệu: {error}
+          </div>
+        )}
+        {!isLoading && !error && !hasProducts && (
           <div className="rounded-2xl border border-dashed border-gray-800/70 bg-[#050608] px-6 py-10 text-center text-sm text-gray-400">
             Chưa có sản phẩm nào được tạo.
             <br />
@@ -126,7 +179,7 @@ export default async function DiyMakerPage(_: DiyMakerPageProps) {
         )}
 
         {/* Grid sản phẩm */}
-        {hasProducts && (
+        {!isLoading && hasProducts && (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {products.map((product) => {
               const priceLabel = formatPrice(
@@ -147,42 +200,52 @@ export default async function DiyMakerPage(_: DiyMakerPageProps) {
               const detailHref = `/diy-maker/${product.id}-${slugPart}`;
 
               return (
-                <div
+                <Link
+                  href={detailHref}
                   key={product.id}
-                  className="flex flex-col rounded-2xl border border-gray-800 bg-[#050608] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.45)]"
+                  className="group flex flex-col rounded-2xl border border-gray-800 bg-[#111111] p-3 shadow-lg shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/15 sm:p-4"
                 >
-                  {/* Vùng ảnh */}
-                  {mainImage && (
-                    <div className="mb-3 aspect-[3/2] overflow-hidden rounded-xl bg-black/60">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={mainImage}
-                        alt={product.title || 'Ảnh sản phẩm'}
-                        className="h-full w-full object-contain"
+                  {/* Tên sản phẩm */}
+                  <h2 className="mb-3 line-clamp-2 text-sm font-semibold text-gray-100 transition-colors group-hover:text-blue-300 sm:text-base">
+                    {product.title || 'Sản phẩm chưa đặt tên'}
+                  </h2>
+
+                  {/* Bố cục 2 cột cho ảnh và mô tả */}
+                  <div className="grid grid-cols-5 gap-4">
+                    {/* Cột ảnh (2/5) */}
+                    <div className="col-span-2">
+                      {mainImage && (
+                        <div className="aspect-[3/2] overflow-hidden rounded-xl bg-black/60">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={mainImage}
+                            alt={product.title || 'Ảnh sản phẩm'}
+                            className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Cột mô tả (3/5) */}
+                    <div className="col-span-3">
+                      <div
+                        className="prose prose-xs prose-invert max-w-none text-gray-400"
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            product.short_description ||
+                            'Chưa có mô tả ngắn cho sản phẩm này.',
+                        }}
                       />
                     </div>
-                  )}
-
-                  {/* Header card: chỉ tên + mô tả ngắn */}
-                  <div className="mb-3">
-                    <Link href={detailHref} className="group">
-                      <h2 className="line-clamp-2 text-sm font-semibold text-gray-100 transition-colors group-hover:text-blue-300 sm:text-base">
-                        {product.title || 'Sản phẩm chưa đặt tên'}
-                      </h2>
-                    </Link>
-                    <p className="mt-1 line-clamp-2 text-xs text-gray-400">
-                      {product.short_description ||
-                        'Chưa có mô tả ngắn cho sản phẩm này.'}
-                    </p>
                   </div>
 
                   {/* Giá */}
-                  <div className="mt-auto flex items-baseline justify-between gap-2">
-                    <div className="text-sm font-semibold text-blue-300">
+                  <div className="mt-auto flex items-baseline justify-between gap-2 pt-4">
+                    <div className="text-base font-semibold text-blue-300">
                       {priceLabel}
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

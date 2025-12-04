@@ -1,6 +1,7 @@
 // src/app/diy-maker/[idSlug]/ProductDetailPage.tsx
 
 import Link from 'next/link';
+import { navItems } from '@/components/layout/nav-items';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { getApiUrl } from '@/lib/apiConfig';
@@ -10,9 +11,11 @@ import {
   getGalleryUrlsFromImages,
 } from '@/lib/productMedia';
 import { ProductHero } from './components/ProductHero';
-import { ProductMediaAndPrice } from './components/ProductMediaAndPrice';
+import { ProductMedia } from './components/ProductMedia';
+import { ProductPriceAndInfo } from './components/ProductPriceAndInfo';
 import { ProductTechDocs } from './components/ProductTechDocs';
 import { ProductAdminPanel } from './components/ProductAdminPanel';
+import { TechnicalDoc } from './components/technical-doc';
 import { ProductDescription } from './components/ProductDescription';
 
 export interface ProductSpecItem {
@@ -53,17 +56,13 @@ export interface Product {
   // Media mới (R2 metadata)
   images?: ProductImage[];
 
-  // Tài liệu kỹ thuật
-  datasheet_url?: string;
-  schematic_url?: string;
-  step_model_url?: string;
-  stl_files_url?: string;
-  user_manual_url?: string;
-  github_repo_url?: string;
+  // Tài liệu kỹ thuật (cấu trúc mới)
+  tech_doc_ids?: string[];
+  technical_docs?: TechnicalDoc[];
 
   // Features
-  key_features?: string[];
-  use_cases?: string[];
+  keyFeatures?: string[];
+  useCases?: string[];
   limitations?: string[];
   compatibility?: string[];
   specs?: ProductSpecItem[];
@@ -189,7 +188,7 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
   if (!product) {
     return (
       <div className="min-h-screen bg-black text-gray-100">
-        <Header />
+        <Header navItems={navItems} />
         <main className="mx-auto max-w-6xl px-4 py-10">
           <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-6 text-sm text-red-100">
             Không tìm thấy sản phẩm. Có thể sản phẩm đã bị xóa hoặc bạn truy cập
@@ -221,20 +220,15 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
     currency,
     sku,
     stock_tracking,
-    stock_qty,
+    stock_qty = null, // Cung cấp giá trị mặc định là null
     min_order_qty,
     tags,
     created_at,
     updated_at,
     images,
-    datasheet_url,
-    schematic_url,
-    step_model_url,
-    stl_files_url,
-    user_manual_url,
-    github_repo_url,
-    key_features,
-    use_cases,
+    technical_docs,
+    keyFeatures,
+    useCases,
     limitations,
     compatibility,
     specs,
@@ -255,8 +249,8 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
   const lightboxUrls = getGalleryUrlsFromImages(productImages, 'large');
 
   const hasAnyFeatures = Boolean(
-    (key_features && key_features.length > 0) ||
-      (use_cases && use_cases.length > 0) ||
+    (keyFeatures && keyFeatures.length > 0) ||
+      (useCases && useCases.length > 0) ||
       (limitations && limitations.length > 0) ||
       (compatibility && compatibility.length > 0) ||
       (specs && specs.length > 0)
@@ -265,9 +259,58 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
   const slugPart = slug && slug.trim().length > 0 ? slug : 'san-pham';
   const breadCrumbIdSlug = `${id}-${slugPart}`;
 
+  // --- Tạo Dữ liệu có cấu trúc (JSON-LD) cho AI ---
+  const productStructuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: title,
+    description: short_description,
+    sku: sku,
+    image: mainImage,
+    // Kết hợp các features thành một chuỗi mô tả chi tiết cho AI
+    additionalProperty: [
+      ...(keyFeatures?.map((f) => ({
+        '@type': 'PropertyValue',
+        name: 'Key Feature',
+        value: f,
+      })) || []),
+      ...(specs?.map((s) => ({
+        '@type': 'PropertyValue',
+        name: s.key || 'Spec',
+        value: s.value,
+      })) || []),
+      ...(useCases?.map((u) => ({
+        '@type': 'PropertyValue',
+        name: 'Use Case',
+        value: u,
+      })) || []),
+      ...(limitations?.map((l) => ({
+        '@type': 'PropertyValue',
+        name: 'Limitation',
+        value: l,
+      })) || []),
+      ...(compatibility?.map((c) => ({
+        '@type': 'PropertyValue',
+        name: 'Compatibility',
+        value: c,
+      })) || []),
+    ],
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: currency || 'VND',
+      price: base_price,
+      // Xác định tình trạng còn hàng
+      availability:
+        status === 'active' && (stock_qty === null || stock_qty > 0)
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+      url: `https://aiotautotech.com/diy-maker/${breadCrumbIdSlug}`, // Thay bằng domain của bạn
+    },
+  };
+
   return (
     <div className="min-h-screen bg-black text-gray-100">
-      <Header />
+      <Header navItems={navItems} />
 
       <main className="mx-auto max-w-6xl px-4 pb-8 pt-14 md:pt-32">
         {/* Breadcrumb trong ProductHero */}
@@ -277,35 +320,34 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
         <div className="mt-2 grid gap-6 lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1.1fr)]">
           {/* Cột trái: media, mô tả, features, docs */}
           <div className="space-y-4">
-            <ProductMediaAndPrice
-              mainImage={mainImage}
-              short_description={short_description}
-              galleryUrls={galleryUrlsFinal} // Dùng cho thumbnail
-              lightboxUrls={lightboxUrls} // Dùng cho lightbox
-              priceLabel={priceLabel}
-              statusLabel={statusLabel}
-              typeLabel={typeLabel}
-              tags={tags}
-              stock_tracking={stock_tracking}
-              stock_qty={stock_qty}
-              min_order_qty={min_order_qty}
-              currency={currency}
-            />
+            <div className="space-y-4 rounded-2xl bg-zinc-900 px-4 pb-4 pt-2 shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
+              <ProductMedia
+                mainImage={mainImage}
+                galleryUrls={galleryUrlsFinal} // Dùng cho thumbnail
+                lightboxUrls={lightboxUrls} // Dùng cho lightbox
+                technical_docs={technical_docs}
+              />
+
+              <ProductPriceAndInfo
+                short_description={short_description}
+                priceLabel={priceLabel}
+                statusLabel={statusLabel}
+                typeLabel={typeLabel}
+                tags={tags}
+                stock_tracking={stock_tracking}
+                stock_qty={stock_qty}
+                min_order_qty={min_order_qty}
+                currency={currency}
+              />
+            </div>
 
             <ProductDescription descriptionHtml={description_html} />
 
-            <ProductTechDocs
-              datasheet_url={datasheet_url}
-              schematic_url={schematic_url}
-              step_model_url={step_model_url}
-              stl_files_url={stl_files_url}
-              user_manual_url={user_manual_url}
-              github_repo_url={github_repo_url}
-            />
+            <ProductTechDocs docs={technical_docs} />
           </div>
 
           {/* Cột phải: thông tin meta + admin panel */}
-          <aside className="space-y-4 lg:border-l lg:border-gray-800 lg:pl-5">
+          <aside className="space-y-4 lg:pl-5">
             <ProductAdminPanel
               id={id}
               sku={sku}
@@ -314,15 +356,19 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
               typeLabel={typeLabel}
               created_at={created_at}
               updated_at={updated_at}
-              key_features={key_features}
-              use_cases={use_cases}
-              limitations={limitations}
-              compatibility={compatibility}
-              specs={specs}
+              structuredDataForAI={productStructuredData}
             />
           </aside>
         </div>
       </main>
+
+      {/* Chèn Dữ liệu có cấu trúc vào trang. Thẻ này vô hình với người dùng. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(productStructuredData),
+        }}
+      />
 
       <Footer />
     </div>

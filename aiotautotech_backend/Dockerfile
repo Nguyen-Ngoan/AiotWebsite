@@ -2,6 +2,15 @@
 FROM python:3.11-slim
 WORKDIR /app
 
+# Cài đặt các thư viện hệ thống cần thiết cho PyVista/VTK chạy headless trên Cloud Run
+# libgl1-mesa-glx: Cung cấp OpenGL.
+# libosmesa6: Cung cấp off-screen rendering (quan trọng nhất).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1 \
+    libxext6 \
+    libosmesa6 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Sao chép và cài đặt dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

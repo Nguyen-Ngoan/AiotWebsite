@@ -8,7 +8,9 @@ from .views import (
     ProductListView,
     ProductDetailView,
     ProductImageUploadView,
-    ProductDocUploadView,
+    # ProductDocUploadView, # Vô hiệu hóa view cũ
+    TechnicalDocListView,
+    TechnicalDocDetailView,
 )
 
 urlpatterns = [
@@ -28,5 +30,9 @@ urlpatterns = [
     ),
 
     # Product Docs
-    path("products/<str:product_id>/docs/", ProductDocUploadView.as_view(), name="product-doc-upload"),
+    # path("products/<str:product_id>/docs/", ProductDocUploadView.as_view(), name="product-doc-upload"), # Vô hiệu hóa
+
+    # Technical Docs (Cấu trúc mới)
+    path("technical-docs/", TechnicalDocListView.as_view(), name="technical-doc-list"),
+    path("technical-docs/<str:doc_id>/", TechnicalDocDetailView.as_view(), name="technical-doc-detail"),
 ]

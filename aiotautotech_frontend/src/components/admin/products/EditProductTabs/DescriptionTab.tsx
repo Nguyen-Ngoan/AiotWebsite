@@ -2,40 +2,41 @@
 
 'use client';
 import dynamic from 'next/dynamic';
-import { ProductFormState } from '@/app/admin/products/productFormTypes';
+import type { ProductFormState } from '@/app/admin/products/[id]/edit/page';
 
 interface DescriptionTabProps {
   form: ProductFormState;
-  setForm: (f: ProductFormState) => void;
+  setForm: (
+    f: ProductFormState | ((prev: ProductFormState) => ProductFormState)
+  ) => void;
 }
 // Import PostEditor động vì nó là một component lớn và chỉ dùng ở client
 const PostEditor = dynamic(() => import('@/components/admin/PostEditor'), {
   ssr: false,
   loading: () => (
-    <div className="mt-1 block w-full min-h-[220px] rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm">
-      Đang tải trình soạn thảo...
-    </div>
+    <div className="flex-1 text-center p-8">Loading Editor...</div>
   ),
 });
 export default function DescriptionTab({ form, setForm }: DescriptionTabProps) {
   return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        Nội dung mô tả chi tiết
-      </label>
-
-      <PostEditor
-        initialContent={form.descriptionHtml}
-        onChange={(newHtml) => {
-          setForm({ ...form, descriptionHtml: newHtml });
-        }}
-        placeholder=""
-      />
-
-      <p className="text-xs text-gray-500">
-        Bạn có thể dùng tiêu đề (H1–H3), danh sách, in đậm, in nghiêng, chèn ảnh
-        (URL) và bảng (table).
-      </p>
+    <div className="flex flex-col h-full">
+      <div className="mb-2">
+        <label className="block text-sm font-medium text-gray-700">
+          Nội dung mô tả chi tiết
+        </label>
+      </div>
+      <div className="flex-1">
+        <PostEditor
+          initialContent={form.descriptionHtml}
+          onChange={(newHtml) => {
+            setForm((prev) => ({
+              ...prev,
+              descriptionHtml: newHtml,
+            }));
+          }}
+          placeholder=""
+        />
+      </div>
     </div>
   );
 }

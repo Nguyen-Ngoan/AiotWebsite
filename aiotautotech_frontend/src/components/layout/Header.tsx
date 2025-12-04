@@ -12,34 +12,19 @@ import {
 import { MobileMenu, NavItem } from '@/components/layout/MobileMenu';
 import { useState, forwardRef } from 'react';
 
-const navItems: NavItem[] = [
-  {
-    href: '#diy-maker',
-    title: 'Sản phẩm cho DIY',
-    subtitle: 'Linh kiện – ESP32 – CNC nhỏ',
-  },
-  {
-    href: '#automation',
-    title: 'Máy tự động cho sản xuất nhỏ',
-    subtitle: 'Máy phun men – bơm hồ – trục tuyến tính',
-  },
-  {
-    href: '#iot-farm',
-    title: 'Sản phẩm nông nghiệp thông minh',
-    subtitle: 'Tưới tự động – giám sát độ ẩm',
-  },
-  {
-    href: '#docs-support',
-    title: 'Hướng dẫn kỹ thuật',
-    subtitle: 'Code mẫu – sơ đồ – tư vấn kỹ thuật',
-  },
-];
+interface HeaderProps {
+  navItems: NavItem[];
+}
 
-const Header = forwardRef<HTMLElement>((props, ref) => {
+const Header = forwardRef<HTMLElement, HeaderProps>(({ navItems }, ref) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const closeMenu = () => setIsMenuOpen(false);
+
+  const filteredNavItems = navItems.filter(
+    (item) => item.title !== 'Giải pháp Tự động hóa'
+  );
 
   return (
     <header
@@ -52,28 +37,28 @@ const Header = forwardRef<HTMLElement>((props, ref) => {
         min-h-10 md:min-h-28
       "
     >
-      <nav className="mx-auto flex max-w-6xl flex-col px-4 py-2 md:py-3 md:px-6">
+      <div className="mx-auto flex max-w-6xl flex-col">
         {/* HÀNG TRÊN: LOGO + ICONS */}
-        <div className="flex items-center justify-between">
-          {/* LOGO */}
-          <Link
-            href="/"
-            className="flex items-center space-x-2 text-xl font-bold transition-opacity duration-200 hover:opacity-75"
-          >
-            {/* Logo tạm: Apple */}
-            <Image
-              src="/apple_logo.svg"
-              alt="AIOT AutoTech Logo"
-              width={20} // Đặt chiều rộng thực tế của logo
-              height={20} // Đặt chiều cao thực tế của logo
-              className="h-5 w-auto invert dark:invert-0"
-            />
-            <span className="text-sm font-semibold tracking-tight text-white sm:inline">
-              AIOT AutoTech
-            </span>
-          </Link>
+        <nav className="flex items-center justify-between px-4 py-2 md:px-6 md:py-3">
+          <div className="flex items-center">
+            {/* LOGO */}
+            <Link
+              href="/"
+              className="flex items-center space-x-2 text-xl font-bold transition-opacity duration-200 hover:opacity-75"
+            >
+              <Image
+                src="/aiotautotech-icon.png"
+                alt="AIOT AutoTech Logo"
+                width={28}
+                height={28}
+                className="h-7 w-7"
+              />
+              <span className="text-sm font-semibold tracking-tight text-white sm:inline">
+                AIOT AutoTech
+              </span>
+            </Link>
+          </div>
 
-          {/* ICONS BÊN PHẢI */}
           <div className="flex items-center space-x-4">
             {/* SEARCH ICON */}
             <Link
@@ -97,16 +82,16 @@ const Header = forwardRef<HTMLElement>((props, ref) => {
               )}
             </button>
           </div>
-        </div>
+        </nav>
 
-        {/* HÀNG DƯỚI: TOP NAVIGATION DESKTOP (4 MỤC, 2 DÒNG) */}
-        <div className="mt-3 hidden md:block">
-          <div className="grid grid-cols-4 gap-4 text-sm">
-            {navItems.map((item) => (
+        {/* HÀNG DƯỚI: TOP NAVIGATION DESKTOP */}
+        <div className="hidden md:block">
+          <nav className="mx-auto flex max-w-6xl items-start justify-between gap-2 px-4 py-2 text-sm md:px-6">
+            {filteredNavItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="group rounded-lg px-2 py-2 transition-colors duration-200 hover:bg-white/10"
+                className="group flex-1 rounded-lg bg-black/10 px-2 py-2 text-center transition-colors duration-200 hover:bg-black/20"
               >
                 <div className="flex flex-col leading-tight">
                   <span className="font-semibold text-white">{item.title}</span>
@@ -121,12 +106,16 @@ const Header = forwardRef<HTMLElement>((props, ref) => {
                 </div>
               </Link>
             ))}
-          </div>
+          </nav>
         </div>
 
         {/* MOBILE MENU: CHỈ HIỂN THỊ TRÊN MÀN HÌNH NHỎ */}
-        <MobileMenu open={isMenuOpen} items={navItems} onClose={closeMenu} />
-      </nav>
+        <MobileMenu
+          open={isMenuOpen}
+          items={filteredNavItems}
+          onClose={closeMenu}
+        />
+      </div>
     </header>
   );
 });

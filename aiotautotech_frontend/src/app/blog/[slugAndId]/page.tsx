@@ -1,12 +1,13 @@
 // src/app/blog/[slugAndId]/page.tsx
-"use client";
+'use client';
 
-import { useEffect, useState, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import { getApiUrl } from "@/lib/apiConfig";
+import { useEffect, useState, useRef } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+import { getApiUrl } from '@/lib/apiConfig';
+import { navItems } from '@/components/layout/nav-items';
 
 interface Post {
   id: string;
@@ -20,7 +21,10 @@ interface Post {
 export default function BlogDetailPage() {
   const params = useParams<{ slugAndId: string }>();
   const slugAndId = params?.slugAndId;
-  const id = slugAndId && typeof slugAndId === "string" ? slugAndId.split("-").pop() : undefined;
+  const id =
+    slugAndId && typeof slugAndId === 'string'
+      ? slugAndId.split('-').pop()
+      : undefined;
 
   const router = useRouter();
 
@@ -34,8 +38,8 @@ export default function BlogDetailPage() {
 
   // Tải bài viết
   useEffect(() => {
-    if (!id || id === "undefined") {
-      setError("Thiếu ID bài viết hoặc ID không hợp lệ.");
+    if (!id || id === 'undefined') {
+      setError('Thiếu ID bài viết hoặc ID không hợp lệ.');
       setLoading(false);
       return;
     }
@@ -47,11 +51,13 @@ export default function BlogDetailPage() {
 
         const response = await fetch(url);
         if (response.status === 404) {
-          setError("Không tìm thấy bài viết.");
+          setError('Không tìm thấy bài viết.');
           return;
         }
         if (!response.ok) {
-          throw new Error(`Lỗi HTTP: ${response.status} - ${response.statusText}`);
+          throw new Error(
+            `Lỗi HTTP: ${response.status} - ${response.statusText}`
+          );
         }
 
         const data: Post = await response.json();
@@ -60,7 +66,7 @@ export default function BlogDetailPage() {
         if (err instanceof Error) {
           setError(`Không thể tải bài viết: ${err.message}.`);
         } else {
-          setError("Đã xảy ra lỗi không xác định.");
+          setError('Đã xảy ra lỗi không xác định.');
         }
       } finally {
         setLoading(false);
@@ -79,7 +85,7 @@ export default function BlogDetailPage() {
     (async () => {
       try {
         // dynamic import để tương thích ESM/CJS
-        const katexModule = await import("katex/contrib/auto-render");
+        const katexModule = await import('katex/contrib/auto-render');
         const renderMathInElement =
           // một số phiên bản export default
           (katexModule as any).default ??
@@ -88,25 +94,28 @@ export default function BlogDetailPage() {
 
         if (cancelled) return;
 
-        if (typeof renderMathInElement !== "function") {
-          console.error("KaTeX auto-render function not found in module:", katexModule);
+        if (typeof renderMathInElement !== 'function') {
+          console.error(
+            'KaTeX auto-render function not found in module:',
+            katexModule
+          );
           return;
         }
 
         if (contentRef.current) {
           renderMathInElement(contentRef.current, {
             delimiters: [
-              { left: "$$", right: "$$", display: true },
-              { left: "\\[", right: "\\]", display: true },
-              { left: "\\(", right: "\\)", display: false },
-              { left: "$", right: "$", display: false },
+              { left: '$$', right: '$$', display: true },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '\\(', right: '\\)', display: false },
+              { left: '$', right: '$', display: false },
             ],
             throwOnError: false,
           });
         }
       } catch (err) {
         if (!cancelled) {
-          console.error("Error loading KaTeX auto-render:", err);
+          console.error('Error loading KaTeX auto-render:', err);
         }
       }
     })();
@@ -118,48 +127,54 @@ export default function BlogDetailPage() {
 
   const handleDelete = async () => {
     if (!id) return;
-    const ok = window.confirm("Bạn có chắc chắn muốn xoá bài viết này?");
+    const ok = window.confirm('Bạn có chắc chắn muốn xoá bài viết này?');
     if (!ok) return;
 
     setDeleting(true);
     try {
       const url = getApiUrl(`/posts/${id}/`);
-      const res = await fetch(url, { method: "DELETE" });
+      const res = await fetch(url, { method: 'DELETE' });
 
       if (res.status !== 204 && !res.ok) {
         const text = await res.text();
         throw new Error(`HTTP ${res.status}: ${res.statusText} - ${text}`);
       }
 
-      router.push("/#blog");
+      router.push('/#blog');
     } catch (err) {
       setDeleting(false);
       if (err instanceof Error) {
         alert(`Không thể xoá bài viết: ${err.message}`);
       } else {
-        alert("Đã xảy ra lỗi không xác định khi xoá bài.");
+        alert('Đã xảy ra lỗi không xác định khi xoá bài.');
       }
     }
   };
 
   const createdDate = post?.created_at
-    ? new Date(post.created_at).toLocaleDateString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
+    ? new Date(post.created_at).toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
       })
-    : "";
+    : '';
 
   // --- LOADING ---
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-black text-gray-100">
-        <Header />
+        <Header navItems={navItems} />
         <main className="flex-1 flex items-center justify-center px-4">
           <div className="text-center">
-            <p className="text-xs uppercase tracking-[0.18em] text-gray-500 mb-2">Blog</p>
-            <h1 className="text-2xl font-semibold text-gray-100 mb-2">Đang tải nội dung bài viết...</h1>
-            <p className="text-sm text-gray-500">Vui lòng chờ trong giây lát.</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-gray-500 mb-2">
+              Blog
+            </p>
+            <h1 className="text-2xl font-semibold text-gray-100 mb-2">
+              Đang tải nội dung bài viết...
+            </h1>
+            <p className="text-sm text-gray-500">
+              Vui lòng chờ trong giây lát.
+            </p>
           </div>
         </main>
         <Footer />
@@ -171,13 +186,22 @@ export default function BlogDetailPage() {
   if (error || !post) {
     return (
       <div className="min-h-screen flex flex-col bg-black text-gray-100">
-        <Header />
+        <Header navItems={navItems} />
         <main className="flex-1 flex items-center justify-center px-4">
           <div className="max-w-xl text-center">
-            <p className="text-xs uppercase tracking-[0.18em] text-red-500 mb-2">Blog</p>
-            <h1 className="text-2xl font-semibold text-red-400 mb-3">KHÔNG ĐỌC ĐƯỢC BÀI VIẾT</h1>
-            <p className="text-sm text-gray-400 mb-6">{error || "Không có dữ liệu hoặc ID không hợp lệ."}</p>
-            <Link href="/#blog" className="inline-flex items-center text-sm font-semibold text-blue-400 hover:text-blue-300">
+            <p className="text-xs uppercase tracking-[0.18em] text-red-500 mb-2">
+              Blog
+            </p>
+            <h1 className="text-2xl font-semibold text-red-400 mb-3">
+              KHÔNG ĐỌC ĐƯỢC BÀI VIẾT
+            </h1>
+            <p className="text-sm text-gray-400 mb-6">
+              {error || 'Không có dữ liệu hoặc ID không hợp lệ.'}
+            </p>
+            <Link
+              href="/#blog"
+              className="inline-flex items-center text-sm font-semibold text-blue-400 hover:text-blue-300"
+            >
               ← Quay lại danh sách bài viết
             </Link>
           </div>
@@ -190,7 +214,7 @@ export default function BlogDetailPage() {
   // --- MAIN UI ---
   return (
     <div className="min-h-screen flex flex-col bg-black text-gray-100">
-      <Header />
+      <Header navItems={navItems} />
 
       <main className="flex-1 pt-16 pb-20 px-6 sm:px-8">
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-gray-900 via-black to-black" />
@@ -198,35 +222,53 @@ export default function BlogDetailPage() {
         <article className="mx-auto w-full max-w-3xl">
           {/* breadcrumb + actions */}
           <div className="mb-6 flex items-center justify-between gap-4">
-            <Link href="/#blog" className="inline-flex items-center text-xs font-semibold text-blue-400 hover:text-blue-300">
+            <Link
+              href="/#blog"
+              className="inline-flex items-center text-xs font-semibold text-blue-400 hover:text-blue-300"
+            >
               ← Quay lại blog
             </Link>
 
             <div className="flex items-center gap-2">
-              <Link href={`/admin/posts/${post.id}/edit`} className="inline-flex items-center rounded-full border border-gray-700 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-200 hover:bg-gray-900/80">
+              <Link
+                href={`/admin/posts/${post.id}/edit`}
+                className="inline-flex items-center rounded-full border border-gray-700 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-200 hover:bg-gray-900/80"
+              >
                 Sửa
               </Link>
-              <button type="button" onClick={handleDelete} disabled={deleting} className="inline-flex items-center rounded-full border border-red-500/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-red-400 hover:bg-red-900/40 disabled:opacity-50 disabled:cursor-not-allowed">
-                {deleting ? "Đang xoá..." : "Xoá"}
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="inline-flex items-center rounded-full border border-red-500/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-red-400 hover:bg-red-900/40 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleting ? 'Đang xoá...' : 'Xoá'}
               </button>
             </div>
           </div>
 
           {/* label nhỏ */}
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">Blog • AIOT AUTOTECH</p>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+            Blog • AIOT AUTOTECH
+          </p>
 
           {/* title */}
-          <h1 className="mb-3 text-3xl sm:text-4xl font-semibold text-gray-50 leading-tight">{post.title}</h1>
+          <h1 className="mb-3 text-3xl sm:text-4xl font-semibold text-gray-50 leading-tight">
+            {post.title}
+          </h1>
 
           {/* meta */}
           <p className="mb-8 text-xs text-gray-500">
             {createdDate && (
               <>
                 {createdDate}
-                {" • "}
+                {' • '}
               </>
             )}
-            Tác giả <span className="font-medium text-gray-200">{post.author || "Ẩn danh"}</span>
+            Tác giả{' '}
+            <span className="font-medium text-gray-200">
+              {post.author || 'Ẩn danh'}
+            </span>
           </p>
 
           {/* nội dung (KaTeX sẽ xử lý $...$ trong đây) */}
@@ -293,7 +335,10 @@ export default function BlogDetailPage() {
           />
 
           <div className="mt-10 border-t border-gray-800 pt-6 text-xs text-gray-500">
-            <p>Bài viết này thuộc blog của AIOT AUTOTECH, chia sẻ kinh nghiệm về ESP32, stepper, tự động hoá và AI ứng dụng trong sản xuất nhỏ.</p>
+            <p>
+              Bài viết này thuộc blog của AIOT AUTOTECH, chia sẻ kinh nghiệm về
+              ESP32, stepper, tự động hoá và AI ứng dụng trong sản xuất nhỏ.
+            </p>
           </div>
         </article>
       </main>

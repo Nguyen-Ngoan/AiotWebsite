@@ -88,3 +88,20 @@ class ProductImageUploadSerializer(serializers.Serializer):
     ai_description = serializers.CharField(required=False, allow_blank=True)
     ai_tags = serializers.CharField(required=False, allow_blank=True)
     ai_context = serializers.CharField(required=False, allow_blank=True)
+
+
+class TechnicalDocSerializer(serializers.Serializer):
+    """
+    Serializer cho việc tạo/cập nhật một tài liệu trong collection `technical_docs`.
+    """
+    file = serializers.FileField(required=False) # Không bắt buộc khi chỉ cập nhật metadata
+    thumbnail_file = serializers.ImageField(required=False) # Thêm trường cho file thumbnail
+    doc_type = serializers.ChoiceField(
+        choices=[
+            "datasheet", "schematic", "step_model",
+            "stl_files", "user_manual", "github_repo"
+        ]
+    )
+    title = serializers.CharField(max_length=255)
+    description = serializers.CharField(required=False, allow_blank=True)
+    version = serializers.CharField(max_length=50, required=False, allow_blank=True)

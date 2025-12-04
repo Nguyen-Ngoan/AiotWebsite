@@ -10,13 +10,20 @@ from rest_framework.parsers import MultiPartParser
 
 from aiotautotech_backend.firestore_client import db
 from .utils import slugify
-from .serializers import ProductImageUploadSerializer
+from .serializers import ProductImageUploadSerializer, TechnicalDocSerializer
 from storage.r2 import upload_file_to_r2, generate_image_key
 from services.firestore_products import add_product_image_metadata
 
 import io
 from PIL import Image
 import boto3
+import uuid
+import os
+from django.core.files.temp import NamedTemporaryFile
+import pyvista as pv
+import sys
+
+
 from django.conf import settings
 
 
@@ -33,12 +40,38 @@ def _serialize_post(doc):
         "updated_at": data.get("updated_at"),
     }
 
+def _serialize_tech_doc(doc):
+    """
+    Serialize một document từ collection `technical_docs`.
+    """
+    data = doc.to_dict() or {}
+    return {
+        "id": doc.id,
+        "doc_type": data.get("doc_type", ""),
+        "title": data.get("title", ""),
+        "description": data.get("description", ""),
+        "url": data.get("url", ""),
+        "thumbnail_url": data.get("thumbnail_url"), # Có thể là None
+        "version": data.get("version", ""),
+        "file_size": data.get("file_size"),
+        "updated_at": data.get("updated_at"),
+    }
+
 def _serialize_product(doc):
     data = doc.to_dict() or {}
 
     images = data.get("images") or []
     if not isinstance(images, list):
         images = []
+
+    # --- LOGIC MỚI: Lấy thông tin chi tiết của technical docs ---
+    tech_doc_ids = data.get("tech_doc_ids", [])
+    technical_docs = []
+    if tech_doc_ids:
+        doc_refs = [db.collection("technical_docs").document(doc_id) for doc_id in tech_doc_ids]
+        docs = db.get_all(doc_refs) # Batch get
+        technical_docs = [_serialize_tech_doc(doc) for doc in docs if doc.exists]
+    # -----------------------------------------------------------
 
     return {
         "id": doc.id,
@@ -66,14 +99,82 @@ def _serialize_product(doc):
         "seo_description": data.get("seo_description", "") or "",
         "og_image": data.get("og_image", "") or "",
 
-        # Tech docs
-        "datasheet_url": data.get("datasheet_url", "") or "",
-        "schematic_url": data.get("schematic_url", "") or "",
-        "step_model_url": data.get("step_model_url", "") or "",
-        "stl_files_url": data.get("stl_files_url", "") or "",
-        "user_manual_url": data.get("user_manual_url", "") or "",
-        "github_repo_url": data.get("github_repo_url", "") or "",
+        # --- Cấu trúc mới ---
+        "tech_doc_ids": tech_doc_ids, # Trả về danh sách ID
+        "technical_docs": technical_docs, # Trả về danh sách object chi tiết
+
+        # === Features ===
+        "keyFeatures": data.get("key_features", []), # Trả về camelCase
+        "useCases": data.get("use_cases", []),       # Trả về camelCase
+        "limitations": data.get("limitations", []),
+        "compatibility": data.get("compatibility", []), # Giữ nguyên vì đã nhất quán
+        "specs": data.get("specs", []),                 # Giữ nguyên vì đã nhất quán
+
+        # "docs": data.get("docs") or {}, # Loại bỏ trường `docs` cũ
     }
+
+
+def create_stl_thumbnail(stl_file_path):
+    """
+    Tạo ảnh thumbnail từ file STL và trả về dưới dạng bytes.
+    Trả về None nếu có lỗi.
+    """
+    plotter = None
+    try:
+        # Kích hoạt framebuffer ảo (Xvfb) CHỈ trên Linux (môi trường server/Cloud Run)
+        # để đảm bảo render off-screen một cách đáng tin cậy.
+        if sys.platform.startswith('linux'):
+            pv.start_xvfb()
+
+        # Bật chế độ render off-screen (quan trọng cho Cloud Run)
+        pv.set_plot_theme("document")
+
+        # Đọc file STL
+        mesh = pv.read(stl_file_path)
+
+        # Tạo một plotter
+        plotter = pv.Plotter(
+            off_screen=True,
+            window_size=[800, 800],  # 1. Tăng độ phân giải
+            # Bật khử răng cưa để các cạnh mượt hơn
+            line_smoothing=True, 
+            polygon_smoothing=True
+        )
+
+        # Thêm vật thể vào plotter
+        plotter.add_mesh(
+            mesh,
+            color="royalblue",
+            style='surface',      # QUAN TRỌNG: Đảm bảo render bề mặt
+            smooth_shading=False, # Hiển thị rõ các mặt phẳng (facet)
+        )
+
+        # Đặt camera để nhìn rõ vật thể
+        plotter.view_isometric()
+        plotter.camera.zoom(1)
+        
+        # --- Thiết lập ánh sáng tùy chỉnh để tránh cháy sáng ---
+        # 1. Tắt tất cả các đèn mặc định (đặc biệt là "headlight")
+        # plotter.remove_all_lights()
+
+        # 2. Chỉ sử dụng một nguồn sáng chính, dịu hơn, chiếu từ bên cạnh
+        # main_light = pv.Light(position=(-1, 1, 0.5), intensity=0.8)
+        # plotter.add_light(main_light)
+
+        # Chụp ảnh và lưu vào buffer
+        img_buffer = io.BytesIO()
+        plotter.screenshot(img_buffer, transparent_background=True)
+
+        img_buffer.seek(0)
+        return img_buffer.getvalue()
+
+    except Exception as e:
+        print(f"Error creating STL thumbnail: {e}")
+        return None
+    finally:
+        if plotter:
+            plotter.close()
+
 
 class RootView(APIView):
     """
@@ -450,37 +551,10 @@ class ProductDetailView(APIView):
         if "og_image" in data:
             update_data["og_image"] = (data.get("og_image") or "").strip()
 
-        # Tech docs
-        if "datasheet_url" in data:
-            update_data["datasheet_url"] = (
-                data.get("datasheet_url") or ""
-            ).strip()
-
-        if "schematic_url" in data:
-            update_data["schematic_url"] = (
-                data.get("schematic_url") or ""
-            ).strip()
-
-        if "step_model_url" in data:
-            update_data["step_model_url"] = (
-                data.get("step_model_url") or ""
-            ).strip()
-
-        if "stl_files_url" in data:
-            update_data["stl_files_url"] = (
-                data.get("stl_files_url") or ""
-            ).strip()
-
-        if "user_manual_url" in data:
-            update_data["user_manual_url"] = (
-                data.get("user_manual_url") or ""
-            ).strip()
-
-        if "github_repo_url" in data:
-            update_data["github_repo_url"] = (
-                data.get("github_repo_url") or ""
-            ).strip()
-
+        # Tech docs (cấu trúc mới: chỉ lưu IDs)
+        if "tech_doc_ids" in data:
+            update_data["tech_doc_ids"] = data.get("tech_doc_ids", [])
+            
         # === Features (NEW) ===
 
         # key_features: chấp nhận cả key_features & keyFeatures
@@ -503,14 +577,14 @@ class ProductDetailView(APIView):
 
         # limitations
         if "limitations" in data:
-            limitations = data.get("limitations", [])
+            limitations = data.get("limitations") # Không cần gán giá trị mặc định ở đây
             if not isinstance(limitations, list):
                 limitations = []
             update_data["limitations"] = limitations
 
         # compatibility
         if "compatibility" in data:
-            compatibility = data.get("compatibility", [])
+            compatibility = data.get("compatibility") # Không cần gán giá trị mặc định ở đây
             if not isinstance(compatibility, list):
                 compatibility = []
             update_data["compatibility"] = compatibility
@@ -631,34 +705,44 @@ class ProductImageUploadView(APIView):
             )
 
 
-class ProductDocUploadView(APIView):
+class TechnicalDocListView(APIView):
     """
-    POST /api/products/<product_id>/docs/
-    Upload một file tài liệu (datasheet, schematic, etc.) lên R2 và cập nhật URL vào Firestore.
+    GET: Lấy danh sách tài liệu, có thể lọc theo `doc_type`.
+         /api/technical-docs/?doc_type=stl_files
+    POST: Tạo một tài liệu mới (upload file + lưu metadata).
     """
     parser_classes = [MultiPartParser]
 
-    def post(self, request, product_id):
+    def get(self, request, *args, **kwargs):
+        doc_type = request.query_params.get("doc_type")
+        query = db.collection("technical_docs")
+
+        if doc_type:
+            query = query.where("doc_type", "==", doc_type)
+
+        query = query.order_by("updated_at", direction="DESCENDING").limit(100)
+
         try:
-            file = request.FILES.get("file")
-            doc_type = request.data.get("doc_type")
+            docs = query.stream()
+            serialized_docs = [_serialize_tech_doc(doc) for doc in docs]
+            return Response(serialized_docs)
+        except Exception as e:
+            print(f"Firestore query error: {e}")
+            return Response({"error": "Lỗi truy vấn. Có thể bạn cần tạo composite index trên Firestore."}, status=500)
 
-            if not file:
-                return Response({"error": "No file uploaded"}, status=400)
-            
-            VALID_DOC_TYPES = [
-                "datasheet_url", "schematic_url", "step_model_url",
-                "stl_files_url", "user_manual_url", "github_repo_url"
-            ]
-            if doc_type not in VALID_DOC_TYPES:
-                return Response({"error": f"Invalid doc_type. Must be one of {VALID_DOC_TYPES}"}, status=400)
+    def post(self, request, *args, **kwargs):
+        serializer = TechnicalDocSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            # --- Upload to R2 ---
-            # Giữ lại tên file gốc, nhưng slugify để an toàn
-            safe_filename = slugify(file.name.rsplit('.', 1)[0]) + '.' + file.name.rsplit('.', 1)[-1]
-            folder = f"docs/products/{product_id}/{doc_type.replace('_url', '')}"
-            r2_key = f"{folder}/{safe_filename}"
+        validated_data = serializer.validated_data
+        file = validated_data.get("file")
+        doc_type = validated_data.get("doc_type")
 
+        if not file:
+            return Response({"error": "File is required for creation."}, status=400)
+
+        try:
             session = boto3.session.Session()
             s3 = session.client(
                 "s3",
@@ -667,18 +751,138 @@ class ProductDocUploadView(APIView):
                 aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
             )
 
-            s3.upload_fileobj(file, settings.R2_BUCKET_NAME, r2_key, ExtraArgs={"ContentType": file.content_type})
+            thumbnail_url = None
+            if doc_type in ["stl_files", "step_model"]:
+                with NamedTemporaryFile(suffix=".stl") as temp_stl:
+                    for chunk in file.chunks():
+                        temp_stl.write(chunk)
+                    temp_stl.flush()
+                    thumbnail_bytes = create_stl_thumbnail(temp_stl.name)
+                    if thumbnail_bytes:
+                        thumbnail_r2_key = f"technical_docs/thumbnails/{uuid.uuid4()}.png"
+                        s3.upload_fileobj(
+                            io.BytesIO(thumbnail_bytes),
+                            settings.R2_BUCKET_NAME,
+                            thumbnail_r2_key,
+                            ExtraArgs={"ContentType": "image/png"},
+                        )
+                        thumbnail_url = f"{settings.CDN_URL}/{thumbnail_r2_key}"
+                file.seek(0)
 
+            original_file_extension = os.path.splitext(file.name)[1]
+            r2_key = f"technical_docs/files/{uuid.uuid4()}{original_file_extension}"
+            s3.upload_fileobj(file, settings.R2_BUCKET_NAME, r2_key, ExtraArgs={"ContentType": file.content_type})
             url = f"{settings.CDN_URL}/{r2_key}"
 
-            # --- Cập nhật Firestore ---
-            doc_ref = db.collection("products").document(product_id)
-            doc_ref.update({doc_type: url, "updated_at": timezone.now()})
+            now = timezone.now()
+            payload = {
+                "doc_type": doc_type,
+                "title": validated_data.get("title"),
+                "description": validated_data.get("description", ""),
+                "version": validated_data.get("version", ""),
+                "url": url,
+                "r2_key": r2_key, # Lưu lại key để có thể xoá file
+                "file_size": file.size,
+                "created_at": now,
+                "updated_at": now,
+            }
+            if thumbnail_url:
+                payload["thumbnail_url"] = thumbnail_url
 
-            return Response({"field": doc_type, "url": url}, status=200)
+            doc_ref = db.collection("technical_docs").document()
+            doc_ref.set(payload)
+
+            return Response(_serialize_tech_doc(doc_ref.get()), status=status.HTTP_201_CREATED)
 
         except Exception as e:
-            print(f"Doc Upload Error ({doc_type}):", e)
-            return Response(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            print(f"Technical Doc Upload Error:", e)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class TechnicalDocDetailView(APIView):
+    """
+    GET: Lấy chi tiết một tài liệu.
+    PUT: Cập nhật metadata của một tài liệu.
+    DELETE: Xoá một tài liệu (bao gồm cả file trên R2).
+    """
+    parser_classes = [MultiPartParser]
+    def get_object(self, doc_id: str):
+        doc_ref = db.collection("technical_docs").document(doc_id)
+        doc = doc_ref.get()
+        if not doc.exists:
+            raise Http404
+        return doc
+
+    def get(self, request, doc_id: str, *args, **kwargs):
+        doc = self.get_object(doc_id)
+        return Response(_serialize_tech_doc(doc))
+
+    def put(self, request, doc_id: str, *args, **kwargs):
+        doc_ref = db.collection("technical_docs").document(doc_id)
+        if not doc_ref.get().exists:
+            return Response({"error": "Document not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = TechnicalDocSerializer(data=request.data, partial=True) # partial=True cho phép cập nhật một phần
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        update_data = serializer.validated_data
+        update_data["updated_at"] = timezone.now()
+
+        # Xử lý upload thumbnail mới nếu có
+        thumbnail_file = update_data.get("thumbnail_file")
+        if thumbnail_file:
+            try:
+                session = boto3.session.Session()
+                s3 = session.client(
+                    "s3",
+                    endpoint_url=f"https://{settings.R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+                    aws_access_key_id=settings.R2_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
+                )
+                
+                # Tạo key duy nhất cho thumbnail
+                thumbnail_r2_key = f"technical_docs/thumbnails/{uuid.uuid4()}.png"
+                
+                # Upload file ảnh thumbnail
+                s3.upload_fileobj(
+                    thumbnail_file,
+                    settings.R2_BUCKET_NAME,
+                    thumbnail_r2_key,
+                    ExtraArgs={"ContentType": thumbnail_file.content_type},
+                )
+                
+                # Cập nhật URL thumbnail trong data để lưu vào Firestore
+                update_data["thumbnail_url"] = f"{settings.CDN_URL}/{thumbnail_r2_key}"
+
+            except Exception as e:
+                print(f"Thumbnail Upload Error on PUT: {e}")
+                return Response({"error": f"Thumbnail upload failed: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        doc_ref.update(update_data)
+        return Response(_serialize_tech_doc(doc_ref.get()))
+
+    def delete(self, request, doc_id: str, *args, **kwargs):
+        doc = self.get_object(doc_id)
+        doc_data = doc.to_dict()
+
+        # Xoá file trên R2 nếu có
+        r2_key = doc_data.get("r2_key")
+        if r2_key:
+            try:
+                session = boto3.session.Session()
+                s3 = session.client(
+                    "s3",
+                    endpoint_url=f"https://{settings.R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+                    aws_access_key_id=settings.R2_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
+                )
+                s3.delete_object(Bucket=settings.R2_BUCKET_NAME, Key=r2_key)
+                print(f"Deleted file from R2: {r2_key}")
+            except Exception as e:
+                # Ghi log lỗi nhưng vẫn tiếp tục xoá document
+                print(f"Could not delete file from R2: {r2_key}. Error: {e}")
+
+        # Xoá document trên Firestore
+        doc.reference.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

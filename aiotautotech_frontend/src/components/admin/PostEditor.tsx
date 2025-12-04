@@ -1,7 +1,7 @@
 // src/components/admin/PostEditor.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -181,6 +181,9 @@ export default function PostEditor({
 }: PostEditorProps) {
   const [mounted, setMounted] = useState(false);
   const [showSymbols, setShowSymbols] = useState(false);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const [showScrollLeft, setShowScrollLeft] = useState(false);
+  const [showScrollRight, setShowScrollRight] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -214,6 +217,33 @@ export default function PostEditor({
     };
   }, [editor]);
 
+  // Logic để hiển thị/ẩn các nút cuộn của toolbar
+  useEffect(() => {
+    const toolbar = toolbarRef.current;
+    if (!toolbar) return;
+
+    const checkScroll = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = toolbar;
+      // Hiển thị nút cuộn trái nếu đã cuộn sang phải
+      setShowScrollLeft(scrollLeft > 0);
+      // Hiển thị nút cuộn phải nếu nội dung còn lại lớn hơn vùng hiển thị
+      setShowScrollRight(scrollLeft < scrollWidth - clientWidth - 1); // -1 để xử lý sai số pixel
+    };
+
+    // Kiểm tra lần đầu khi component mount
+    checkScroll();
+
+    // Thêm event listener để kiểm tra lại khi cuộn hoặc resize
+    toolbar.addEventListener('scroll', checkScroll);
+    window.addEventListener('resize', checkScroll);
+
+    // Dọn dẹp event listener khi component unmount
+    return () => {
+      toolbar.removeEventListener('scroll', checkScroll);
+      window.removeEventListener('resize', checkScroll);
+    };
+  }, [editor]); // Thêm editor vào dependency array để đảm bảo toolbarRef đã sẵn sàng
+
   if (!mounted || !editor) return null;
 
   const addImage = () => {
@@ -232,6 +262,13 @@ export default function PostEditor({
 
   const insertSymbol = (symbol: string) => {
     editor.chain().focus().insertContent(symbol).run();
+  };
+
+  const scrollToolbar = (direction: 'left' | 'right') => {
+    toolbarRef.current?.scrollBy({
+      left: direction === 'left' ? -250 : 250,
+      behavior: 'smooth',
+    });
   };
 
   const symbolList = [
@@ -283,139 +320,186 @@ export default function PostEditor({
   };
 
   return (
-    <div className="relative flex max-h-[calc(100vh-220px)] flex-col rounded-2xl border border-[#2a2a2a] bg-[#121212] shadow-sm">
-      {/* TOOLBAR – horizontal scrollable */}
-      <div className="rounded-t-2xl border-b border-[#2b2b2b] bg-[#1a1a1a] px-2 py-1 text-xs shadow-sm overflow-x-auto">
-        <div className="flex w-max items-center gap-1.5">
-          {/* Bold / Italic */}
+    <div className="relative flex h-full max-h-[calc(100vh-250px)] flex-col rounded-2xl border border-[#2a2a2a] bg-[#121212] shadow-sm">
+      {/* TOOLBAR CONTAINER */}
+      <div className="sticky top-0 z-20 rounded-t-2xl border-b border-[#2b2b2b] bg-[#1a1a1a] px-1 shadow-sm">
+        {/* Nút cuộn trái */}
+        {showScrollLeft && (
           <button
             type="button"
-            onClick={() => editor.chain().focus().toggleBold().run()}
-            className={iconButtonClass(editor.isActive('bold'))}
+            onClick={() => scrollToolbar('left')}
+            className="absolute left-0 top-0 z-10 h-full w-8 bg-gradient-to-r from-[#1a1a1a] via-[#1a1a1a]/80 to-transparent"
           >
-            <IconBold />
-            <span className="sr-only">Bold</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-            className={iconButtonClass(editor.isActive('italic'))}
-          >
-            <IconItalic />
-            <span className="sr-only">Italic</span>
-          </button>
-
-          <Separator />
-
-          {/* Heading combobox (English) */}
-          <div className="relative inline-flex items-center">
-            <select
-              className="h-8 appearance-none rounded-md border border-[#3a3a3a] bg-[#181818] px-2 pr-6 text-[12px] font-medium text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              value={getCurrentHeading()}
-              onChange={(e) => handleHeadingChange(e.target.value)}
+            <svg
+              className="h-4 w-4 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <option value="paragraph">Paragraph</option>
-              <option value="h1">Heading 1</option>
-              <option value="h2">Heading 2</option>
-              <option value="h3">Heading 3</option>
-            </select>
-            <span className="pointer-events-none absolute right-1 text-gray-400">
-              <svg
-                className="h-3 w-3"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+        )}
+        {/* Nút cuộn phải */}
+        {showScrollRight && (
+          <button
+            type="button"
+            onClick={() => scrollToolbar('right')}
+            className="absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-[#1a1a1a] via-[#1a1a1a]/80 to-transparent"
+          >
+            <svg
+              className="ml-auto h-4 w-4 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        )}
+        {/* SCROLL AREA */}
+        <div ref={toolbarRef} className="hide-scrollbar overflow-x-auto px-1">
+          <div className="flex w-max items-center gap-1.5 px-2 py-1 text-xs">
+            {/* Bold / Italic */}
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleBold().run()}
+              className={iconButtonClass(editor.isActive('bold'))}
+            >
+              <IconBold />
+              <span className="sr-only">Bold</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleItalic().run()}
+              className={iconButtonClass(editor.isActive('italic'))}
+            >
+              <IconItalic />
+              <span className="sr-only">Italic</span>
+            </button>
+
+            <Separator />
+
+            {/* Heading combobox (English) */}
+            <div className="relative inline-flex items-center">
+              <select
+                className="h-8 appearance-none rounded-md border border-[#3a3a3a] bg-[#181818] px-2 pr-6 text-[12px] font-medium text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                value={getCurrentHeading()}
+                onChange={(e) => handleHeadingChange(e.target.value)}
               >
-                <path
-                  fillRule="evenodd"
-                  d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.25 8.29a.75.75 0 01-.02-1.08z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </span>
+                <option value="paragraph">Paragraph</option>
+                <option value="h1">Heading 1</option>
+                <option value="h2">Heading 2</option>
+                <option value="h3">Heading 3</option>
+              </select>
+              <span className="pointer-events-none absolute right-1 text-gray-400">
+                <svg
+                  className="h-3 w-3"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.25 8.29a.75.75 0 01-.02-1.08z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </span>
+            </div>
+
+            <Separator />
+
+            {/* Lists */}
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleBulletList().run()}
+              className={iconButtonClass(editor.isActive('bulletList'))}
+            >
+              <IconBulletList />
+              <span className="sr-only">Bullet list</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+              className={iconButtonClass(editor.isActive('orderedList'))}
+            >
+              <IconNumberList />
+              <span className="sr-only">Numbered list</span>
+            </button>
+
+            <Separator />
+
+            {/* Quote / Cite */}
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().toggleBlockquote().run()}
+              className={iconButtonClass(editor.isActive('blockquote'))}
+            >
+              <IconQuote />
+              <span className="sr-only">Blockquote</span>
+            </button>
+            <button
+              type="button"
+              onClick={insertCite}
+              className={iconButtonClass(false)}
+            >
+              <IconCite />
+              <span className="sr-only">Cite</span>
+            </button>
+
+            <Separator />
+
+            {/* Image */}
+            <button
+              type="button"
+              onClick={addImage}
+              className={iconButtonClass(false)}
+            >
+              <IconImage />
+              <span className="sr-only">Image</span>
+            </button>
+
+            {/* Symbols */}
+            <button
+              type="button"
+              onClick={() => setShowSymbols((v) => !v)}
+              className={iconButtonClass(showSymbols)}
+            >
+              <IconSymbol />
+              <span className="sr-only">Symbols</span>
+            </button>
+
+            <div className="flex-1" />
+
+            {/* Undo / Redo */}
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().undo().run()}
+              className={iconButtonClass(false)}
+            >
+              <IconUndo />
+              <span className="sr-only">Undo</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().redo().run()}
+              className={iconButtonClass(false)}
+            >
+              <IconRedo />
+              <span className="sr-only">Redo</span>
+            </button>
           </div>
-
-          <Separator />
-
-          {/* Lists */}
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleBulletList().run()}
-            className={iconButtonClass(editor.isActive('bulletList'))}
-          >
-            <IconBulletList />
-            <span className="sr-only">Bullet list</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-            className={iconButtonClass(editor.isActive('orderedList'))}
-          >
-            <IconNumberList />
-            <span className="sr-only">Numbered list</span>
-          </button>
-
-          <Separator />
-
-          {/* Quote / Cite */}
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleBlockquote().run()}
-            className={iconButtonClass(editor.isActive('blockquote'))}
-          >
-            <IconQuote />
-            <span className="sr-only">Blockquote</span>
-          </button>
-          <button
-            type="button"
-            onClick={insertCite}
-            className={iconButtonClass(false)}
-          >
-            <IconCite />
-            <span className="sr-only">Cite</span>
-          </button>
-
-          <Separator />
-
-          {/* Image */}
-          <button
-            type="button"
-            onClick={addImage}
-            className={iconButtonClass(false)}
-          >
-            <IconImage />
-            <span className="sr-only">Image</span>
-          </button>
-
-          {/* Symbols */}
-          <button
-            type="button"
-            onClick={() => setShowSymbols((v) => !v)}
-            className={iconButtonClass(showSymbols)}
-          >
-            <IconSymbol />
-            <span className="sr-only">Symbols</span>
-          </button>
-
-          <div className="flex-1" />
-
-          {/* Undo / Redo */}
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().undo().run()}
-            className={iconButtonClass(false)}
-          >
-            <IconUndo />
-            <span className="sr-only">Undo</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().redo().run()}
-            className={iconButtonClass(false)}
-          >
-            <IconRedo />
-            <span className="sr-only">Redo</span>
-          </button>
         </div>
       </div>
 
@@ -441,11 +525,10 @@ export default function PostEditor({
       )}
 
       {/* BODY */}
-      <div className="flex-1 overflow-y-auto px-4 py-3">
-        <div className="min-h-[220px] rounded-b-2xl border border-[#2b2b2b] bg-black px-3 py-2 text-sm text-gray-100 shadow-inner">
-          <EditorContent
-            editor={editor}
-            className={`
+      <div className="flex-1 overflow-y-auto rounded-b-2xl border-t-0 border-red-500 bg-black px-3 py-2 text-sm text-gray-100 shadow-inner min-h-[400px]">
+        <EditorContent
+          editor={editor}
+          className={`
               prose max-w-none
               text-[16px] sm:text-[17px] leading-relaxed
               text-gray-100 dark:prose-invert
@@ -502,8 +585,7 @@ export default function PostEditor({
               [&_table]:overflow-x-auto
               [&_table]:whitespace-nowrap
             `}
-          />
-        </div>
+        />
       </div>
     </div>
   );

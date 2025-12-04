@@ -1,0 +1,2 @@
+# Gói chỉ dành cho môi trường phát triển local (Windows/macOS)
+pyglet>=2.0.0

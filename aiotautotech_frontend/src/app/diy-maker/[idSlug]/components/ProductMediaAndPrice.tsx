@@ -2,13 +2,16 @@
 
 'use client';
 import { useState, useEffect } from 'react';
+import { TechnicalDoc } from './technical-doc';
 import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
+import dynamic from 'next/dynamic';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   MagnifyingGlassPlusIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 /* eslint-disable @next/next/no-img-element */
@@ -27,8 +30,19 @@ export interface ProductMediaAndPriceProps {
   stock_tracking?: boolean;
   stock_qty?: number | null;
   min_order_qty?: number | null;
+  technical_docs?: TechnicalDoc[];
   currency?: string;
 }
+
+// Tải ModelViewer động
+const ModelViewer = dynamic(() => import('./ModelViewer'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-full w-full bg-[#111] rounded-lg flex items-center justify-center text-sm text-gray-400">
+      Đang tải trình xem 3D...
+    </div>
+  ),
+});
 
 export function ProductMediaAndPrice({
   mainImage,
@@ -42,6 +56,7 @@ export function ProductMediaAndPrice({
   stock_tracking,
   stock_qty,
   min_order_qty,
+  technical_docs = [],
   currency,
 }: ProductMediaAndPriceProps) {
   const [displayedImage, setDisplayedImage] = useState(mainImage);
@@ -55,6 +70,8 @@ export function ProductMediaAndPrice({
     prev: string;
   } | null>(null);
   const [openLightbox, setOpenLightbox] = useState(false);
+  const [viewingStlInModal, setViewingStlInModal] =
+    useState<TechnicalDoc | null>(null);
 
   useEffect(() => {
     setDisplayedImage(mainImage);
@@ -156,171 +173,228 @@ export function ProductMediaAndPrice({
 
   return (
     <>
-      <section className="grid gap-5 rounded-2xl bg-[#050608] shadow-[0_18px_40px_rgba(0,0,0,0.45)] lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1.1fr)]">
-        {/* Cột trái: Ảnh & gallery */}
-        <div
-          className="space-y-3 pt-2"
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        >
-          <div
-            className="group relative cursor-pointer overflow-hidden rounded-xl bg-black/60"
-            onClick={() => setOpenLightbox(true)}
-          >
-            {displayedImage ? (
-              <>
-                {previousImage && (
+      <section className="grid grid-cols-[auto_1fr] gap-3 rounded-2xl bg-[#050608] shadow-[0_18px_40px_rgba(0,0,0,0.45)] lg:grid-cols-[auto_1fr] lg:gap-5">
+        {/* Cột mới: Tech Doc Thumbnails (luôn hiển thị) */}
+        {technical_docs.length > 0 && (
+          <div className="flex flex-col items-center space-y-2 pt-2">
+            {technical_docs.map((doc) => {
+              let thumbnailUrl = doc.thumbnail_url;
+              if (!thumbnailUrl) {
+                switch (doc.doc_type) {
+                  case 'step_model':
+                    thumbnailUrl =
+                      'https://cdn.aiotautotech.com/images/step-file-icon-thumb.jpg';
+                    break;
+                  case 'datasheet':
+                  case 'user_manual':
+                    thumbnailUrl =
+                      'https://cdn.aiotautotech.com/images/pdf-icon-thumb.webp';
+                    break;
+                  case 'schematic':
+                    thumbnailUrl =
+                      'https://cdn.aiotautotech.com/images/schematic-icon-thumb.webp';
+                    break;
+                  case 'github_repo':
+                    thumbnailUrl =
+                      'https://cdn.aiotautotech.com/images/code-icon-thumb.webp';
+                    break;
+                  default:
+                    break;
+                }
+              }
+
+              const handleClick = (e: React.MouseEvent) => {
+                if (doc.doc_type === 'stl_files') {
+                  e.preventDefault();
+                  setViewingStlInModal(doc);
+                }
+                // Các loại khác sẽ tự động mở link mới do dùng thẻ <a>
+              };
+
+              const commonClasses =
+                'h-12 w-12 flex-shrink-0 rounded-md border border-gray-700 bg-gray-800 object-contain transition-all duration-200 hover:scale-105 hover:border-blue-400';
+
+              if (!thumbnailUrl) return null;
+
+              return (
+                <a
+                  key={doc.id}
+                  href={doc.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={handleClick}
+                  title={doc.title}
+                  className="block"
+                >
                   <img
-                    src={previousImage}
-                    alt="Ảnh sản phẩm cũ"
-                    className={`absolute inset-0 h-full w-full bg-black object-contain ${
-                      animation?.prev || ''
+                    src={thumbnailUrl}
+                    alt={doc.title}
+                    className={commonClasses}
+                  />
+                </a>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Cột trái: Ảnh & gallery */}
+        <div className="flex flex-col gap-3 lg:gap-5">
+          <div
+            className="space-y-3 pt-2"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+          >
+            <div
+              className="group relative cursor-pointer overflow-hidden rounded-xl border border-gray-800 bg-black/60"
+              onClick={() => setOpenLightbox(true)}
+            >
+              {displayedImage ? (
+                <>
+                  {previousImage && (
+                    <img
+                      src={previousImage}
+                      alt="Ảnh sản phẩm cũ"
+                      className={`absolute inset-0 h-full w-full bg-black object-contain ${
+                        animation?.prev || ''
+                      }`}
+                    />
+                  )}
+                  <img
+                    src={displayedImage}
+                    alt="Ảnh sản phẩm"
+                    className={`relative h-full w-full aspect-[3/2] bg-transparent object-contain ${
+                      animation?.current || ''
                     }`}
                   />
-                )}
-                <img
-                  src={displayedImage}
-                  alt="Ảnh sản phẩm"
-                  className={`relative h-full w-full aspect-[3/2] bg-transparent object-contain ${
-                    animation?.current || ''
-                  }`}
-                />
-              </>
-            ) : (
-              <div className="flex aspect-[3/2] w-full items-center justify-center text-xs text-gray-500">
-                Chưa có hình ảnh chính cho sản phẩm này.
-              </div>
-            )}
+                </>
+              ) : (
+                <div className="flex aspect-[3/2] w-full items-center justify-center text-xs text-gray-500">
+                  Chưa có hình ảnh chính cho sản phẩm này.
+                </div>
+              )}
 
-            {/* Nút điều hướng trái/phải */}
+              {/* Nút điều hướng trái/phải */}
+              {hasGallery && (
+                <>
+                  <button
+                    type="button"
+                    onClick={goToPrevImage}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/30 p-1.5 text-white opacity-100 transition-opacity hover:bg-black/50 lg:opacity-0 lg:group-hover:opacity-100"
+                    aria-label="Ảnh trước"
+                  >
+                    <ChevronLeftIcon className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={goToNextImage}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/30 p-1.5 text-white opacity-100 transition-opacity hover:bg-black/50 lg:opacity-0 lg:group-hover:opacity-100"
+                    aria-label="Ảnh tiếp theo"
+                  >
+                    <ChevronRightIcon className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenLightbox(true);
+                    }}
+                    className="absolute right-2 top-2 rounded-full bg-black/30 p-1.5 text-white opacity-100 transition-opacity hover:bg-black/50 lg:opacity-0 lg:group-hover:opacity-100"
+                    aria-label="Phóng to ảnh"
+                  >
+                    <MagnifyingGlassPlusIcon className="h-5 w-5" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Gallery thumbnails (nếu có) */}
             {hasGallery && (
-              <>
-                <button
-                  type="button"
-                  onClick={goToPrevImage}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/30 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/50 group-hover:opacity-100"
-                  aria-label="Ảnh trước"
-                >
-                  <ChevronLeftIcon className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={goToNextImage}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/30 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/50 group-hover:opacity-100"
-                  aria-label="Ảnh tiếp theo"
-                >
-                  <ChevronRightIcon className="h-5 w-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setOpenLightbox(true);
-                  }}
-                  className="absolute right-2 top-2 rounded-full bg-black/30 p-1.5 text-white opacity-0 transition-opacity hover:bg-black/50 group-hover:opacity-100"
-                  aria-label="Phóng to ảnh"
-                >
-                  <MagnifyingGlassPlusIcon className="h-5 w-5" />
-                </button>
-              </>
+              <div className="flex flex-wrap justify-center gap-2">
+                {galleryUrls.slice(0, 6).map((url, idx) => (
+                  <div
+                    key={`${url}-${idx}`}
+                    onClick={() => handleChangeImage(url)}
+                    className={`h-14 w-14 cursor-pointer overflow-hidden rounded-lg bg-black/60 transition-all duration-200 ${
+                      displayedImage === url
+                        ? 'border-2 border-blue-400'
+                        : 'border-2 border-transparent hover:border-gray-500'
+                    }`}
+                  >
+                    <img
+                      src={url}
+                      alt={`Thumb ${idx + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ))}
+                {galleryUrls.length > 6 && (
+                  <span className="flex h-14 items-center justify-center rounded-lg border border-dashed border-gray-700 bg-black/50 px-3 text-[11px] text-gray-400">
+                    +{galleryUrls.length - 6} ảnh khác
+                  </span>
+                )}
+              </div>
             )}
           </div>
 
-          {/* Gallery thumbnails (nếu có) */}
-          {hasGallery && (
-            <div className="flex flex-wrap justify-center gap-2">
-              {galleryUrls.slice(0, 6).map((url, idx) => (
+          {/* Cột phải: Giá, trạng thái, kho */}
+          <div className="col-span-2 flex flex-col justify-between rounded-2xl border border-gray-800 bg-black/40 p-4 text-xs text-gray-300 lg:col-span-1">
+            <div className="space-y-3">
+              {/* Mô tả ngắn */}
+              {short_description && (
                 <div
-                  key={`${url}-${idx}`}
-                  onClick={() => handleChangeImage(url)}
-                  className={`h-14 w-14 cursor-pointer overflow-hidden rounded-lg bg-black/60 transition-all duration-200 ${
-                    displayedImage === url
-                      ? 'border-2 border-blue-400'
-                      : 'border-2 border-transparent hover:border-gray-500'
-                  }`}
-                >
-                  <img
-                    src={url}
-                    alt={`Thumb ${idx + 1}`}
-                    className="h-full w-full object-cover"
-                  />
+                  className="prose prose-sm prose-invert max-w-none text-gray-300"
+                  dangerouslySetInnerHTML={{
+                    __html: short_description,
+                  }}
+                />
+              )}
+
+              {/* Giá */}
+              <div>
+                <div className="text-[11px] uppercase tracking-wide text-gray-500">
+                  Giá tham khảo
                 </div>
-              ))}
-              {galleryUrls.length > 6 && (
-                <span className="flex h-14 items-center justify-center rounded-lg border border-dashed border-gray-700 bg-black/50 px-3 text-[11px] text-gray-400">
-                  +{galleryUrls.length - 6} ảnh khác
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Cột phải: Giá, trạng thái, kho */}
-        <div className="flex flex-col justify-between rounded-2xl border border-gray-800 bg-black/40 p-4 text-xs text-gray-300">
-          <div className="space-y-3">
-            {/* Mô tả ngắn */}
-            {short_description && (
-              <p className="mb-4 text-sm leading-relaxed text-gray-300">
-                {short_description}
-              </p>
-            )}
-
-            {/* Giá */}
-            <div>
-              <div className="text-[11px] uppercase tracking-wide text-gray-500">
-                Giá tham khảo
-              </div>
-              <div className="mt-1 flex items-baseline gap-2">
-                <div className="text-xl font-semibold text-blue-300">
-                  {priceLabel || 'Liên hệ'}
+                <div className="mt-1 flex items-baseline gap-2">
+                  <div className="text-xl font-semibold text-blue-300">
+                    {priceLabel || 'Liên hệ'}
+                  </div>
+                  <span className="text-[11px] text-gray-500">
+                    {displayCurrency}
+                  </span>
                 </div>
-                <span className="text-[11px] text-gray-500">
-                  {displayCurrency}
-                </span>
+              </div>
+
+              {/* Trạng thái */}
+              <div className="flex flex-wrap items-center gap-2">
+                {statusLabel && statusLabel !== 'Nháp' && (
+                  <span className="inline-flex items-center rounded-full border border-emerald-500/60 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-100">
+                    {statusLabel}
+                  </span>
+                )}
+                {typeLabel && (
+                  <span className="inline-flex items-center rounded-full border border-gray-600 px-2.5 py-1 text-[11px] font-medium text-gray-200">
+                    {typeLabel}
+                  </span>
+                )}
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center rounded-full border border-blue-500/50 bg-blue-500/10 px-2.5 py-1 text-[11px] font-medium text-blue-200"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              {/* Kho hàng */}
+              <div className="mt-2 space-y-1">
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                  Tồn kho
+                </div>
+                <p className="text-[12px] text-gray-200">{stockLabel}</p>
               </div>
             </div>
-
-            {/* Trạng thái */}
-            <div className="flex flex-wrap items-center gap-2">
-              {statusLabel && statusLabel !== 'Nháp' && (
-                <span className="inline-flex items-center rounded-full border border-emerald-500/60 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-100">
-                  {statusLabel}
-                </span>
-              )}
-              {typeLabel && (
-                <span className="inline-flex items-center rounded-full border border-gray-600 px-2.5 py-1 text-[11px] font-medium text-gray-200">
-                  {typeLabel}
-                </span>
-              )}
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center rounded-full border border-blue-500/50 bg-blue-500/10 px-2.5 py-1 text-[11px] font-medium text-blue-200"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            {/* Kho hàng */}
-            <div className="mt-2 space-y-1">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                Tồn kho & đặt hàng
-              </div>
-              <p className="text-[12px] text-gray-200">{stockLabel}</p>
-              <p className="text-[11px] text-gray-400">{minOrderLabel}</p>
-            </div>
-          </div>
-
-          {/* Gợi ý CTA / ghi chú */}
-          <div className="mt-4 rounded-xl border border-dashed border-gray-700 bg-black/40 px-3 py-3 text-[11px] text-gray-400">
-            <p>
-              Đây là giá tham khảo cho cộng đồng DIY / maker. Với đơn hàng số
-              lượng lớn hoặc tuỳ chỉnh theo yêu cầu (thay đổi độ dài trục, loại
-              động cơ, cảm biến, v.v.) bạn có thể liên hệ trực tiếp để trao đổi
-              thêm.
-            </p>
           </div>
         </div>
       </section>
@@ -335,6 +409,37 @@ export function ProductMediaAndPrice({
         zoom={{ maxZoomPixelRatio: 3 }}
         styles={{ container: { backgroundColor: 'rgba(0, 0, 0, .85)' } }}
       />
+
+      {/* Modal để xem trước 3D (tái sử dụng từ ProductTechDocs) */}
+      {viewingStlInModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setViewingStlInModal(null)}
+        >
+          <div
+            className="relative flex h-[85vh] w-[90vw] max-w-4xl flex-col rounded-lg bg-[#0f1015] shadow-2xl ring-1 ring-white/10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-800 p-4">
+              <h3 className="font-semibold text-gray-200">
+                {viewingStlInModal.title}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setViewingStlInModal(null)}
+                className="rounded-full p-1 text-gray-400 hover:bg-gray-700 hover:text-white"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="flex flex-1 items-center justify-center overflow-hidden p-2 sm:p-4">
+              {viewingStlInModal.url && (
+                <ModelViewer fileUrl={viewingStlInModal.url} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

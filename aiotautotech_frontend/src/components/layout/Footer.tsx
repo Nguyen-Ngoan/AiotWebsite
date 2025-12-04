@@ -3,12 +3,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
+import { useState, useRef, useEffect, Fragment } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 
 const brandName = 'AIOT AutoTech'; // Đổi tên thương hiệu tại đây
 
-type SectionId = 'products' | 'docs' | 'contact';
+type SectionId = 'products' | 'docs' | 'blog' | 'contact';
 
 type MobileSectionProps = {
   id: SectionId;
@@ -38,13 +39,11 @@ function MobileAccordionSection({
   }, [isOpen, children]);
 
   return (
-    <div
-      className={`py-1 ${withBorderBottom ? 'border-b border-gray-600' : ''}`}
-    >
+    <div className={`${withBorderBottom ? 'border-b border-gray-600' : ''}`}>
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between py-2 text-left text-sm font-semibold text-white"
+        className="flex w-full items-center justify-between py-1.5 text-left text-sm font-semibold text-white"
       >
         <span>{title}</span>
         <span className="ml-2 text-gray-400">
@@ -62,7 +61,7 @@ function MobileAccordionSection({
       >
         <div
           ref={contentRef}
-          className={`pb-2 pt-1 transform transition-all duration-300 ${
+          className={`pb-1.5 pt-1 transform transition-all duration-300 ${
             isOpen ? 'translate-y-0 opacity-100' : '-translate-y-1 opacity-0'
           }`}
         >
@@ -82,50 +81,10 @@ export default function Footer() {
 
   return (
     <footer className="mt-16 border-t border-gray-700 bg-[#3a4754]">
-      <div className="mx-auto max-w-6xl px-4 py-8 md:py-12 lg:px-6 text-xs text-gray-300">
-        {/* ====== MOBILE LAYOUT (accordion + slide down) ====== */}
+      <div className="mx-auto max-w-6xl px-4 pt-4 pb-8 md:pt-10 md:pb-12 lg:px-6 text-xs text-gray-300">
+        {/* ====== GIAO DIỆN MOBILE (DẠNG ACCORDION) ====== */}
         <div className="md:hidden">
-          {/* Khối 1 — Giới thiệu nhanh về thương hiệu (luôn hiển thị) */}
-          <div className="mb-6">
-            <div className="mb-3 flex items-center space-x-2">
-              <img
-                src="/apple_logo.svg"
-                alt={`${brandName} Logo`}
-                className="h-5 w-auto brightness-0 invert"
-              />
-              <span className="text-sm font-semibold text-white">
-                {brandName}
-              </span>
-            </div>
-
-            <p className="mb-3 leading-relaxed text-gray-400">
-              Chuyên cung cấp linh kiện IoT, bộ điều khiển chuyển động và giải
-              pháp tự động hóa giá rẻ cho DIY, xưởng sản xuất nhỏ và nông nghiệp
-              công nghệ.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <a href="#" className="underline-offset-2 hover:underline">
-                Facebook
-              </a>
-              <span>•</span>
-              <a href="#" className="underline-offset-2 hover:underline">
-                YouTube
-              </a>
-              <span>•</span>
-              <a href="#" className="underline-offset-2 hover:underline">
-                TikTok
-              </a>
-              <span>•</span>
-              <a href="#" className="underline-offset-2 hover:underline">
-                Zalo
-              </a>
-            </div>
-          </div>
-
-          <hr className="mb-2 border-gray-600" />
-
-          {/* Khối 2 — Sản phẩm theo nhóm khách hàng */}
+          {/* Cột 1: Sản phẩm */}
           <MobileAccordionSection
             id="products"
             title="Sản phẩm"
@@ -133,135 +92,80 @@ export default function Footer() {
             onToggle={() => toggleSection('products')}
             withBorderBottom={true}
           >
-            <p className="mt-1 font-semibold text-gray-200">
-              Sản phẩm DIY &amp; Maker
-            </p>
             <ul className="mt-1 space-y-1">
               <li>
                 <Link href="#" className="hover:underline">
-                  Bộ điều khiển ESP32 / STM32
+                  Linh kiện DIY & Maker
                 </Link>
               </li>
               <li>
                 <Link href="#" className="hover:underline">
-                  Trục tuyến tính 3D-print
+                  Máy tự động hóa cho xưởng
                 </Link>
               </li>
               <li>
                 <Link href="#" className="hover:underline">
-                  Mạch IoT DIY
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Linh kiện 3D Print &amp; CNC
-                </Link>
-              </li>
-            </ul>
-
-            <p className="mt-3 font-semibold text-gray-200">
-              Máy tự động hoá nhỏ
-            </p>
-            <ul className="mt-1 space-y-1">
-              <li>
-                <Link href="#" className="hover:underline">
-                  Bộ điều khiển chuyển động 2–4 trục
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Trục chuyển động tải nhẹ – tải trung
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Máy phun men – bơm hồ – máy phụ trợ
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Thiết kế theo yêu cầu
-                </Link>
-              </li>
-            </ul>
-
-            <p className="mt-3 font-semibold text-gray-200">
-              Thiết bị IoT nông nghiệp
-            </p>
-            <ul className="mt-1 space-y-1">
-              <li>
-                <Link href="#" className="hover:underline">
-                  Bộ tưới cây tự động (WiFi/BLE)
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Bộ giám sát độ ẩm – ánh sáng
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Combo tưới lan/bonsai
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Hướng dẫn lắp đặt
+                  Thiết bị IoT nông nghiệp
                 </Link>
               </li>
             </ul>
           </MobileAccordionSection>
 
-          {/* Khối 3 — Tài liệu & Hỗ trợ kỹ thuật */}
+          {/* Cột 3: Tài liệu & Hướng dẫn */}
           <MobileAccordionSection
             id="docs"
-            title="Tài liệu & Hỗ trợ kỹ thuật"
+            title="Tài liệu & Hướng dẫn"
             isOpen={openSection === 'docs'}
             onToggle={() => toggleSection('docs')}
             withBorderBottom={true}
           >
-            <p className="mt-1 font-semibold text-gray-200">
-              Tài liệu kỹ thuật
-            </p>
             <ul className="mt-1 space-y-1">
               <li>
-                <Link href="#" className="hover:underline">
-                  File 3D (STEP, STL)
+                <Link href="/docs/3d-files" className="hover:underline">
+                  File 3D
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:underline">
+                <Link href="/docs/schematics" className="hover:underline">
                   Sơ đồ mạch
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:underline">
-                  Code mẫu ESP32
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Hướng dẫn lắp đặt các bộ kit
-                </Link>
-              </li>
-            </ul>
-
-            <p className="mt-3 font-semibold text-gray-200">Hỗ trợ kỹ thuật</p>
-            <ul className="mt-1 space-y-1">
-              <li>
-                <Link href="#" className="hover:underline">
-                  Zalo
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Câu hỏi thường gặp (FAQ)
+                <Link href="/docs/guides" className="hover:underline">
+                  Hướng dẫn kỹ thuật
                 </Link>
               </li>
             </ul>
           </MobileAccordionSection>
 
-          {/* Khối 4 — Thông tin liên hệ & pháp lý (KHÔNG border-bottom) */}
+          {/* Cột 4: Blog */}
+          <MobileAccordionSection
+            id="blog"
+            title="Blog"
+            isOpen={openSection === 'blog'}
+            onToggle={() => toggleSection('blog')}
+            withBorderBottom={true}
+          >
+            <ul className="mt-1 space-y-1">
+              <li>
+                <Link href="#" className="hover:underline">
+                  Bài viết mới
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="hover:underline">
+                  Kiến thức DIY & Maker
+                </Link>
+              </li>
+              <li>
+                <Link href="#" className="hover:underline">
+                  Case Study Tự động hóa
+                </Link>
+              </li>
+            </ul>
+          </MobileAccordionSection>
+
+          {/* Cột 5: Thông tin liên hệ */}
           <MobileAccordionSection
             id="contact"
             title="Thông tin liên hệ"
@@ -269,238 +173,142 @@ export default function Footer() {
             onToggle={() => toggleSection('contact')}
             withBorderBottom={false} // <-- bỏ đường phân cách dưới
           >
-            <p className="mt-1 font-semibold text-gray-200">
-              Thông tin liên hệ:
-            </p>
             <ul className="mt-1 space-y-1">
-              <li>
-                Zalo hỗ trợ kỹ thuật:{' '}
-                <a href="#" className="hover:underline">
-                  link
-                </a>
-              </li>
-              <li>Địa chỉ: (ghi ngắn gọn)</li>
+              <li>Hotline: 0xxx xxx xxx</li>
+              <li>Email: contact@aiotautotech.com</li>
+              <li>Địa chỉ: (địa chỉ của bạn)</li>
             </ul>
           </MobileAccordionSection>
         </div>
 
-        {/* ====== DESKTOP / TABLET LAYOUT (4 khối) ====== */}
+        {/* ====== GIAO DIỆN DESKTOP (DẠNG CỘT) ====== */}
         <div className="hidden md:block">
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {/* (Phần desktop giữ nguyên như trước) */}
-            {/* Khối 1 */}
-            <div>
-              <div className="mb-3 flex items-center space-x-2">
-                <img
-                  src="/apple_logo.svg"
-                  alt={`${brandName} Logo`}
-                  className="h-6 w-auto brightness-0 invert"
-                />
-                <span className="text-sm font-semibold text-white">
-                  {brandName}
-                </span>
-              </div>
-              <p className="mb-3 leading-relaxed text-gray-400">
-                Chuyên cung cấp linh kiện IoT, bộ điều khiển chuyển động và giải
-                pháp tự động hóa giá rẻ cho DIY, xưởng sản xuất nhỏ và nông
-                nghiệp công nghệ.
-              </p>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <a href="#" className="underline-offset-2 hover:underline">
-                  Facebook
-                </a>
-                <span>•</span>
-                <a href="#" className="underline-offset-2 hover:underline">
-                  YouTube
-                </a>
-                <span>•</span>
-                <a href="#" className="underline-offset-2 hover:underline">
-                  TikTok
-                </a>
-                <span>•</span>
-                <a href="#" className="underline-offset-2 hover:underline">
-                  Zalo
-                </a>
-              </div>
-            </div>
-
-            {/* Khối 2 */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {/* Cột 1: Sản phẩm */}
             <div>
               <h3 className="mb-3 text-sm font-semibold text-white">
                 Sản phẩm
               </h3>
-              <div className="space-y-3">
-                <div>
-                  <p className="font-semibold text-gray-200">
-                    Sản phẩm DIY &amp; Maker
-                  </p>
-                  <ul className="mt-1 space-y-1">
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Bộ điều khiển ESP32 / STM32
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Trục tuyến tính 3D-print
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Mạch IoT DIY
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Linh kiện 3D Print &amp; CNC
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-200">
-                    Giải pháp tự động hóa cho xưởng
-                  </p>
-                  <ul className="mt-1 space-y-1">
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Bộ điều khiển chuyển động 2–4 trục
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Trục chuyển động tải nhẹ – tải trung
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Máy phun men – bơm hồ – máy phụ trợ
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Thiết kế theo yêu cầu
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-200">IoT nông nghiệp</p>
-                  <ul className="mt-1 space-y-1">
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Bộ tưới cây tự động (WiFi/BLE)
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Bộ giám sát độ ẩm – ánh sáng
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Combo tưới lan/bonsai
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Hướng dẫn lắp đặt
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              </div>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="#" className="hover:underline">
+                    Linh kiện DIY & Maker
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:underline">
+                    Máy tự động hóa cho xưởng
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:underline">
+                    Thiết bị IoT nông nghiệp
+                  </Link>
+                </li>
+              </ul>
             </div>
 
-            {/* Khối 3 */}
+            {/* Cột 3: Tài liệu & Hướng dẫn */}
             <div>
               <h3 className="mb-3 text-sm font-semibold text-white">
-                Tài liệu &amp; Hỗ trợ kỹ thuật
+                Tài liệu & Hướng dẫn
               </h3>
-              <div className="space-y-3">
-                <div>
-                  <p className="font-semibold text-gray-200">
-                    Tài liệu kỹ thuật
-                  </p>
-                  <ul className="mt-1 space-y-1">
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        File 3D (STEP, STL)
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Sơ đồ mạch
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Code mẫu ESP32/STM32
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Hướng dẫn lắp đặt các bộ kit
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-200">Hỗ trợ kỹ thuật</p>
-                  <ul className="mt-1 space-y-1">
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Zalo hỗ trợ nhanh
-                      </Link>
-                    </li>
-                    <li>
-                      <Link href="#" className="hover:underline">
-                        Câu hỏi thường gặp (FAQ)
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              </div>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/docs/3d-files" className="hover:underline">
+                    File 3D
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/docs/schematics" className="hover:underline">
+                    Sơ đồ mạch
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/docs/guides" className="hover:underline">
+                    Hướng dẫn kỹ thuật
+                  </Link>
+                </li>
+              </ul>
             </div>
 
-            {/* Khối 4 */}
+            {/* Cột 4: Blog */}
+            <div>
+              <h3 className="mb-3 text-sm font-semibold text-white">Blog</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="#" className="hover:underline">
+                    Bài viết mới
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:underline">
+                    Kiến thức DIY & Maker
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:underline">
+                    Case Study Tự động hóa
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Cột 5: Thông tin liên hệ */}
             <div>
               <h3 className="mb-3 text-sm font-semibold text-white">
-                Thông tin liên hệ &amp; pháp lý
+                Thông tin liên hệ
               </h3>
-              <div className="space-y-3">
-                <div>
-                  <p className="font-semibold text-gray-200">
-                    Thông tin liên hệ:
-                  </p>
-                  <ul className="mt-1 space-y-1">
-                    <li>Hotline: 0xxx xxx xxx</li>
-                    <li>
-                      Zalo hỗ trợ kỹ thuật:{' '}
-                      <a href="#" className="hover:underline">
-                        link
-                      </a>
-                    </li>
-                    <li>
-                      Email:{' '}
-                      <a
-                        href="mailto:contact@xxxx.com"
-                        className="hover:underline"
-                      >
-                        contact@xxxx.com
-                      </a>
-                    </li>
-                    <li>Địa chỉ: (ghi ngắn gọn)</li>
-                  </ul>
-                </div>
-              </div>
+              <ul className="space-y-2">
+                <li>Hotline: 0xxx xxx xxx</li>
+                <li>Email: contact@aiotautotech.com</li>
+                <li>Địa chỉ: (địa chỉ của bạn)</li>
+              </ul>
             </div>
           </div>
         </div>
 
-        {/* Dòng bản quyền dưới cùng */}
-        <div className="mt-6 border-t border-gray-700 pt-4 text-[11px] text-gray-500">
+        {/* PHẦN GIỚI THIỆU THƯƠNG HIỆU & BẢN QUYỀN */}
+        <div className="mt-6 border-t border-gray-700 pt-5">
+          <div className="mb-4 flex items-center justify-center space-x-2 md:justify-start">
+            <Image
+              src="/aiotautotech-icon.png"
+              alt={`${brandName} Logo`}
+              width={28}
+              height={28}
+              className="h-7 w-7"
+            />
+            <span className="text-sm font-semibold text-white">
+              {brandName}
+            </span>
+          </div>
+          <div className="text-center md:text-left">
+            <p className="mb-3 leading-relaxed text-gray-400">
+              Chuyên cung cấp linh kiện IoT, bộ điều khiển chuyển động và giải
+              pháp tự động hóa giá rẻ cho DIY, xưởng sản xuất nhỏ và nông nghiệp
+              công nghệ.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 md:justify-start">
+              <a href="#" className="underline-offset-2 hover:underline">
+                Facebook
+              </a>
+              <span className="hidden md:inline">•</span>
+              <a href="#" className="underline-offset-2 hover:underline">
+                YouTube
+              </a>
+              <span className="hidden md:inline">•</span>
+              <a href="#" className="underline-offset-2 hover:underline">
+                TikTok
+              </a>
+              <span className="hidden md:inline">•</span>
+              <a href="#" className="underline-offset-2 hover:underline">
+                Zalo
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 border-t border-gray-700 pt-4 text-center text-[11px] text-gray-500">
           <p className="text-center">
             © 2025 {brandName} — All rights reserved.
           </p>

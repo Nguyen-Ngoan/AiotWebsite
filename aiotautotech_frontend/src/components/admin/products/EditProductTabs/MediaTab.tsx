@@ -2,13 +2,15 @@
 
 'use client';
 
-import { ProductFormState } from '@/app/admin/products/productFormTypes';
+import type { ProductFormState } from '@/app/admin/products/[id]/edit/page';
 import ProductImageUploader from '@/components/admin/ProductImageUploader';
 
 interface MediaTabProps {
   productId: string;
   form: ProductFormState;
-  setForm: (f: ProductFormState) => void;
+  setForm: (
+    f: ProductFormState | ((prev: ProductFormState) => ProductFormState)
+  ) => void;
 }
 
 type ProductImageMeta = {
