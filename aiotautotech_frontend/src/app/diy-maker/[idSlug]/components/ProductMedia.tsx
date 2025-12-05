@@ -274,7 +274,7 @@ export function ProductMedia({
                 <img
                   src={displayedImage}
                   alt="Ảnh sản phẩm"
-                  className={`relative h-full w-full aspect-[3/2] bg-transparent object-contain ${
+                  className={`relative h-full w-full aspect-[3/2] bg-black object-contain ${
                     animation?.current || ''
                   }`}
                 />
@@ -339,10 +339,10 @@ export function ProductMedia({
                   <div
                     key={`${url}-${idx}`}
                     onClick={() => handleChangeImage(url)}
-                    className={`h-14 w-14 flex-shrink-0 snap-start cursor-pointer overflow-hidden rounded-lg bg-black/60 transition-all duration-200 ${
+                    className={`h-[7px] w-[7px] flex-shrink-0 snap-start cursor-pointer overflow-hidden rounded-lg bg-black transition-all duration-200 ${
                       displayedImage === url
-                        ? 'border-2 border-blue-400'
-                        : 'border-2 border-transparent hover:border-gray-500'
+                        ? 'border-2 border-blue-400 opacity-100'
+                        : 'border-2 border-transparent opacity-60 hover:opacity-100 hover:border-gray-500'
                     }`}
                   >
                     <img
@@ -353,7 +353,7 @@ export function ProductMedia({
                   </div>
                 ))}
               </div>
-              {canScrollRight && (
+              {/* {canScrollRight && (
                 <button
                   type="button"
                   onClick={() => handleThumbScroll('right')}
@@ -362,7 +362,7 @@ export function ProductMedia({
                 >
                   <ChevronRightIcon className="h-4 w-4" />
                 </button>
-              )}
+              )} */}
             </div>
           )}
         </div>

@@ -264,7 +264,7 @@ export function ProductMediaAndPrice({
                     <img
                       src={displayedImage}
                       alt="Ảnh sản phẩm"
-                      className={`relative h-full w-full aspect-[3/2] bg-transparent object-contain ${
+                      className={`relative h-full w-full aspect-[3/2] bg-black object-contain ${
                         animation?.current || ''
                       }`}
                     />
@@ -325,12 +325,12 @@ export function ProductMediaAndPrice({
                       <img
                         src={url}
                         alt={`Thumb ${idx + 1}`}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-contain bg-black"
                       />
                     </div>
                   ))}
                   {galleryUrls.length > 6 && (
-                    <span className="flex h-12 md:h-14 items-center justify-center rounded-lg border border-dashed border-gray-700 bg-black/50 px-3 text-[11px] text-gray-400">
+                    <span className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-lg border border-dashed border-gray-700 bg-black/50 px-3 text-sm text-gray-400">
                       +{galleryUrls.length - 6} ảnh khác
                     </span>
                   )}
