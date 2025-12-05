@@ -240,7 +240,7 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
   const productImages: ProductImage[] = Array.isArray(images) ? images : [];
 
   // Ảnh chính & gallery: ưu tiên `images`, fallback `gallery_urls`
-  const mainImage = getPrimaryImageUrl(productImages, 'medium');
+  const mainImage = getPrimaryImageUrl(productImages, 'large');
 
   // Lấy tất cả URL ảnh (bản thumb) cho gallery
   const galleryUrlsFinal = getGalleryUrlsFromImages(productImages, 'thumb');

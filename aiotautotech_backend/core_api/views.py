@@ -11,7 +11,7 @@ from rest_framework.parsers import MultiPartParser
 from aiotautotech_backend.firestore_client import db
 from .utils import slugify
 from .serializers import ProductImageUploadSerializer, TechnicalDocSerializer
-from storage.r2 import upload_file_to_r2, generate_image_key
+from storage.r2 import upload_file_to_r2, generate_image_key, delete_files_from_r2
 from services.firestore_products import add_product_image_metadata
 
 import io
@@ -627,12 +627,13 @@ class ProductImageUploadView(APIView):
             seo_file_name = validated_data.get("seo_file_name") or file.name.rsplit(".", 1)[0]
 
             # ---- Read image ----
-            img = Image.open(file).convert("RGB")
-
+            # Chuyển sang RGBA để hỗ trợ kênh alpha (trong suốt) và đảm bảo
+            # màu đen tuyệt đối (#000000) được giữ nguyên khi lưu sang PNG.
+            img = Image.open(file).convert("RGBA")
             # ---- Define sizes (3:2) ----
             SIZES = {
-                "large":  (1500, 1000),
-                "medium": (1200, 800),
+                "large":  (2400, 1600),
+                "medium": (1500, 1000),
                 "thumb":  (600, 400),
             }
 
@@ -641,7 +642,9 @@ class ProductImageUploadView(APIView):
             for key, (w, h) in SIZES.items():
                 buf = io.BytesIO()
                 resized = img.resize((w, h), Image.Resampling.LANCZOS)
-                resized.save(buf, format="JPEG", quality=85)
+                # Lưu ảnh dưới dạng WEBP để tối ưu dung lượng mà vẫn giữ được chất lượng cao và độ trong suốt.
+                # quality=90 là mức cân bằng tốt giữa chất lượng và dung lượng.                
+                resized.save(buf, format="WEBP", quality=90)
                 buf.seek(0)
                 resized_files[key] = buf
 
@@ -661,13 +664,13 @@ class ProductImageUploadView(APIView):
             urls = {}
 
             for key, buf in resized_files.items():
-                r2_key = f"{folder}/{base_name}-{key}.jpg"
+                r2_key = f"{folder}/{base_name}-{key}.webp"
 
                 s3.upload_fileobj(
                     buf,
                     settings.R2_BUCKET_NAME,
                     r2_key,
-                    ExtraArgs={"ContentType": "image/jpeg"}
+                    ExtraArgs={"ContentType": "image/webp"}
                 )
 
                 urls[key] = (
@@ -703,6 +706,43 @@ class ProductImageUploadView(APIView):
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class ProductImageDeleteView(APIView):
+    """
+    DELETE /api/products/<product_id>/images/delete/
+    Xoá các file ảnh (large, medium, thumb) khỏi R2.
+    Request body: { "fileName": "ten-file-anh" }
+    """
+    def delete(self, request, product_id: str):
+        file_name = request.data.get("fileName")
+
+        if not file_name:
+            return Response(
+                {"error": "fileName is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Tái tạo các R2 keys từ `product_id` và `fileName`
+        # `fileName` chính là `base_name` đã được slugify khi upload
+        folder = f"images/products/{product_id}"
+        keys_to_delete = [
+            f"{folder}/{file_name}-large.webp",
+            f"{folder}/{file_name}-medium.webp",
+            f"{folder}/{file_name}-thumb.webp",
+        ]
+
+        try:
+            # Gọi hàm xoá file trên R2
+            delete_files_from_r2(keys_to_delete)
+            return Response(
+                {"message": "Files scheduled for deletion from R2.", "deleted_keys": keys_to_delete},
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            # Ghi log và trả về lỗi nếu có vấn đề nghiêm trọng
+            print(f"Error calling R2 deletion for product {product_id}: {e}")
+            return Response({"error": "Failed to delete files from storage."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TechnicalDocListView(APIView):

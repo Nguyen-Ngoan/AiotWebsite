@@ -90,3 +90,26 @@ def upload_file_to_r2(file_obj, key: str, content_type: str | None = None) -> st
 
     base_url = settings.R2_PUBLIC_BASE_URL.rstrip("/")
     return f"{base_url}/{key}"
+
+
+def delete_files_from_r2(keys: list[str]) -> None:
+    """
+    Xoá nhiều file khỏi Cloudflare R2 dựa trên danh sách keys.
+
+    - keys: List các object keys cần xoá.
+    """
+    if not keys:
+        return
+
+    client = get_r2_client()
+    bucket = settings.R2_BUCKET_NAME
+
+    # Boto3 yêu cầu định dạng {'Objects': [{'Key': 'key1'}, {'Key': 'key2'}]}
+    objects_to_delete = {"Objects": [{"Key": key} for key in keys]}
+
+    try:
+        client.delete_objects(Bucket=bucket, Delete=objects_to_delete)
+        print(f"Successfully deleted {len(keys)} files from R2.")
+    except Exception as e:
+        # Ghi log lỗi nhưng không raise exception để không làm gián đoạn flow chính
+        print(f"Error deleting files from R2: {e}")

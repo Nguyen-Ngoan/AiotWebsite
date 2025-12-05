@@ -52,7 +52,7 @@ export function ProductAdminPanel({
   structuredDataForAI,
 }: ProductAdminPanelProps) {
   const [isMainOpen, setIsMainOpen] = useState(true);
-  const [isAiPanelOpen, setIsAiPanelOpen] = useState(true);
+  const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
 
   const hasAnyFeatures = Boolean(
     (keyFeatures && keyFeatures.length > 0) ||

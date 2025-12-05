@@ -83,14 +83,14 @@ export function ProductMediaAndPrice({
 
   const minSwipeDistance = 50;
 
-  const handleChangeImage = (newImageUrl: string) => {
+  const handleChangeImage = (newImageUrl: string, newIndex: number) => {
     if (newImageUrl === displayedImage || animation) return;
 
     const currentIndex = allGalleryUrls.findIndex(
       (url) => url === displayedImage
     );
-    const newIndex = allGalleryUrls.findIndex((url) => url === newImageUrl);
 
+    const largeImageUrl = allGalleryUrls[newIndex] || newImageUrl;
     // Xác định hướng trượt
     const direction = newIndex > currentIndex ? 'next' : 'prev';
 
@@ -117,7 +117,7 @@ export function ProductMediaAndPrice({
     );
     if (currentIndex === -1) return;
     const nextIndex = (currentIndex + 1) % allGalleryUrls.length;
-    handleChangeImage(allGalleryUrls[nextIndex]);
+    handleChangeImage(allGalleryUrls[nextIndex], nextIndex);
   };
 
   const goToPrevImage = () => {
@@ -128,7 +128,7 @@ export function ProductMediaAndPrice({
     if (currentIndex === -1) return;
     const prevIndex =
       (currentIndex - 1 + allGalleryUrls.length) % allGalleryUrls.length;
-    handleChangeImage(allGalleryUrls[prevIndex]);
+    handleChangeImage(allGalleryUrls[prevIndex], prevIndex);
   };
 
   const onTouchStart = (e: React.TouchEvent) => {
@@ -315,7 +315,7 @@ export function ProductMediaAndPrice({
                   {galleryUrls.slice(0, 6).map((url, idx) => (
                     <div
                       key={`${url}-${idx}`}
-                      onClick={() => handleChangeImage(url)}
+                      onClick={() => handleChangeImage(url, idx)}
                       className={`h-12 w-12 md:h-14 md:w-14 cursor-pointer overflow-hidden rounded-lg bg-black/60 transition-all duration-200 ${
                         displayedImage === url
                           ? 'border-2 border-blue-400'

@@ -1,6 +1,7 @@
 // src/components/admin/products/EditProductTabs/MediaTab.tsx
 
 'use client';
+import { getApiUrl } from '@/lib/apiConfig';
 
 import type { ProductFormState } from '@/app/admin/products/[id]/edit/page';
 import ProductImageUploader from '@/components/admin/ProductImageUploader';
@@ -76,18 +77,52 @@ export default function MediaTab({ productId, form, setForm }: MediaTabProps) {
     });
   };
 
-  const handleDeleteImage = (index: number) => {
+  const handleDeleteImage = async (index: number) => {
     const img = images[index];
     if (!img) return;
 
-    const updatedImages = images.filter((_, idx) => idx !== index);
+    const confirmed = window.confirm(
+      `Bạn có chắc chắn muốn xoá ảnh "${
+        img.fileName || `Image ${index + 1}`
+      }"?\n\nHành động này sẽ xoá vĩnh viễn các file ảnh (large, medium, thumb) trên Cloudflare R2.`
+    );
 
-    // KHÔNG auto set primary mới.
-    // Nếu ảnh bị xoá là primary thì sau khi xoá có thể không còn main image.
-    setForm({
-      ...form,
-      images: updatedImages,
-    });
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      // Chỉ gọi API xoá file nếu có `fileName` (chính là slugified base_name)
+      if (img.fileName) {
+        const res = await fetch(
+          getApiUrl(`/products/${productId}/images/delete/`),
+          {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ fileName: img.fileName }),
+          }
+        );
+
+        if (!res.ok) {
+          // Nếu API lỗi, vẫn thông báo nhưng cho phép người dùng xoá metadata
+          alert(
+            'Lỗi khi xoá file trên R2. Metadata vẫn sẽ được xoá khỏi sản phẩm.'
+          );
+        }
+      }
+
+      // Cập nhật state của form để xoá metadata ảnh khỏi mảng `images`
+      const updatedImages = images.filter((_, idx) => idx !== index);
+      setForm((prev) => ({
+        ...prev,
+        images: updatedImages,
+      }));
+    } catch (error) {
+      console.error('Failed to delete image:', error);
+      alert('Đã xảy ra lỗi khi thực hiện yêu cầu xoá ảnh.');
+    }
   };
 
   return (
