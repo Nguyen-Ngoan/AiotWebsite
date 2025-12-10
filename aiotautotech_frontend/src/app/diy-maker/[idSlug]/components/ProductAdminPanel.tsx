@@ -70,13 +70,23 @@ export function ProductAdminPanel({
       >
         <div className="flex flex-1 items-center justify-between gap-4">
           <h2 className="text-lg font-semibold text-[#8883c8]">Admin Panel</h2>
-          <Link
-            href={`/admin/products/${id}/edit`}
-            onClick={(e) => e.stopPropagation()} // Ngăn panel đóng/mở khi click nút
-            className="inline-flex items-center rounded-full border border-blue-500 bg-blue-600/80 px-3 py-1 text-[11px] font-medium text-white shadow-sm hover:bg-blue-500"
-          >
-            Edit
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/admin/materials/`}
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center rounded-full border border-green-500 bg-green-600/80 px-3 py-1 text-[11px] font-medium text-white shadow-sm hover:bg-green-500"
+              title="Materials List"
+            >
+              Material
+            </Link>
+            <Link
+              href={`/admin/products/${id}/edit`}
+              onClick={(e) => e.stopPropagation()} // Ngăn panel đóng/mở khi click nút
+              className="inline-flex items-center rounded-full border border-blue-500 bg-blue-600/80 px-3 py-1 text-[11px] font-medium text-white shadow-sm hover:bg-blue-500"
+            >
+              Edit
+            </Link>
+          </div>
         </div>
 
         <div className="relative ml-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-700 text-gray-200">

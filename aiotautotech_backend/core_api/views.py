@@ -114,6 +114,22 @@ def _serialize_product(doc):
     }
 
 
+def _serialize_material(doc):
+    """
+    Serialize một document từ collection `materials`.
+    """
+    data = doc.to_dict() or {}
+    return {
+        "id": doc.id,
+        "name": data.get("name", ""),
+        "current_cost": data.get("current_cost"),
+        "unit": data.get("unit", ""),
+        "used_in_products": data.get("used_in_products", []),
+        "created_at": data.get("created_at"),
+        "updated_at": data.get("updated_at"),
+    }
+
+
 def create_stl_thumbnail(stl_file_path):
     """
     Tạo ảnh thumbnail từ file STL và trả về dưới dạng bytes.
@@ -196,6 +212,7 @@ class RootView(APIView):
                     "retrieve_post": f"{base_url}/api/posts/<post_id>/",
                     "list_create_products": f"{base_url}/api/products/",
                     "retrieve_product": f"{base_url}/api/products/<product_id>/",
+                    "list_create_materials": f"{base_url}/api/materials/",
                 },
             }
         )
@@ -924,5 +941,124 @@ class TechnicalDocDetailView(APIView):
                 print(f"Could not delete file from R2: {r2_key}. Error: {e}")
 
         # Xoá document trên Firestore
+        doc.reference.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MaterialListView(APIView):
+    """
+    GET /api/materials/  -> lấy danh sách nguyên vật liệu
+    POST /api/materials/ -> tạo nguyên vật liệu mới
+    """
+
+    def get(self, request, *args, **kwargs):
+        query = (
+            db.collection("materials")
+            .order_by("updated_at", direction="DESCENDING")
+            .limit(100)
+        )
+        try:
+            docs = query.stream()
+            materials = [_serialize_material(doc) for doc in docs]
+            return Response(materials)
+        except Exception as e:
+            # Ghi log lỗi và trả về thông báo lỗi cụ thể
+            print(f"Firestore query error in MaterialListView: {e}")
+            # Thông báo này sẽ giúp frontend biết nguyên nhân có thể do thiếu index
+            return Response(
+                {"error": "Lỗi truy vấn dữ liệu. Rất có thể bạn cần tạo composite index trên Firestore cho collection 'materials'."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def post(self, request, *args, **kwargs):
+        data = request.data or {}
+
+        name = (data.get("name") or "").strip()
+        if not name:
+            return Response({"detail": "Name is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            current_cost = int(data.get("current_cost"))
+        except (ValueError, TypeError):
+            return Response({"detail": "current_cost must be a valid integer."}, status=status.HTTP_400_BAD_REQUEST)
+
+        unit = (data.get("unit") or "").strip()
+        if not unit:
+            return Response({"detail": "Unit is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        used_in_products = data.get("used_in_products", [])
+        if not isinstance(used_in_products, list):
+            used_in_products = []
+
+        now = timezone.now()
+        payload = {
+            "name": name,
+            "current_cost": current_cost,
+            "unit": unit,
+            "used_in_products": used_in_products,
+            "created_at": now,
+            "updated_at": now,
+        }
+
+        doc_ref = db.collection("materials").document()
+        doc_ref.set(payload)
+
+        return Response(_serialize_material(doc_ref.get()), status=status.HTTP_201_CREATED)
+
+
+class MaterialDetailView(APIView):
+    """
+    GET    /api/materials/<material_id>/ -> xem chi tiết 1 nguyên vật liệu
+    PUT    /api/materials/<material_id>/ -> cập nhật nguyên vật liệu
+    DELETE /api/materials/<material_id>/ -> xoá nguyên vật liệu
+    """
+
+    def get_object(self, material_id: str):
+        doc_ref = db.collection("materials").document(material_id)
+        doc = doc_ref.get()
+        if not doc.exists:
+            raise Http404
+        return doc
+
+    def get(self, request, material_id: str, *args, **kwargs):
+        doc = self.get_object(material_id)
+        return Response(_serialize_material(doc))
+
+    def put(self, request, material_id: str, *args, **kwargs):
+        doc = self.get_object(material_id)
+        doc_ref = doc.reference
+        data = request.data or {}
+        update_data: Dict[str, Any] = {}
+
+        if "name" in data:
+            update_data["name"] = (data.get("name") or "").strip()
+
+        if "current_cost" in data:
+            try:
+                update_data["current_cost"] = int(data.get("current_cost"))
+            except (ValueError, TypeError):
+                return Response({"detail": "current_cost must be a valid integer."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if "unit" in data:
+            update_data["unit"] = (data.get("unit") or "").strip()
+
+        if "used_in_products" in data:
+            used_in_products = data.get("used_in_products")
+            if isinstance(used_in_products, list):
+                update_data["used_in_products"] = used_in_products
+
+        if not update_data:
+            # Không có gì để cập nhật
+            doc = doc_ref.get()
+            return Response(_serialize_material(doc))
+
+        update_data["updated_at"] = timezone.now()
+        doc_ref.update(update_data)
+
+        doc = doc_ref.get()
+        return Response(_serialize_material(doc))
+
+    def delete(self, request, material_id: str, *args, **kwargs):
+        doc = self.get_object(material_id)
         doc.reference.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

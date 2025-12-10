@@ -11,6 +11,8 @@ from .views import (
     ProductImageDeleteView,
     TechnicalDocListView,
     TechnicalDocDetailView,
+    MaterialListView,
+    MaterialDetailView,
 )
 
 urlpatterns = [
@@ -37,4 +39,8 @@ urlpatterns = [
     # Technical Docs (Cấu trúc mới)
     path("technical-docs/", TechnicalDocListView.as_view(), name="technical-doc-list"),
     path("technical-docs/<str:doc_id>/", TechnicalDocDetailView.as_view(), name="technical-doc-detail"),
+
+    # Materials
+    path("materials/", MaterialListView.as_view(), name="material-list-create"),
+    path("materials/<str:material_id>/", MaterialDetailView.as_view(), name="material-detail"),
 ]
