@@ -327,9 +327,10 @@ export default function BlogDetailPage() {
               [&_tr:nth-child(even)]:bg-[#020617]
               [&_tr:nth-child(odd)]:bg-black
               [&_thead]:bg-[#111827]
+              /* Đảm bảo bảng có thể cuộn ngang mà không làm vỡ layout */
               [&_table]:block
-              [&_table]:overflow-x-auto
-              [&_table]:whitespace-nowrap
+              [&_table]:max-w-full
+              [&_table]:overflow-x-auto              
             `}
             dangerouslySetInnerHTML={{ __html: post.content }}
           />

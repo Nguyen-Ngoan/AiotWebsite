@@ -31,7 +31,10 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning={true}
       >
-        {children}
+        {/* Thêm div này để ngăn layout bị tràn do nội dung rộng */}
+        <div className="relative min-h-screen w-full overflow-x-hidden">
+          {children}
+        </div>
       </body>
     </html>
   );
