@@ -13,6 +13,8 @@ from .views import (
     TechnicalDocDetailView,
     MaterialListView,
     MaterialDetailView,
+    MaterialImageUploadView,
+    MaterialImageDeleteView,
 )
 
 urlpatterns = [
@@ -43,4 +45,14 @@ urlpatterns = [
     # Materials
     path("materials/", MaterialListView.as_view(), name="material-list-create"),
     path("materials/<str:material_id>/", MaterialDetailView.as_view(), name="material-detail"),
+    path(
+        "materials/<str:material_id>/images/",
+        MaterialImageUploadView.as_view(),
+        name="material-image-upload",
+    ),
+    path(
+        "materials/<str:material_id>/images/delete/",
+        MaterialImageDeleteView.as_view(),
+        name="material-image-delete",
+    ),
 ]

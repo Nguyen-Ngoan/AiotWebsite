@@ -20,7 +20,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { PlusCircle, ChevronRight } from 'lucide-react';
+import { PlusCircle, ChevronRight, ArrowUpDown, ImageIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,17 +29,28 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { getApiUrl } from '@/lib/apiConfig';
 
+interface MaterialImage {
+  url: string;
+  url_thumb?: string;
+}
+
 interface Material {
   id: string;
   name: string;
+  english_name?: string;
   current_cost: number;
   unit: string;
   updated_at: string;
+  images?: MaterialImage[];
 }
 
 export default function MaterialsListPage() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Material;
+    direction: 'asc' | 'desc';
+  } | null>(null);
 
   useEffect(() => {
     const fetchMaterials = async () => {
@@ -84,6 +95,38 @@ export default function MaterialsListPage() {
     }
   };
 
+  const handleSort = (key: keyof Material) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (
+      sortConfig &&
+      sortConfig.key === key &&
+      sortConfig.direction === 'asc'
+    ) {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedMaterials = [...materials].sort((a, b) => {
+    if (!sortConfig) return 0;
+    const { key, direction } = sortConfig;
+    if (key === 'name') {
+      return direction === 'asc'
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name);
+    }
+    // Fallback for numbers or other types
+    const valA = a[key];
+    const valB = b[key];
+
+    if (valA === undefined || valB === undefined) return 0;
+    if (typeof valA === 'object' || typeof valB === 'object') return 0;
+
+    if (valA < valB) return direction === 'asc' ? -1 : 1;
+    if (valA > valB) return direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   return (
     <div className="container mx-auto p-0 sm:p-4">
       <div className="mb-4 flex items-center space-x-2 px-4 pt-4 text-sm text-muted-foreground sm:px-2 sm:pt-0">
@@ -113,7 +156,17 @@ export default function MaterialsListPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-4 sm:pl-6">Tên Vật Tư</TableHead>
+                <TableHead className="w-[80px] pl-4 sm:pl-6">Ảnh</TableHead>
+                <TableHead>
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleSort('name')}
+                    className="hover:bg-transparent hover:text-primary"
+                  >
+                    Tên Vật Tư
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </TableHead>
                 <TableHead className="text-right">Giá (VND)</TableHead>
                 <TableHead>Đơn vị</TableHead>
                 <TableHead className="pr-4 text-right sm:pr-6">
@@ -129,10 +182,32 @@ export default function MaterialsListPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                materials.map((material) => (
+                sortedMaterials.map((material) => (
                   <TableRow key={material.id}>
-                    <TableCell className="pl-4 font-medium sm:pl-6">
-                      {material.name}
+                    <TableCell className="pl-4 sm:pl-6">
+                      {material.images && material.images.length > 0 ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={
+                            material.images[0]?.url_thumb ||
+                            material.images[0]?.url
+                          }
+                          alt={material.name}
+                          className="h-10 w-10 rounded-md border object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted">
+                          <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      <div>{material.name}</div>
+                      {material.english_name && (
+                        <div className="text-xs text-muted-foreground">
+                          {material.english_name}
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="text-right font-semibold text-blue-600 dark:text-blue-400">
                       {material.current_cost.toLocaleString('en-US')}

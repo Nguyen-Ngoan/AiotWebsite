@@ -73,6 +73,25 @@ def _serialize_product(doc):
         technical_docs = [_serialize_tech_doc(doc) for doc in docs if doc.exists]
     # -----------------------------------------------------------
 
+    # --- LOGIC MỚI: Lấy thông tin chi tiết của materials ---
+    stored_materials = data.get("materials", [])
+    materials_details = []
+    if stored_materials and isinstance(stored_materials, list):
+        valid_entries = [m for m in stored_materials if isinstance(m, dict) and m.get("material_id")]
+        if valid_entries:
+            m_ids = list({m["material_id"] for m in valid_entries})
+            m_refs = [db.collection("materials").document(mid) for mid in m_ids]
+            m_docs = db.get_all(m_refs)
+            m_map = {d.id: _serialize_material(d) for d in m_docs if d.exists}
+            
+            for entry in valid_entries:
+                mid = entry["material_id"]
+                qty = entry.get("quantity", 0)
+                if mid in m_map:
+                    info = m_map[mid].copy()
+                    info["quantity"] = qty
+                    materials_details.append(info)
+
     return {
         "id": doc.id,
         "title": data.get("title", ""),
@@ -102,6 +121,7 @@ def _serialize_product(doc):
         # --- Cấu trúc mới ---
         "tech_doc_ids": tech_doc_ids, # Trả về danh sách ID
         "technical_docs": technical_docs, # Trả về danh sách object chi tiết
+        "materials": materials_details, # Danh sách vật tư kèm số lượng
 
         # === Features ===
         "keyFeatures": data.get("key_features", []), # Trả về camelCase
@@ -109,22 +129,28 @@ def _serialize_product(doc):
         "limitations": data.get("limitations", []),
         "compatibility": data.get("compatibility", []), # Giữ nguyên vì đã nhất quán
         "specs": data.get("specs", []),                 # Giữ nguyên vì đã nhất quán
-
-        # "docs": data.get("docs") or {}, # Loại bỏ trường `docs` cũ
     }
-
 
 def _serialize_material(doc):
     """
     Serialize một document từ collection `materials`.
     """
     data = doc.to_dict() or {}
+
+    images = data.get("images") or []
+    if not isinstance(images, list):
+        images = []
+
     return {
         "id": doc.id,
         "name": data.get("name", ""),
+        "english_name": data.get("english_name", ""),
+        "description": data.get("description", ""),
+        "specifications": data.get("specifications", ""),
         "current_cost": data.get("current_cost"),
         "unit": data.get("unit", ""),
         "used_in_products": data.get("used_in_products", []),
+        "images": images,
         "created_at": data.get("created_at"),
         "updated_at": data.get("updated_at"),
     }
@@ -397,6 +423,10 @@ class ProductListView(APIView):
         if not isinstance(specs, list):
             specs = []
 
+        materials = data.get("materials", [])
+        if not isinstance(materials, list):
+            materials = []
+
         payload = {
             "title": title,
             "slug": slug,
@@ -431,6 +461,7 @@ class ProductListView(APIView):
             "limitations": limitations,
             "compatibility": compatibility,
             "specs": specs,
+            "materials": materials,
         }
 
         now = timezone.now()
@@ -612,6 +643,13 @@ class ProductDetailView(APIView):
             if not isinstance(specs, list):
                 specs = []
             update_data["specs"] = specs
+
+        # materials
+        if "materials" in data:
+            materials = data.get("materials", [])
+            if not isinstance(materials, list):
+                materials = []
+            update_data["materials"] = materials
 
         # updated_at
         update_data["updated_at"] = timezone.now()
@@ -986,16 +1024,28 @@ class MaterialListView(APIView):
         if not unit:
             return Response({"detail": "Unit is required."}, status=status.HTTP_400_BAD_REQUEST)
 
+        english_name = (data.get("english_name") or "").strip()
+        description = (data.get("description") or "").strip()
+        specifications = (data.get("specifications") or "").strip()
+
         used_in_products = data.get("used_in_products", [])
         if not isinstance(used_in_products, list):
             used_in_products = []
 
+        images = data.get("images", [])
+        if not isinstance(images, list):
+            images = []
+
         now = timezone.now()
         payload = {
             "name": name,
+            "english_name": english_name,
+            "description": description,
+            "specifications": specifications,
             "current_cost": current_cost,
             "unit": unit,
             "used_in_products": used_in_products,
+            "images": images,
             "created_at": now,
             "updated_at": now,
         }
@@ -1033,6 +1083,15 @@ class MaterialDetailView(APIView):
         if "name" in data:
             update_data["name"] = (data.get("name") or "").strip()
 
+        if "english_name" in data:
+            update_data["english_name"] = (data.get("english_name") or "").strip()
+
+        if "description" in data:
+            update_data["description"] = (data.get("description") or "").strip()
+
+        if "specifications" in data:
+            update_data["specifications"] = (data.get("specifications") or "").strip()
+
         if "current_cost" in data:
             try:
                 update_data["current_cost"] = int(data.get("current_cost"))
@@ -1046,6 +1105,11 @@ class MaterialDetailView(APIView):
             used_in_products = data.get("used_in_products")
             if isinstance(used_in_products, list):
                 update_data["used_in_products"] = used_in_products
+
+        if "images" in data:
+            images = data.get("images") or []
+            if isinstance(images, (list, tuple)):
+                update_data["images"] = list(images)
 
         if not update_data:
             # Không có gì để cập nhật
@@ -1062,3 +1126,103 @@ class MaterialDetailView(APIView):
         doc = self.get_object(material_id)
         doc.reference.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MaterialImageUploadView(APIView):
+    def post(self, request, material_id):
+        try:
+            file = request.FILES.get("file")
+            if not file:
+                return Response({"error": "No file uploaded"}, status=400)
+
+            # Reuse ProductImageUploadSerializer as structure is identical
+            serializer = ProductImageUploadSerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            validated_data = serializer.validated_data
+            seo_file_name = validated_data.get("seo_file_name") or file.name.rsplit(".", 1)[0]
+
+            img = Image.open(file).convert("RGBA")
+            SIZES = {
+                "large":  (1200, 800),
+                "medium": (900, 600),
+                "thumb":  (360, 240),
+            }
+
+            resized_files = {}
+            for key, (w, h) in SIZES.items():
+                buf = io.BytesIO()
+                resized = img.resize((w, h), Image.Resampling.LANCZOS)
+                resized.save(buf, format="WEBP", quality=90)
+                buf.seek(0)
+                resized_files[key] = buf
+
+            session = boto3.session.Session()
+            s3 = session.client(
+                "s3",
+                endpoint_url=f"https://{settings.R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+                aws_access_key_id=settings.R2_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
+            )
+
+            base_name = slugify(seo_file_name)
+            folder = f"images/materials/{material_id}"
+            urls = {}
+
+            for key, buf in resized_files.items():
+                r2_key = f"{folder}/{base_name}-{key}.webp"
+                s3.upload_fileobj(
+                    buf,
+                    settings.R2_BUCKET_NAME,
+                    r2_key,
+                    ExtraArgs={"ContentType": "image/webp"}
+                )
+                urls[key] = f"{settings.CDN_URL}/{r2_key}"
+
+            doc_ref = db.collection("materials").document(material_id)
+            doc = doc_ref.get()
+            data = doc.to_dict() or {}
+
+            images = data.get("images", [])
+            new_img_meta = {
+                "id": base_name,
+                "fileName": base_name,
+                "type": validated_data.get("type", "gallery"),
+                "isPrimary": validated_data.get("is_primary", False),
+                "url": urls["large"],
+                "url_medium": urls["medium"],
+                "url_thumb": urls["thumb"],
+                "alt": validated_data.get("alt", ""),
+                "title": validated_data.get("title", ""),
+            }
+
+            images.append(new_img_meta)
+            doc_ref.update({"images": images})
+
+            return Response({"images": images}, status=200)
+
+        except Exception as e:
+            print("Material Image Upload error:", e)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class MaterialImageDeleteView(APIView):
+    def delete(self, request, material_id: str):
+        file_name = request.data.get("fileName")
+        if not file_name:
+            return Response({"error": "fileName is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        folder = f"images/materials/{material_id}"
+        keys_to_delete = [
+            f"{folder}/{file_name}-large.webp",
+            f"{folder}/{file_name}-medium.webp",
+            f"{folder}/{file_name}-thumb.webp",
+        ]
+
+        try:
+            delete_files_from_r2(keys_to_delete)
+            return Response({"message": "Files scheduled for deletion from R2.", "deleted_keys": keys_to_delete}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print(f"Error calling R2 deletion for material {material_id}: {e}")
+            return Response({"error": "Failed to delete files from storage."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
