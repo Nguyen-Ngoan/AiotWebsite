@@ -28,9 +28,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { getApiUrl } from '@/lib/apiConfig';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import Lightbox from 'yet-another-react-lightbox';
+import Zoom from 'yet-another-react-lightbox/plugins/zoom';
+import 'yet-another-react-lightbox/styles.css';
 
 interface MaterialImage {
   url: string;
+  url_medium?: string;
   url_thumb?: string;
 }
 
@@ -38,6 +49,8 @@ interface Material {
   id: string;
   name: string;
   english_name?: string;
+  description?: string;
+  specifications?: string;
   current_cost: number;
   unit: string;
   updated_at: string;
@@ -51,6 +64,12 @@ export default function MaterialsListPage() {
     key: keyof Material;
     direction: 'asc' | 'desc';
   } | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<Material | null>(
+    null
+  );
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   useEffect(() => {
     const fetchMaterials = async () => {
@@ -193,7 +212,12 @@ export default function MaterialsListPage() {
                             material.images[0]?.url
                           }
                           alt={material.name}
-                          className="h-10 w-10 rounded-md border object-cover"
+                          className="h-10 w-10 cursor-pointer rounded-md border object-cover hover:opacity-80"
+                          onClick={() => {
+                            setSelectedMaterial(material);
+                            setLightboxIndex(0);
+                            setIsLightboxOpen(true);
+                          }}
                         />
                       ) : (
                         <div className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted">
@@ -202,12 +226,20 @@ export default function MaterialsListPage() {
                       )}
                     </TableCell>
                     <TableCell className="font-medium">
-                      <div>{material.name}</div>
-                      {material.english_name && (
-                        <div className="text-xs text-muted-foreground">
-                          {material.english_name}
-                        </div>
-                      )}
+                      <div
+                        className="cursor-pointer hover:underline"
+                        onClick={() => {
+                          setSelectedMaterial(material);
+                          setIsDetailOpen(true);
+                        }}
+                      >
+                        <div>{material.name}</div>
+                        {material.english_name && (
+                          <div className="text-xs text-muted-foreground">
+                            {material.english_name}
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right font-semibold text-blue-600 dark:text-blue-400">
                       {material.current_cost.toLocaleString('en-US')}
@@ -235,6 +267,82 @@ export default function MaterialsListPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+          <DialogHeader className="sm:text-center">
+            <DialogTitle>{selectedMaterial?.name}</DialogTitle>
+            {selectedMaterial?.english_name && (
+              <DialogDescription>
+                {selectedMaterial.english_name}
+              </DialogDescription>
+            )}
+          </DialogHeader>
+
+          {selectedMaterial && (
+            <div className="grid gap-4 py-4 text-center">
+              {selectedMaterial.images &&
+                selectedMaterial.images.length > 0 && (
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {selectedMaterial.images.map((img, idx) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={idx}
+                        src={img.url_medium || img.url}
+                        alt={selectedMaterial.name}
+                        className="h-32 w-auto cursor-pointer rounded-md border object-cover hover:opacity-80"
+                        onClick={() => {
+                          setLightboxIndex(idx);
+                          setIsLightboxOpen(true);
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+
+              <div className="flex justify-center gap-4">
+                <div>
+                  <h4 className="mb-1 font-semibold">Giá hiện tại</h4>
+                  <p>
+                    {selectedMaterial.current_cost.toLocaleString('en-US')} VND
+                    / {selectedMaterial.unit}
+                  </p>
+                </div>
+              </div>
+
+              {selectedMaterial.description && (
+                <div>
+                  <h4 className="mb-1 font-semibold">Mô tả</h4>
+                  <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                    {selectedMaterial.description}
+                  </p>
+                </div>
+              )}
+
+              {selectedMaterial.specifications && (
+                <div>
+                  <h4 className="mb-1 font-semibold">Thông số kỹ thuật</h4>
+                  <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                    {selectedMaterial.specifications}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {selectedMaterial && (
+        <Lightbox
+          open={isLightboxOpen}
+          close={() => setIsLightboxOpen(false)}
+          index={lightboxIndex}
+          slides={
+            selectedMaterial.images?.map((img) => ({ src: img.url })) || []
+          }
+          plugins={[Zoom]}
+        />
+      )}
     </div>
   );
 }
