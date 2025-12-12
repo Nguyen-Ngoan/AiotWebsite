@@ -21,7 +21,16 @@ import type { TechnicalDoc } from '@/app/diy-maker/[idSlug]/components/technical
 export type ProductFormState = BaseProductFormState & {
   tech_doc_ids: string[];
   technical_docs: TechnicalDoc[];
+  materials: ProductMaterial[];
 };
+
+export interface ProductMaterial {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  current_cost: number;
+}
 
 import ProductSummaryCard from '../../ProductSummaryCard';
 import ProductPricingCard from '../../ProductPricingCard';
@@ -36,6 +45,7 @@ import {
   DocsTab,
   FeaturesTab,
 } from '@/components/admin/products/EditProductTabs';
+import { MaterialsTab } from '@/components/admin/products/EditProductTabs/MaterialsTab';
 
 // -------------------- UTILS --------------------
 
@@ -58,11 +68,12 @@ export default function EditProductPage() {
   const params = useParams();
   const productId = (params as { id?: string }).id;
 
-  const [activeTab, setActiveTab] = useState<TabKey>('docs');
+  const [activeTab, setActiveTab] = useState<TabKey | 'materials'>('docs');
   const [form, setForm] = useState<ProductFormState>({
     ...createEmptyForm(),
     tech_doc_ids: [],
     technical_docs: [],
+    materials: [],
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -150,6 +161,9 @@ export default function EditProductPage() {
           compatibility: Array.isArray(data.compatibility)
             ? data.compatibility
             : [],
+
+          // Materials
+          materials: Array.isArray(data.materials) ? data.materials : [],
         }));
       } catch (err: any) {
         setLoadError(err?.message || 'Server connection error');
@@ -249,6 +263,11 @@ export default function EditProductPage() {
       use_cases: form.useCases,
       limitations: form.limitations,
       compatibility: form.compatibility,
+
+      materials: form.materials.map((m) => ({
+        material_id: m.id,
+        quantity: m.quantity,
+      })),
     };
 
     try {
@@ -348,8 +367,8 @@ export default function EditProductPage() {
               <div className="lg:col-span-2">
                 <div className="bg-white rounded-lg lg:shadow-sm lg:border lg:border-gray-200 lg:p-5">
                   <TabsHeader
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
+                    activeTab={activeTab as TabKey}
+                    setActiveTab={setActiveTab as any}
                   />
 
                   {activeTab === 'basic' && (
@@ -384,6 +403,10 @@ export default function EditProductPage() {
                       form={form}
                       setForm={setForm}
                     />
+                  )}
+
+                  {activeTab === 'materials' && (
+                    <MaterialsTab form={form} setForm={setForm} />
                   )}
                 </div>
               </div>

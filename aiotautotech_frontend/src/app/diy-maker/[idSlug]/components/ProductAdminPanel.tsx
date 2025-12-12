@@ -20,6 +20,14 @@ export interface ProductAdminPanelProps {
   compatibility?: string[];
   specs?: ProductSpecItem[];
   structuredDataForAI?: Record<string, any>;
+  totalMaterialCost?: number;
+  materials?: {
+    id: string;
+    name: string;
+    quantity: number;
+    unit: string;
+    current_cost: number;
+  }[];
 }
 
 function formatDate(dateStr?: string): string {
@@ -50,9 +58,12 @@ export function ProductAdminPanel({
   compatibility,
   specs,
   structuredDataForAI,
+  totalMaterialCost,
+  materials,
 }: ProductAdminPanelProps) {
   const [isMainOpen, setIsMainOpen] = useState(true);
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
+  const [isMaterialsPanelOpen, setIsMaterialsPanelOpen] = useState(false);
 
   const hasAnyFeatures = Boolean(
     (keyFeatures && keyFeatures.length > 0) ||
@@ -61,6 +72,10 @@ export function ProductAdminPanel({
       (compatibility && compatibility.length > 0) ||
       (specs && specs.length > 0)
   );
+
+  const sortedMaterials = materials
+    ? [...materials].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+    : [];
 
   return (
     <div className="rounded-xl border border-gray-800 bg-[#050608]">
@@ -144,6 +159,14 @@ export function ProductAdminPanel({
               <dt className="text-gray-500">Giá</dt>
               <dd className="text-gray-100">{priceLabel}</dd>
             </div>
+            {typeof totalMaterialCost === 'number' && (
+              <div className="flex justify-between gap-2">
+                <dt className="text-gray-500">Chi phí vật tư</dt>
+                <dd className="font-semibold text-yellow-400">
+                  {totalMaterialCost.toLocaleString('vi-VN')}₫
+                </dd>
+              </div>
+            )}
             <div className="flex justify-between gap-2">
               <dt className="text-gray-500">Tạo lúc</dt>
               <dd className="text-gray-100">{formatDate(created_at)}</dd>
@@ -153,6 +176,105 @@ export function ProductAdminPanel({
               <dd className="text-gray-100">{formatDate(updated_at)}</dd>
             </div>
           </dl>
+
+          {/* Materials List Section */}
+          {materials && materials.length > 0 && (
+            <div className="mt-4 rounded-lg border border-gray-700/60 bg-black/30">
+              <div
+                className="flex cursor-pointer list-none items-center justify-between p-2 hover:bg-gray-800/50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsMaterialsPanelOpen(!isMaterialsPanelOpen);
+                }}
+              >
+                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                  Danh sách vật tư ({materials.length})
+                </span>
+                <div className="relative ml-2 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-gray-600 text-gray-200">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-3 w-3 ${
+                      isMaterialsPanelOpen ? 'block' : 'hidden'
+                    }`}
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-3 w-3 ${
+                      isMaterialsPanelOpen ? 'hidden' : 'block'
+                    }`}
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
+                  isMaterialsPanelOpen ? 'max-h-[2000px]' : 'max-h-0'
+                }`}
+              >
+                <div className="border-t border-gray-700/60 p-2">
+                  <table className="w-full text-[11px] text-gray-300">
+                    <thead>
+                      <tr className="border-b border-gray-700/50 text-gray-500">
+                        <th className="pb-1 pl-1 text-left font-medium">
+                          Tên vật tư
+                        </th>
+                        <th className="pb-1 text-center font-medium">SL</th>
+                        <th className="pb-1 pr-1 text-right font-medium">
+                          Tổng
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedMaterials.map((m, idx) => (
+                        <tr
+                          key={m.id || idx}
+                          className="border-b border-gray-800/50 last:border-0 hover:bg-white/5"
+                        >
+                          <td className="py-1 pl-1 align-top">{m.name}</td>
+                          <td className="whitespace-nowrap py-1 text-center align-top text-gray-500">
+                            {m.quantity}
+                          </td>
+                          <td className="whitespace-nowrap py-1 pr-1 text-right align-top font-mono text-gray-400">
+                            {(m.current_cost * m.quantity).toLocaleString(
+                              'en-US'
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t border-gray-700/50 font-semibold">
+                        <td
+                          className="py-2 pl-1 text-left text-gray-400"
+                          colSpan={2}
+                        >
+                          Tổng cộng
+                        </td>
+                        <td className="whitespace-nowrap py-2 pr-1 text-right font-mono text-yellow-400">
+                          {(totalMaterialCost || 0).toLocaleString('en-US')}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* AI Structured Data Section */}
           {structuredDataForAI && (

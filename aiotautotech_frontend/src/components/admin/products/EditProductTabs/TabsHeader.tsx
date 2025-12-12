@@ -10,11 +10,12 @@ import {
   PhotoIcon,
   CursorArrowRaysIcon,
   WrenchScrewdriverIcon,
+  CubeIcon,
 } from '@heroicons/react/24/outline';
 import type { TabKey } from '@/app/admin/products/productFormTypes';
 
 interface TabDef {
-  key: TabKey;
+  key: TabKey | 'materials';
   label: string; // dùng cho tooltip + aria
 }
 
@@ -27,14 +28,15 @@ const TABS: TabDef[] = [
   { key: 'media', label: 'Media' },
   { key: 'seo', label: 'SEO' },
   { key: 'docs', label: 'Docs' },
+  { key: 'materials', label: 'Materials' },
 ];
 
 interface TabsHeaderProps {
-  activeTab: TabKey;
-  setActiveTab: (tab: TabKey) => void;
+  activeTab: TabKey | 'materials';
+  setActiveTab: (tab: TabKey | 'materials') => void;
 }
 
-function getIconForTab(key: TabKey) {
+function getIconForTab(key: TabKey | 'materials') {
   switch (key) {
     case 'basic':
       return InformationCircleIcon;
@@ -50,6 +52,8 @@ function getIconForTab(key: TabKey) {
       return CursorArrowRaysIcon;
     case 'docs':
       return WrenchScrewdriverIcon;
+    case 'materials':
+      return CubeIcon;
     default:
       return InformationCircleIcon;
   }

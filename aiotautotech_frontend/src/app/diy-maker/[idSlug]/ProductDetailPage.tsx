@@ -65,6 +65,13 @@ export interface Product {
   limitations?: string[];
   compatibility?: string[];
   specs?: ProductSpecItem[];
+  materials?: {
+    id: string;
+    name: string;
+    quantity: number;
+    unit: string;
+    current_cost: number;
+  }[];
 }
 
 export interface ProductDetailPageProps {
@@ -231,6 +238,7 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
     limitations,
     compatibility,
     specs,
+    materials,
   } = product;
 
   const priceLabel = formatPrice(base_price, currency);
@@ -254,6 +262,13 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
       (compatibility && compatibility.length > 0) ||
       (specs && specs.length > 0)
   );
+
+  const totalMaterialCost = Array.isArray(materials)
+    ? materials.reduce(
+        (acc, m) => acc + (m.current_cost || 0) * (m.quantity || 0),
+        0
+      )
+    : 0;
 
   const slugPart = slug && slug.trim().length > 0 ? slug : 'san-pham';
   const breadCrumbIdSlug = `${id}-${slugPart}`;
@@ -351,6 +366,8 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
               created_at={created_at}
               updated_at={updated_at}
               structuredDataForAI={productStructuredData}
+              totalMaterialCost={totalMaterialCost}
+              materials={materials}
             />
           </aside>
         </div>
