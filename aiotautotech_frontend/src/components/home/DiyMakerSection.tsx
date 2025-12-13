@@ -67,7 +67,7 @@ export default function DiyMakerSection() {
         {/* LEFT: TEXT */}
         <div className="flex-1">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
-            DIY AUTOMATION
+            DIY PRODUCT
           </p>
 
           <h2 className="mb-3 text-3xl font-semibold leading-tight md:text-4xl">

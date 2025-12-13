@@ -15,6 +15,12 @@ from .views import (
     MaterialDetailView,
     MaterialImageUploadView,
     MaterialImageDeleteView,
+    ProjectListView,
+    ProjectDetailView,
+    ProjectBOMView,
+    ProjectSlugCheckView,
+    ProjectStepView,
+    ProjectThumbnailUploadView,
 )
 
 urlpatterns = [
@@ -55,4 +61,12 @@ urlpatterns = [
         MaterialImageDeleteView.as_view(),
         name="material-image-delete",
     ),
+
+    # Projects (DIY)
+    path("projects/", ProjectListView.as_view(), name="project-list-create"),
+    path("projects/check-slug/", ProjectSlugCheckView.as_view(), name="project-check-slug"),
+    path("projects/<str:slug>/", ProjectDetailView.as_view(), name="project-detail"),
+    path("projects/<str:project_id>/bom/", ProjectBOMView.as_view(), name="project-add-bom"),
+    path("projects/<str:project_id>/steps/", ProjectStepView.as_view(), name="project-add-step"),
+    path("projects/<str:project_id>/thumbnail/", ProjectThumbnailUploadView.as_view(), name="project-upload-thumbnail"),
 ]

@@ -1,0 +1,386 @@
+import React from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { projectService } from '@/lib/api/projectService';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+import { navItems } from '@/components/layout/nav-items';
+
+interface ProjectDetailPageProps {
+  params: Promise<{
+    slug: string;
+  }>;
+}
+
+// Generate metadata for SEO
+export async function generateMetadata({ params }: ProjectDetailPageProps) {
+  const { slug } = await params;
+  try {
+    const project = await projectService.getProjectBySlug(slug);
+    return {
+      title: `${project.title} | AiotAutotech DIY`,
+      description: project.description,
+      openGraph: {
+        images: project.thumbnail_url ? [project.thumbnail_url] : [],
+      },
+    };
+  } catch (error) {
+    return {
+      title: 'Dự án không tồn tại',
+    };
+  }
+}
+
+export default async function ProjectDetailPage({
+  params,
+}: ProjectDetailPageProps) {
+  const { slug } = await params;
+  let project;
+  try {
+    project = await projectService.getProjectBySlug(slug);
+  } catch (error) {
+    notFound();
+  }
+
+  // Sắp xếp các bước theo thứ tự
+  const sortedSteps = project.steps
+    ? [...project.steps].sort((a, b) => a.order - b.order)
+    : [];
+
+  return (
+    <>
+      <Header navItems={navItems} />
+      <div className="min-h-screen bg-white pt-20 pb-24">
+        {/* Breadcrumb - Minimal */}
+        <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 border-b border-gray-100">
+          <nav className="flex" aria-label="Breadcrumb">
+            <ol role="list" className="flex items-center space-x-2">
+              <li>
+                <Link
+                  href="/projects"
+                  className="text-sm font-medium text-gray-500 hover:text-gray-900"
+                >
+                  Projects
+                </Link>
+              </li>
+              <li>
+                <span className="text-gray-300">/</span>
+              </li>
+              <li>
+                <span
+                  className="text-sm font-medium text-gray-900"
+                  aria-current="page"
+                >
+                  {project.slug}
+                </span>
+              </li>
+            </ol>
+          </nav>
+        </div>
+
+        <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 mt-8 flex gap-12">
+          {/* LEFT SIDEBAR - TOC */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-28">
+              <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-4">
+                Contents
+              </h4>
+              <nav className="space-y-1 border-l border-gray-200">
+                <a
+                  href="#overview"
+                  className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
+                >
+                  1. Overview
+                </a>
+                <a
+                  href="#solution"
+                  className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
+                >
+                  2. Solution Analysis
+                </a>
+                <a
+                  href="#implementation"
+                  className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
+                >
+                  3. Implementation Log
+                </a>
+                <a
+                  href="#configuration"
+                  className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
+                >
+                  4. Configuration
+                </a>
+                <a
+                  href="#downloads"
+                  className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
+                >
+                  5. Resources
+                </a>
+              </nav>
+
+              {/* Admin Quick Link */}
+              <div className="mt-8 pt-8 border-t border-gray-100">
+                <Link
+                  href={`/admin/projects/${project.slug}/edit`}
+                  className="text-xs font-mono text-gray-400 hover:text-blue-600"
+                >
+                  [Edit Project]
+                </Link>
+              </div>
+            </div>
+          </aside>
+
+          {/* MAIN CONTENT */}
+          <main className="flex-1 max-w-3xl min-w-0">
+            {/* Title Section */}
+            <div className="mb-12 border-b border-gray-200 pb-8">
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-4">
+                {project.title}
+              </h1>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500 font-mono">
+                <span title="Phiên bản hiện tại">Ver: 1.0.0</span>
+                <span title="Ngày cập nhật cuối cùng">
+                  Last Updated: {new Date().toLocaleDateString('en-US')}
+                </span>
+                <span title="Tác giả">Author: AiotAutotech Engineering</span>
+                {project.complexity_mechanical && (
+                  <span className="px-2 py-0.5 bg-gray-100 rounded text-xs">
+                    Level: {project.complexity_mechanical}/3
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Problem Statement */}
+            <section id="overview" className="mb-16 scroll-mt-28">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="text-gray-400 font-mono">1.</span> Problem
+                Statement
+              </h2>
+              <div className="prose prose-slate max-w-none text-gray-700">
+                <p className="lead">{project.description}</p>
+                {/* Placeholder for extended text if description is short */}
+                <p className="text-gray-500 italic text-sm mt-4">
+                  * This project documentation outlines the technical
+                  specifications, assembly instructions, and configuration
+                  details required to replicate the system.
+                </p>
+              </div>
+            </section>
+
+            {/* Solution Analysis */}
+            <section id="solution" className="mb-16 scroll-mt-28">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="text-gray-400 font-mono">2.</span> Solution
+                Analysis
+              </h2>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-2 mb-4">
+                {/* Image as Diagram */}
+                {project.thumbnail_url ? (
+                  <div className="relative aspect-video w-full overflow-hidden rounded bg-white">
+                    <Image
+                      src={project.thumbnail_url}
+                      alt="System Diagram"
+                      fill
+                      className="object-contain cursor-zoom-in"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-64 flex items-center justify-center text-gray-400 italic">
+                    No system diagram available.
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-gray-500 italic text-center font-mono">
+                Figure 1: System Architecture & Design Overview
+              </p>
+
+              {project.video_url && (
+                <div className="mt-8">
+                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3">
+                    Video Demonstration
+                  </h3>
+                  <div className="aspect-video w-full rounded-lg overflow-hidden border border-gray-200 bg-black">
+                    <iframe
+                      src={project.video_url.replace('watch?v=', 'embed/')}
+                      title="Video hướng dẫn"
+                      className="w-full h-full"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* Implementation Log */}
+            <section id="implementation" className="mb-16 scroll-mt-28">
+              <h2 className="text-xl font-bold text-gray-900 mb-8 flex items-center gap-2">
+                <span className="text-gray-400 font-mono">3.</span>{' '}
+                Implementation Log
+              </h2>
+              <div className="space-y-12 border-l-2 border-gray-100 pl-6 ml-2">
+                {sortedSteps.length > 0 ? (
+                  sortedSteps.map((step, index) => (
+                    <div key={index} className="relative group">
+                      <span className="absolute -left-[33px] top-0 flex h-6 w-6 items-center justify-center rounded-full bg-white border-2 border-gray-200 text-xs font-mono font-medium text-gray-500 group-hover:border-gray-900 group-hover:text-gray-900 transition-colors">
+                        {index + 1}
+                      </span>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                        {step.title}
+                      </h3>
+                      <div className="prose prose-slate max-w-none text-gray-600 text-sm">
+                        <div className="whitespace-pre-line">
+                          {step.content}
+                        </div>
+                      </div>
+                      {step.image_url && (
+                        <div className="mt-4">
+                          <img
+                            src={step.image_url}
+                            alt={step.title}
+                            className="rounded border border-gray-200 cursor-zoom-in hover:shadow-lg transition-shadow max-h-96 object-contain bg-gray-50"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 italic">
+                    No implementation steps recorded.
+                  </p>
+                )}
+              </div>
+            </section>
+
+            {/* Configuration Table */}
+            <section id="configuration" className="mb-16 scroll-mt-28">
+              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <span className="text-gray-400 font-mono">4.</span>{' '}
+                Configuration
+              </h2>
+              <div className="overflow-hidden border border-gray-200 rounded-lg">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
+                      >
+                        Component
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
+                      >
+                        Note / Spec
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
+                      >
+                        Qty
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {project.bom && project.bom.length > 0 ? (
+                      project.bom.map((item, idx) => (
+                        <tr key={idx} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                            <Link
+                              href="#"
+                              className="hover:text-blue-600 hover:underline decoration-blue-600/30"
+                              title="View Component Details"
+                            >
+                              {item.product_name}
+                            </Link>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500 font-mono text-xs">
+                            {/* Mocking specs/notes */}
+                            Standard Spec
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
+                            {item.quantity}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={3}
+                          className="px-6 py-4 text-center text-sm text-gray-500 italic"
+                        >
+                          No configuration data available.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* Footer / Downloads */}
+            <section
+              id="downloads"
+              className="pt-8 border-t border-gray-200 scroll-mt-28"
+            >
+              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
+                Resources & Downloads
+              </h2>
+              <div className="flex flex-wrap gap-4">
+                {project.attachments && project.attachments.length > 0 ? (
+                  project.attachments.map((att, i) => (
+                    <a
+                      key={i}
+                      href={att}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded transition-colors"
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                        ></path>
+                      </svg>
+                      Download Source ({i + 1})
+                    </a>
+                  ))
+                ) : (
+                  <span className="text-sm text-gray-400 italic">
+                    No downloadable resources.
+                  </span>
+                )}
+                <button className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded transition-colors">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2.4-9h6m-6 4h6m-6-9h6M5 3a2 2 0 012-2h10a2 2 0 012 2v2H5V3z"
+                    ></path>
+                  </svg>
+                  Print Spec Sheet
+                </button>
+              </div>
+            </section>
+          </main>
+        </div>
+      </div>
+      <Footer />
+    </>
+  );
+}

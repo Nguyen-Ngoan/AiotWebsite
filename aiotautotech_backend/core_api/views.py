@@ -13,6 +13,7 @@ from .utils import slugify
 from .serializers import ProductImageUploadSerializer, TechnicalDocSerializer
 from storage.r2 import upload_file_to_r2, generate_image_key, delete_files_from_r2
 from services.firestore_products import add_product_image_metadata
+from services.firestore_projects import ProjectService, ProjectData, InstructionStep
 
 import io
 from PIL import Image
@@ -25,6 +26,9 @@ import sys
 
 
 from django.conf import settings
+
+# Khởi tạo Project Service
+project_service = ProjectService()
 
 
 def _serialize_post(doc):
@@ -1226,3 +1230,172 @@ class MaterialImageDeleteView(APIView):
         except Exception as e:
             print(f"Error calling R2 deletion for material {material_id}: {e}")
             return Response({"error": "Failed to delete files from storage."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ==============================================================================
+# PROJECT VIEWS (DIY Projects)
+# ==============================================================================
+
+class ProjectListView(APIView):
+    """
+    GET /api/projects/  -> Lấy danh sách dự án
+    POST /api/projects/ -> Tạo dự án mới
+    """
+    def get(self, request):
+        # Lấy 50 dự án mới nhất
+        docs = project_service.collection.order_by("created_at", direction="DESCENDING").limit(50).stream()
+        projects = []
+        for doc in docs:
+            d = doc.to_dict()
+            d['id'] = doc.id
+            projects.append(d)
+        return Response(projects)
+
+    def post(self, request):
+        data = request.data
+        try:
+            # Map request data sang ProjectData dataclass
+            project_data = ProjectData(
+                title=data.get("title", ""),
+                description=data.get("description", ""),
+                video_url=data.get("video_url", ""),
+                thumbnail_url=data.get("thumbnail_url", ""),
+                slug=data.get("slug", ""),
+                tags=data.get("tags", []),
+                complexity_mechanical=int(data.get("complexity_mechanical", 1)),
+                complexity_electrical=int(data.get("complexity_electrical", 1)),
+                complexity_software=int(data.get("complexity_software", 1)),
+                estimated_hours=int(data.get("estimated_hours", 0)),
+                required_skills=data.get("required_skills", [])
+            )
+            result = project_service.create_project(project_data)
+            return Response(result, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProjectDetailView(APIView):
+    """
+    GET /api/projects/<slug>/ -> Lấy chi tiết dự án (bao gồm BOM & Steps)
+    """
+    def get(self, request, slug):
+        project = project_service.get_project_by_slug(slug)
+        if not project:
+            return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(project)
+
+    def put(self, request, slug):
+        data = request.data
+        try:
+            # Map request data sang ProjectData dataclass
+            project_data = ProjectData(
+                title=data.get("title", ""),
+                description=data.get("description", ""),
+                video_url=data.get("video_url", ""),
+                thumbnail_url=data.get("thumbnail_url", ""),
+                slug=data.get("slug", ""),
+                tags=data.get("tags", []),
+                complexity_mechanical=int(data.get("complexity_mechanical", 1)),
+                complexity_electrical=int(data.get("complexity_electrical", 1)),
+                complexity_software=int(data.get("complexity_software", 1)),
+                estimated_hours=int(data.get("estimated_hours", 0)),
+                required_skills=data.get("required_skills", [])
+            )
+            result = project_service.update_project(slug, project_data)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProjectSlugCheckView(APIView):
+    """
+    POST /api/projects/check-slug/
+    Kiểm tra xem một slug đã tồn tại hay chưa.
+    """
+    def post(self, request):
+        slug_to_check = request.data.get("slug", "").strip()
+        # `exclude_id` là ID của dự án đang được chỉnh sửa, để không tự so sánh với chính nó.
+        exclude_id = request.data.get("exclude_id", None)
+
+        if not slug_to_check:
+            return Response({"error": "Slug is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        query = project_service.collection.where("slug", "==", slug_to_check)
+        docs = list(query.limit(1).stream())
+
+        if not docs:
+            # Không có dự án nào có slug này, slug hợp lệ.
+            return Response({"available": True})
+        
+        # Có dự án với slug này. Kiểm tra xem nó có phải là dự án đang chỉnh sửa không.
+        existing_project_id = docs[0].id
+        if exclude_id and existing_project_id == exclude_id:
+            return Response({"available": True})
+        
+        # Slug này thuộc về một dự án khác.
+        return Response({"available": False, "message": "Slug này đã được sử dụng."})
+
+
+class ProjectBOMView(APIView):
+    """
+    POST /api/projects/<project_id>/bom/ -> Thêm linh kiện vào BOM
+    """
+    def post(self, request, project_id):
+        data = request.data
+        try:
+            updated_bom = project_service.add_bom_item(
+                project_id=project_id,
+                product_id=data.get("product_id"),
+                quantity=int(data.get("quantity", 1)),
+                usage_note=data.get("usage_note", ""),
+                is_optional=bool(data.get("is_optional", False))
+            )
+            return Response({"bom": updated_bom}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProjectStepView(APIView):
+    """
+    POST /api/projects/<project_id>/steps/ -> Thêm bước hướng dẫn
+    """
+    def post(self, request, project_id):
+        data = request.data
+        try:
+            step = InstructionStep(
+                order=int(data.get("order", 0)),
+                title=data.get("title", ""),
+                content=data.get("content", ""),
+                image_url=data.get("image_url", "")
+            )
+            project_service.add_instruction_step(project_id, step)
+            return Response({"status": "Step added successfully"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class ProjectThumbnailUploadView(APIView):
+    """
+    POST /api/projects/<project_id>/thumbnail/ -> Upload ảnh đại diện dự án
+    """
+    def post(self, request, project_id):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No file uploaded"}, status=400)
+        
+        try:
+            # Generate key: images/projects/<id>/<filename>
+            file_ext = os.path.splitext(file.name)[1]
+            r2_key = f"images/projects/{project_id}/thumbnail{file_ext}"
+            
+            # Upload
+            url = upload_file_to_r2(file, r2_key, content_type=file.content_type)
+            
+            # Update Firestore
+            project_service.collection.document(project_id).update({
+                "thumbnail_url": url,
+                "updated_at": timezone.now()
+            })
+            
+            return Response({"thumbnail_url": url})
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
