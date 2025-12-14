@@ -21,7 +21,7 @@ export function ProductDescription({
             Mô tả chi tiết
           </h2>
         </div>
-        <div className="relative ml-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-700 text-gray-200">
+        <div className="relative ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-700 text-gray-200">
           {/* Icon '-' (dấu trừ) hiển thị khi mở */}
           <svg
             xmlns="http://www.w3.org/2000/svg"

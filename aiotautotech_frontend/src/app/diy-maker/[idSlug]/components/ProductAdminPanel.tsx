@@ -104,7 +104,7 @@ export function ProductAdminPanel({
           </div>
         </div>
 
-        <div className="relative ml-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-700 text-gray-200">
+        <div className="relative ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-700 text-gray-200">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className={`h-3.5 w-3.5 ${isMainOpen ? 'block' : 'hidden'}`}
@@ -190,7 +190,7 @@ export function ProductAdminPanel({
                 <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
                   Danh sách vật tư ({materials.length})
                 </span>
-                <div className="relative ml-2 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-gray-600 text-gray-200">
+                <div className="relative ml-2 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gray-600 text-gray-200">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className={`h-3 w-3 ${
@@ -289,7 +289,7 @@ export function ProductAdminPanel({
                 <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
                   Dữ liệu cho AI (JSON-LD)
                 </span>
-                <div className="relative ml-2 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-gray-600 text-gray-200">
+                <div className="relative ml-2 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gray-600 text-gray-200">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className={`h-3 w-3 ${isAiPanelOpen ? 'block' : 'hidden'}`}

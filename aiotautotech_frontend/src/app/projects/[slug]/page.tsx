@@ -60,14 +60,14 @@ export default async function ProjectDetailPage({
       <Header navItems={navItems} />
       <div className="min-h-screen bg-white pt-12 pb-12 md:pt-28">
         {/* Breadcrumb - Minimal */}
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 border-b border-gray-100">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 border-b border-gray-100">
           <nav className="flex" aria-label="Breadcrumb">
             <ol role="list" className="flex items-center space-x-2">
               <li className="flex">
                 <div className="flex items-center">
                   <Link href="/" className="text-gray-400 hover:text-gray-500">
                     <svg
-                      className="h-5 w-5 flex-shrink-0"
+                      className="h-5 w-5 shrink-0"
                       viewBox="0 0 20 20"
                       fill="currentColor"
                       aria-hidden="true"
@@ -108,9 +108,9 @@ export default async function ProjectDetailPage({
           </nav>
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-8 sm:mt-2 flex gap-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-1 lg:mt-4 flex gap-12">
           {/* LEFT SIDEBAR - TOC */}
-          <aside className="hidden lg:block w-64 flex-shrink-0">
+          <aside className="hidden lg:block w-64 shrink-0">
             <div className="sticky top-28">
               <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-4">
                 Contents
@@ -197,7 +197,7 @@ export default async function ProjectDetailPage({
           <main className="flex-1 max-w-3xl min-w-0">
             {/* Mobile Admin Controls */}
             {isAdmin && (
-              <div className="lg:hidden mb-6 px-4 py-2 bg-gray-50 border border-gray-200">
+              <div className="lg:hidden mb-2 px-4 py-2 bg-gray-50 border border-gray-200">
                 <div className="flex flex-wrap gap-3">
                   <Link
                     href={`/admin/projects/${project.slug}/edit`}
@@ -228,8 +228,8 @@ export default async function ProjectDetailPage({
             )}
 
             {/* Title Section */}
-            <div className="mb-8 pb-0">
-              <h1 className="text-3xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-4">
+            <div className="mb-4 pb-0">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight mb-2">
                 {project.title}
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 font-mono">
@@ -249,32 +249,32 @@ export default async function ProjectDetailPage({
             </div>
 
             {/* Mobile Table of Contents */}
-            <div className="lg:hidden mb-8 p-5 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="lg:hidden mb-8 px-5 py-2 bg-gray-50 rounded-xl border border-gray-200">
               <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
-                Contents
+                NỘI DUNG
               </h4>
-              <nav className="flex flex-col space-y-3">
+              <nav className="flex flex-col space-y-2">
                 <a
                   href="#overview"
                   className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
                 >
-                  <span className="w-6 text-gray-400 font-mono">1.</span>{' '}
-                  Overview
+                  <span className="w-6 text-gray-400 font-mono">1.</span> Giới
+                  thiệu
                 </a>
                 <a
                   href="#solution"
                   className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
                 >
-                  <span className="w-6 text-gray-400 font-mono">2.</span>{' '}
-                  Solution Analysis
+                  <span className="w-6 text-gray-400 font-mono">2.</span> Phân
+                  tích dự án
                 </a>
                 {hasGallery && (
                   <a
                     href="#gallery"
                     className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
                   >
-                    <span className="w-6 text-gray-400 font-mono">3.</span>{' '}
-                    Project Gallery
+                    <span className="w-6 text-gray-400 font-mono">3.</span> Thư
+                    viện ảnh
                   </a>
                 )}
                 <a
@@ -284,7 +284,7 @@ export default async function ProjectDetailPage({
                   <span className="w-6 text-gray-400 font-mono">
                     {hasGallery ? '4.' : '3.'}
                   </span>{' '}
-                  Implementation Log
+                  Các bước thực hiện
                 </a>
                 <a
                   href="#configuration"
@@ -293,7 +293,7 @@ export default async function ProjectDetailPage({
                   <span className="w-6 text-gray-400 font-mono">
                     {hasGallery ? '5.' : '4.'}
                   </span>{' '}
-                  Configuration
+                  Danh sách vật tư
                 </a>
                 <a
                   href="#downloads"
@@ -302,43 +302,28 @@ export default async function ProjectDetailPage({
                   <span className="w-6 text-gray-400 font-mono">
                     {hasGallery ? '6.' : '5.'}
                   </span>{' '}
-                  Resources
+                  Tài liệu
                 </a>
               </nav>
             </div>
 
             {/* Problem Statement */}
-            <section id="overview" className="mb-10 scroll-mt-28">
+            <section id="overview" className="mb-10 scroll-mt-20">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <span className="text-gray-400 font-mono">1.</span> Problem
-                Statement
-                {isAdmin && (
-                  <Link
-                    href={`/admin/projects/${project.slug}/edit`}
-                    className="ml-2 text-xs font-mono font-normal text-gray-300 hover:text-blue-600"
-                  >
-                    [Edit]
-                  </Link>
-                )}
+                <span className="text-gray-400 font-mono">1.</span> GIỚI THIỆU
               </h2>
               <div className="prose prose-slate max-w-none text-gray-700">
                 <p className="lead whitespace-pre-line">
                   {project.problem_statement || project.description}
                 </p>
-                {/* Placeholder for extended text if description is short */}
-                <p className="text-gray-500 italic text-sm mt-4">
-                  * This project documentation outlines the technical
-                  specifications, assembly instructions, and configuration
-                  details required to replicate the system.
-                </p>
               </div>
             </section>
 
             {/* Solution Analysis */}
-            <section id="solution" className="mb-10 scroll-mt-28">
+            <section id="solution" className="mb-10 scroll-mt-20">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <span className="text-gray-400 font-mono">2.</span> Solution
-                Analysis
+                <span className="text-gray-400 font-mono">2.</span> PHÂN TÍCH DỰ
+                ÁN
                 {isAdmin && (
                   <Link
                     href={`/admin/projects/${project.slug}/solution`}
@@ -380,7 +365,7 @@ export default async function ProjectDetailPage({
               {project.video_url && (
                 <div className="mt-8">
                   <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    Video Demonstration
+                    VIDEO
                     {isAdmin && (
                       <Link
                         href={`/admin/projects/${project.slug}/edit`}
@@ -404,10 +389,10 @@ export default async function ProjectDetailPage({
 
             {/* Project Gallery */}
             {hasGallery && (
-              <section id="gallery" className="mb-10 scroll-mt-28">
+              <section id="gallery" className="mb-10 scroll-mt-20">
                 <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                  <span className="text-gray-400 font-mono">3.</span> Project
-                  Gallery
+                  <span className="text-gray-400 font-mono">3.</span> THƯ VIỆN
+                  ẢNH
                   {isAdmin && (
                     <Link
                       href={`/admin/projects/${project.slug}/images`}
@@ -437,12 +422,12 @@ export default async function ProjectDetailPage({
             )}
 
             {/* Implementation Log */}
-            <section id="implementation" className="mb-10 scroll-mt-28">
+            <section id="implementation" className="mb-10 scroll-mt-20">
               <h2 className="group text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">
                   {hasGallery ? '4.' : '3.'}
                 </span>{' '}
-                Implementation Log
+                CÁC BƯỚC THỰC HIỆN
                 {isAdmin && (
                   <Link
                     href={`/admin/projects/${project.slug}/steps`}
@@ -487,12 +472,12 @@ export default async function ProjectDetailPage({
             </section>
 
             {/* Configuration Table */}
-            <section id="configuration" className="mb-10 scroll-mt-28">
+            <section id="configuration" className="mb-10 scroll-mt-20">
               <h2 className="group text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">
                   {hasGallery ? '5.' : '4.'}
                 </span>{' '}
-                Configuration
+                DANH SÁCH VẬT TƯ
                 {isAdmin && (
                   <Link
                     href={`/admin/projects/${project.slug}/bom`}
@@ -506,9 +491,9 @@ export default async function ProjectDetailPage({
               {/* Display Total Cost if available (Live Reference) */}
               {typeof project.total_cost === 'number' &&
                 project.total_cost > 0 && (
-                  <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100 flex justify-between items-center">
+                  <div className="mb-4 px-4 py-2 bg-blue-50 rounded-lg border border-blue-100 flex justify-between items-center">
                     <span className="text-blue-900 font-medium">
-                      Estimated Total Cost (Live)
+                      Chi phí ước tính
                     </span>
                     <span className="text-2xl font-bold text-blue-700">
                       {new Intl.NumberFormat('vi-VN', {
@@ -663,10 +648,13 @@ export default async function ProjectDetailPage({
             {/* Footer / Downloads */}
             <section
               id="downloads"
-              className="pt-8 border-t border-gray-200 scroll-mt-28"
+              className="pt-8 border-t border-gray-200 scroll-mt-20"
             >
-              <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
-                Resources & Downloads
+              <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider mb-4">
+                <span className="text-gray-400 font-mono">
+                  {hasGallery ? '6.' : '5.'}
+                </span>{' '}
+                TÀI LIỆU
               </h2>
               <div className="flex flex-wrap gap-4">
                 {project.attachments && project.attachments.length > 0 ? (

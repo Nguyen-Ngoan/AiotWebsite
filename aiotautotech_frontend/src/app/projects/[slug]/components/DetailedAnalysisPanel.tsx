@@ -14,13 +14,13 @@ export function DetailedAnalysisPanel({
   return (
     <div className="group mt-6 rounded-lg border border-gray-200 bg-white">
       <div
-        className="flex cursor-pointer list-none items-center justify-between p-4"
+        className="flex cursor-pointer list-none items-center justify-between px-4 py-2"
         onClick={() => setIsOpen(!isOpen)}
       >
         <h3 className="text-base font-semibold text-gray-800">
-          Detailed Analysis
+          Phân tích chi tiết dự án
         </h3>
-        <div className="relative ml-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-gray-600">
+        <div className="relative ml-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-200 text-gray-600">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className={`h-3.5 w-3.5 ${isOpen ? 'block' : 'hidden'}`}
