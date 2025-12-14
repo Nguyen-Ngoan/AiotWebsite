@@ -7,6 +7,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { navItems } from '@/components/layout/nav-items';
 import { DetailedAnalysisPanel } from './components/DetailedAnalysisPanel';
+import { ConfigurationTable } from './components/ConfigurationTable';
 
 interface ProjectDetailPageProps {
   params: Promise<{
@@ -53,14 +54,14 @@ export default async function ProjectDetailPage({
     ? [...project.steps].sort((a, b) => a.order - b.order)
     : [];
 
-  const hasGallery = project.images && project.images.length > 0;
+  const hasGallery = !!(project.images && project.images.length > 0);
 
   return (
     <>
       <Header navItems={navItems} />
       <div className="min-h-screen bg-white pt-12 pb-12 md:pt-28">
         {/* Breadcrumb - Minimal */}
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-2 border-b border-gray-100">
+        <div className="mx-auto max-w-7xl px-4 lg:px-8 py-2 border-b border-gray-100">
           <nav className="flex" aria-label="Breadcrumb">
             <ol role="list" className="flex items-center space-x-2">
               <li className="flex">
@@ -108,7 +109,7 @@ export default async function ProjectDetailPage({
           </nav>
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-1 lg:mt-4 flex gap-12">
+        <div className="mx-auto max-w-7xl px-4 lg:px-8 mt-1 lg:mt-4 flex gap-12">
           {/* LEFT SIDEBAR - TOC */}
           <aside className="hidden lg:block w-64 shrink-0">
             <div className="sticky top-28">
@@ -232,7 +233,7 @@ export default async function ProjectDetailPage({
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight mb-2">
                 {project.title}
               </h1>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 font-mono">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-0 text-sm text-gray-500 font-mono">
                 <span title="Phiên bản hiện tại">
                   Ver: {project.version || '1.0.0'}
                 </span>
@@ -249,7 +250,7 @@ export default async function ProjectDetailPage({
             </div>
 
             {/* Mobile Table of Contents */}
-            <div className="lg:hidden mb-8 px-5 py-2 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="lg:hidden mb-4 px-5 py-2 bg-gray-50 rounded-xl border border-gray-200">
               <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
                 NỘI DUNG
               </h4>
@@ -308,7 +309,7 @@ export default async function ProjectDetailPage({
             </div>
 
             {/* Problem Statement */}
-            <section id="overview" className="mb-10 scroll-mt-20">
+            <section id="overview" className="mb-6 scroll-mt-20">
               <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">1.</span> GIỚI THIỆU
               </h2>
@@ -320,7 +321,7 @@ export default async function ProjectDetailPage({
             </section>
 
             {/* Solution Analysis */}
-            <section id="solution" className="mb-10 scroll-mt-20">
+            <section id="solution" className="mb-6 scroll-mt-20">
               <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">2.</span> PHÂN TÍCH DỰ
                 ÁN
@@ -422,7 +423,7 @@ export default async function ProjectDetailPage({
             )}
 
             {/* Implementation Log */}
-            <section id="implementation" className="mb-10 scroll-mt-20">
+            <section id="implementation" className="mb-6 scroll-mt-20">
               <h2 className="group text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">
                   {hasGallery ? '4.' : '3.'}
@@ -471,184 +472,16 @@ export default async function ProjectDetailPage({
               </div>
             </section>
 
-            {/* Configuration Table */}
-            <section id="configuration" className="mb-10 scroll-mt-20">
-              <h2 className="group text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <span className="text-gray-400 font-mono">
-                  {hasGallery ? '5.' : '4.'}
-                </span>{' '}
-                DANH SÁCH VẬT TƯ
-                {isAdmin && (
-                  <Link
-                    href={`/admin/projects/${project.slug}/bom`}
-                    className="ml-2 text-xs font-mono font-normal text-gray-300 hover:text-blue-600"
-                  >
-                    [Edit]
-                  </Link>
-                )}
-              </h2>
-
-              {/* Display Total Cost if available (Live Reference) */}
-              {typeof project.total_cost === 'number' &&
-                project.total_cost > 0 && (
-                  <div className="mb-4 px-4 py-2 bg-blue-50 rounded-lg border border-blue-100 flex justify-between items-center">
-                    <span className="text-blue-900 font-medium">
-                      Chi phí ước tính
-                    </span>
-                    <span className="text-xl font-bold text-blue-700">
-                      {new Intl.NumberFormat('vi-VN', {
-                        style: 'currency',
-                        currency: 'VND',
-                      }).format(project.total_cost)}
-                    </span>
-                  </div>
-                )}
-
-              <div className="overflow-hidden border border-gray-200 rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th
-                        scope="col"
-                        className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
-                      >
-                        Component
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
-                      >
-                        Type
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
-                      >
-                        Price
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
-                      >
-                        Qty
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
-                      >
-                        Subtotal
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {/* Render Live Products */}
-                    {project.products?.map((item) => (
-                      <tr key={`prod-${item.id}`} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 text-sm font-medium text-gray-900">
-                          <Link
-                            href={`/products/${item.product.slug}`}
-                            className="hover:text-blue-600 hover:underline"
-                          >
-                            {item.product.title}
-                          </Link>
-                        </td>
-                        <td className="px-4 py-2 text-xs text-gray-500 uppercase">
-                          Product
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
-                          {new Intl.NumberFormat('vi-VN').format(
-                            item.product.base_price
-                          )}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-500 text-right font-mono">
-                          {item.quantity}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-900 text-right font-mono font-medium">
-                          {new Intl.NumberFormat('vi-VN').format(item.subtotal)}
-                        </td>
-                      </tr>
-                    ))}
-
-                    {/* Render Live Materials */}
-                    {project.materials?.map((item) => (
-                      <tr key={`mat-${item.id}`} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 text-sm font-medium text-gray-900">
-                          {item.material.name}
-                          <div className="text-xs text-gray-500 font-normal">
-                            {item.material.specifications}
-                          </div>
-                        </td>
-                        <td className="px-4 py-2 text-xs text-gray-500 uppercase">
-                          Material
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-500 text-right font-mono">
-                          {new Intl.NumberFormat('vi-VN').format(
-                            item.material.unit_price
-                          )}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-500 text-right font-mono">
-                          {item.quantity}
-                        </td>
-                        <td className="px-4 py-2 text-sm text-gray-900 text-right font-mono font-medium">
-                          {new Intl.NumberFormat('vi-VN').format(item.subtotal)}
-                        </td>
-                      </tr>
-                    ))}
-
-                    {/* Fallback to Legacy BOM if no live data */}
-                    {!project.products?.length &&
-                    !project.materials?.length &&
-                    project.bom &&
-                    project.bom.length > 0
-                      ? project.bom.map((item, idx) => (
-                          <tr key={idx} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                              <Link
-                                href={`/diy-maker/${item.product_id}`}
-                                className="hover:text-blue-600 hover:underline decoration-blue-600/30"
-                                title="View Component Details"
-                              >
-                                {item.product_name}
-                              </Link>
-                            </td>
-                            <td className="px-6 py-4 text-xs text-gray-500 uppercase">
-                              Snapshot
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
-                              {new Intl.NumberFormat('vi-VN').format(
-                                item.unit_price
-                              )}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
-                              {item.quantity}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900 text-right font-mono font-medium">
-                              {new Intl.NumberFormat('vi-VN').format(
-                                item.unit_price * item.quantity
-                              )}
-                            </td>
-                          </tr>
-                        ))
-                      : !project.products?.length &&
-                        !project.materials?.length && (
-                          <tr>
-                            <td
-                              colSpan={5}
-                              className="px-6 py-4 text-center text-sm text-gray-500 italic"
-                            >
-                              No configuration data available.
-                            </td>
-                          </tr>
-                        )}
-                  </tbody>
-                </table>
-              </div>
-            </section>
+            <ConfigurationTable
+              project={project}
+              isAdmin={isAdmin}
+              hasGallery={hasGallery}
+            />
 
             {/* Footer / Downloads */}
             <section
               id="downloads"
-              className="pt-8 border-t border-gray-200 scroll-mt-20"
+              className="pt-4 border-t border-gray-200 scroll-mt-20"
             >
               <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wider mb-4">
                 <span className="text-gray-400 font-mono">
