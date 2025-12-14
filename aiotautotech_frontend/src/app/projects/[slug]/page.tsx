@@ -309,7 +309,7 @@ export default async function ProjectDetailPage({
 
             {/* Problem Statement */}
             <section id="overview" className="mb-10 scroll-mt-20">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">1.</span> GIỚI THIỆU
               </h2>
               <div className="prose prose-slate max-w-none text-gray-700">
@@ -321,7 +321,7 @@ export default async function ProjectDetailPage({
 
             {/* Solution Analysis */}
             <section id="solution" className="mb-10 scroll-mt-20">
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">2.</span> PHÂN TÍCH DỰ
                 ÁN
                 {isAdmin && (
@@ -390,7 +390,7 @@ export default async function ProjectDetailPage({
             {/* Project Gallery */}
             {hasGallery && (
               <section id="gallery" className="mb-10 scroll-mt-20">
-                <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                   <span className="text-gray-400 font-mono">3.</span> THƯ VIỆN
                   ẢNH
                   {isAdmin && (
@@ -423,7 +423,7 @@ export default async function ProjectDetailPage({
 
             {/* Implementation Log */}
             <section id="implementation" className="mb-10 scroll-mt-20">
-              <h2 className="group text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <h2 className="group text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">
                   {hasGallery ? '4.' : '3.'}
                 </span>{' '}
@@ -473,7 +473,7 @@ export default async function ProjectDetailPage({
 
             {/* Configuration Table */}
             <section id="configuration" className="mb-10 scroll-mt-20">
-              <h2 className="group text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <h2 className="group text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">
                   {hasGallery ? '5.' : '4.'}
                 </span>{' '}
@@ -495,7 +495,7 @@ export default async function ProjectDetailPage({
                     <span className="text-blue-900 font-medium">
                       Chi phí ước tính
                     </span>
-                    <span className="text-2xl font-bold text-blue-700">
+                    <span className="text-xl font-bold text-blue-700">
                       {new Intl.NumberFormat('vi-VN', {
                         style: 'currency',
                         currency: 'VND',
@@ -510,31 +510,31 @@ export default async function ProjectDetailPage({
                     <tr>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
+                        className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
                       >
                         Component
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
+                        className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
                       >
                         Type
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
+                        className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
                       >
-                        Unit Price
+                        Price
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
+                        className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
                       >
                         Qty
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
+                        className="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
                       >
                         Subtotal
                       </th>
@@ -544,7 +544,7 @@ export default async function ProjectDetailPage({
                     {/* Render Live Products */}
                     {project.products?.map((item) => (
                       <tr key={`prod-${item.id}`} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                        <td className="px-4 py-2 text-sm font-medium text-gray-900">
                           <Link
                             href={`/products/${item.product.slug}`}
                             className="hover:text-blue-600 hover:underline"
@@ -552,7 +552,7 @@ export default async function ProjectDetailPage({
                             {item.product.title}
                           </Link>
                         </td>
-                        <td className="px-6 py-4 text-xs text-gray-500 uppercase">
+                        <td className="px-4 py-2 text-xs text-gray-500 uppercase">
                           Product
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
@@ -560,10 +560,10 @@ export default async function ProjectDetailPage({
                             item.product.base_price
                           )}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
+                        <td className="px-4 py-2 text-sm text-gray-500 text-right font-mono">
                           {item.quantity}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 text-right font-mono font-medium">
+                        <td className="px-4 py-2 text-sm text-gray-900 text-right font-mono font-medium">
                           {new Intl.NumberFormat('vi-VN').format(item.subtotal)}
                         </td>
                       </tr>
@@ -572,24 +572,24 @@ export default async function ProjectDetailPage({
                     {/* Render Live Materials */}
                     {project.materials?.map((item) => (
                       <tr key={`mat-${item.id}`} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                        <td className="px-4 py-2 text-sm font-medium text-gray-900">
                           {item.material.name}
                           <div className="text-xs text-gray-500 font-normal">
                             {item.material.specifications}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-xs text-gray-500 uppercase">
+                        <td className="px-4 py-2 text-xs text-gray-500 uppercase">
                           Material
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
+                        <td className="px-4 py-2 text-sm text-gray-500 text-right font-mono">
                           {new Intl.NumberFormat('vi-VN').format(
                             item.material.unit_price
                           )}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
+                        <td className="px-4 py-2 text-sm text-gray-500 text-right font-mono">
                           {item.quantity}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 text-right font-mono font-medium">
+                        <td className="px-4 py-2 text-sm text-gray-900 text-right font-mono font-medium">
                           {new Intl.NumberFormat('vi-VN').format(item.subtotal)}
                         </td>
                       </tr>
@@ -650,7 +650,7 @@ export default async function ProjectDetailPage({
               id="downloads"
               className="pt-8 border-t border-gray-200 scroll-mt-20"
             >
-              <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wider mb-4">
+              <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wider mb-4">
                 <span className="text-gray-400 font-mono">
                   {hasGallery ? '6.' : '5.'}
                 </span>{' '}
