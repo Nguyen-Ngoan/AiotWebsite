@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import ProjectForm from '@/components/admin/projects/ProjectForm';
 import {
@@ -67,11 +68,33 @@ export default function EditProjectPage() {
 
   return (
     <div className="mx-auto max-w-4xl py-8 px-4 sm:px-6 lg:px-8">
+      <div className="mb-4">
+        <Link
+          href={`/projects/${slug}`}
+          className="inline-flex items-center text-sm text-gray-500 hover:text-blue-600 transition-colors"
+        >
+          <svg
+            className="mr-2 h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+          Quay lại chi tiết dự án
+        </Link>
+      </div>
       <div className="md:flex md:items-center md:justify-between mb-6">
         <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-            Chỉnh sửa dự án: {project.title}
+          <h2 className="text-xl font-bold text-gray-900 sm:truncate sm:text-2xl sm:tracking-tight">
+            Edit Project
           </h2>
+          <p className="mt-1 text-sm text-gray-500">{project.title}</p>
         </div>
       </div>
 

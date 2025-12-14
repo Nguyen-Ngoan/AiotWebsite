@@ -13,6 +13,30 @@ export interface BOMItem {
   is_optional?: boolean;
 }
 
+export interface ProjectProduct {
+  id: string;
+  product: {
+    id: string;
+    title: string;
+    slug: string;
+    base_price: number;
+  };
+  quantity: number;
+  subtotal: number;
+}
+
+export interface ProjectMaterial {
+  id: string;
+  material: {
+    id: string;
+    name: string;
+    unit_price: number;
+    specifications: string;
+  };
+  quantity: number;
+  subtotal: number;
+}
+
 export interface InstructionStep {
   order: number;
   title: string;
@@ -35,13 +59,21 @@ export interface Project {
   required_skills?: string[];
   created_at?: string;
   updated_at?: string;
+  version?: string;
+  status?: string;
+  problem_statement?: string;
+  solution_analysis?: string;
+  block_diagram_url?: string;
 
   // Embedded Data
   bom?: BOMItem[];
+  products?: ProjectProduct[];
+  materials?: ProjectMaterial[];
   steps?: InstructionStep[];
   attachments?: string[];
 
   // Calculated Fields
+  total_cost?: number;
   estimated_cost?: number;
   view_count?: number;
 }
@@ -58,6 +90,11 @@ export interface CreateProjectData {
   complexity_software?: number;
   estimated_hours?: number;
   required_skills?: string[];
+  version?: string;
+  status?: string;
+  problem_statement?: string;
+  solution_analysis?: string;
+  block_diagram_url?: string;
 }
 
 export interface AddBOMItemData {
@@ -221,6 +258,58 @@ export const projectService = {
       const errorData = await res.json().catch(() => ({}));
       throw new Error(
         errorData.error || `Failed to add BOM item: ${res.statusText}`
+      );
+    }
+
+    return res.json();
+  },
+
+  /**
+   * Thêm Product vào Project (Live Reference)
+   */
+  async addProduct(
+    projectId: string,
+    data: { product_id: string; quantity: number }
+  ): Promise<any> {
+    const url = getApiUrl(`/projects/${projectId}/add-product/`);
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to add product: ${res.statusText}`
+      );
+    }
+
+    return res.json();
+  },
+
+  /**
+   * Thêm Material vào Project (Live Reference)
+   */
+  async addMaterial(
+    projectId: string,
+    data: { material_id: string; quantity: number }
+  ): Promise<any> {
+    const url = getApiUrl(`/projects/${projectId}/add-material/`);
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to add material: ${res.statusText}`
       );
     }
 

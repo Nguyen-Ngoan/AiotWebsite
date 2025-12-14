@@ -36,6 +36,10 @@ export default async function ProjectDetailPage({
   params,
 }: ProjectDetailPageProps) {
   const { slug } = await params;
+
+  // TODO: Tích hợp logic kiểm tra quyền Admin thực tế tại đây
+  const isAdmin = true;
+
   let project;
   try {
     project = await projectService.getProjectBySlug(slug);
@@ -120,14 +124,33 @@ export default async function ProjectDetailPage({
               </nav>
 
               {/* Admin Quick Link */}
-              <div className="mt-8 pt-8 border-t border-gray-100">
-                <Link
-                  href={`/admin/projects/${project.slug}/edit`}
-                  className="text-xs font-mono text-gray-400 hover:text-blue-600"
-                >
-                  [Edit Project]
-                </Link>
-              </div>
+              {isAdmin && (
+                <div className="mt-8 pt-8 border-t border-gray-100">
+                  <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
+                    Admin Controls
+                  </h4>
+                  <div className="flex flex-col gap-2">
+                    <Link
+                      href={`/admin/projects/${project.slug}/edit`}
+                      className="text-xs font-mono text-gray-500 hover:text-blue-600"
+                    >
+                      [Edit Metadata]
+                    </Link>
+                    <Link
+                      href={`/admin/projects/${project.slug}/bom`}
+                      className="text-xs font-mono text-gray-500 hover:text-blue-600"
+                    >
+                      [Edit BOM]
+                    </Link>
+                    <Link
+                      href={`/admin/projects/${project.slug}/steps`}
+                      className="text-xs font-mono text-gray-500 hover:text-blue-600"
+                    >
+                      [Edit Log]
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
           </aside>
 
@@ -137,9 +160,19 @@ export default async function ProjectDetailPage({
             <div className="mb-12 border-b border-gray-200 pb-8">
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-4">
                 {project.title}
+                {isAdmin && (
+                  <Link
+                    href={`/admin/projects/${project.slug}/edit`}
+                    className="ml-3 text-base font-mono font-normal text-gray-300 hover:text-blue-600 align-middle"
+                  >
+                    [Edit]
+                  </Link>
+                )}
               </h1>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500 font-mono">
-                <span title="Phiên bản hiện tại">Ver: 1.0.0</span>
+                <span title="Phiên bản hiện tại">
+                  Ver: {project.version || '1.0.0'}
+                </span>
                 <span title="Ngày cập nhật cuối cùng">
                   Last Updated: {new Date().toLocaleDateString('en-US')}
                 </span>
@@ -157,9 +190,19 @@ export default async function ProjectDetailPage({
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">1.</span> Problem
                 Statement
+                {isAdmin && (
+                  <Link
+                    href={`/admin/projects/${project.slug}/edit`}
+                    className="ml-2 text-xs font-mono font-normal text-gray-300 hover:text-blue-600"
+                  >
+                    [Edit]
+                  </Link>
+                )}
               </h2>
               <div className="prose prose-slate max-w-none text-gray-700">
-                <p className="lead">{project.description}</p>
+                <p className="lead whitespace-pre-line">
+                  {project.problem_statement || project.description}
+                </p>
                 {/* Placeholder for extended text if description is short */}
                 <p className="text-gray-500 italic text-sm mt-4">
                   * This project documentation outlines the technical
@@ -174,13 +217,23 @@ export default async function ProjectDetailPage({
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">2.</span> Solution
                 Analysis
+                {isAdmin && (
+                  <Link
+                    href={`/admin/projects/${project.slug}/edit`}
+                    className="ml-2 text-xs font-mono font-normal text-gray-300 hover:text-blue-600"
+                  >
+                    [Edit]
+                  </Link>
+                )}
               </h2>
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-2 mb-4">
                 {/* Image as Diagram */}
-                {project.thumbnail_url ? (
+                {project.block_diagram_url || project.thumbnail_url ? (
                   <div className="relative aspect-video w-full overflow-hidden rounded bg-white">
                     <Image
-                      src={project.thumbnail_url}
+                      src={
+                        project.block_diagram_url || project.thumbnail_url || ''
+                      }
                       alt="System Diagram"
                       fill
                       className="object-contain cursor-zoom-in"
@@ -196,10 +249,26 @@ export default async function ProjectDetailPage({
                 Figure 1: System Architecture & Design Overview
               </p>
 
+              {project.solution_analysis && (
+                <div className="mt-6 prose prose-slate max-w-none text-gray-700">
+                  <div className="whitespace-pre-line">
+                    {project.solution_analysis}
+                  </div>
+                </div>
+              )}
+
               {project.video_url && (
                 <div className="mt-8">
-                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3">
+                  <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-2">
                     Video Demonstration
+                    {isAdmin && (
+                      <Link
+                        href={`/admin/projects/${project.slug}/edit`}
+                        className="ml-2 text-xs font-mono font-normal text-gray-300 hover:text-blue-600 normal-case"
+                      >
+                        [Edit]
+                      </Link>
+                    )}
                   </h3>
                   <div className="aspect-video w-full rounded-lg overflow-hidden border border-gray-200 bg-black">
                     <iframe
@@ -215,9 +284,17 @@ export default async function ProjectDetailPage({
 
             {/* Implementation Log */}
             <section id="implementation" className="mb-16 scroll-mt-28">
-              <h2 className="text-xl font-bold text-gray-900 mb-8 flex items-center gap-2">
+              <h2 className="group text-xl font-bold text-gray-900 mb-8 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">3.</span>{' '}
                 Implementation Log
+                {isAdmin && (
+                  <Link
+                    href={`/admin/projects/${project.slug}/steps`}
+                    className="ml-2 text-xs font-mono font-normal text-gray-300 hover:text-blue-600"
+                  >
+                    [Edit]
+                  </Link>
+                )}
               </h2>
               <div className="space-y-12 border-l-2 border-gray-100 pl-6 ml-2">
                 {sortedSteps.length > 0 ? (
@@ -255,10 +332,35 @@ export default async function ProjectDetailPage({
 
             {/* Configuration Table */}
             <section id="configuration" className="mb-16 scroll-mt-28">
-              <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <h2 className="group text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">4.</span>{' '}
                 Configuration
+                {isAdmin && (
+                  <Link
+                    href={`/admin/projects/${project.slug}/bom`}
+                    className="ml-2 text-xs font-mono font-normal text-gray-300 hover:text-blue-600"
+                  >
+                    [Edit]
+                  </Link>
+                )}
               </h2>
+
+              {/* Display Total Cost if available (Live Reference) */}
+              {typeof project.total_cost === 'number' &&
+                project.total_cost > 0 && (
+                  <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100 flex justify-between items-center">
+                    <span className="text-blue-900 font-medium">
+                      Estimated Total Cost (Live)
+                    </span>
+                    <span className="text-2xl font-bold text-blue-700">
+                      {new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                      }).format(project.total_cost)}
+                    </span>
+                  </div>
+                )}
+
               <div className="overflow-hidden border border-gray-200 rounded-lg">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -273,7 +375,13 @@ export default async function ProjectDetailPage({
                         scope="col"
                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
                       >
-                        Note / Spec
+                        Type
+                      </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
+                      >
+                        Unit Price
                       </th>
                       <th
                         scope="col"
@@ -281,40 +389,114 @@ export default async function ProjectDetailPage({
                       >
                         Qty
                       </th>
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider font-mono"
+                      >
+                        Subtotal
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {project.bom && project.bom.length > 0 ? (
-                      project.bom.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                            <Link
-                              href="#"
-                              className="hover:text-blue-600 hover:underline decoration-blue-600/30"
-                              title="View Component Details"
-                            >
-                              {item.product_name}
-                            </Link>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-500 font-mono text-xs">
-                            {/* Mocking specs/notes */}
-                            Standard Spec
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
-                            {item.quantity}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={3}
-                          className="px-6 py-4 text-center text-sm text-gray-500 italic"
-                        >
-                          No configuration data available.
+                    {/* Render Live Products */}
+                    {project.products?.map((item) => (
+                      <tr key={`prod-${item.id}`} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                          <Link
+                            href={`/products/${item.product.slug}`}
+                            className="hover:text-blue-600 hover:underline"
+                          >
+                            {item.product.title}
+                          </Link>
+                        </td>
+                        <td className="px-6 py-4 text-xs text-gray-500 uppercase">
+                          Product
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
+                          {new Intl.NumberFormat('vi-VN').format(
+                            item.product.base_price
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
+                          {item.quantity}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 text-right font-mono font-medium">
+                          {new Intl.NumberFormat('vi-VN').format(item.subtotal)}
                         </td>
                       </tr>
-                    )}
+                    ))}
+
+                    {/* Render Live Materials */}
+                    {project.materials?.map((item) => (
+                      <tr key={`mat-${item.id}`} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                          {item.material.name}
+                          <div className="text-xs text-gray-500 font-normal">
+                            {item.material.specifications}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-xs text-gray-500 uppercase">
+                          Material
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
+                          {new Intl.NumberFormat('vi-VN').format(
+                            item.material.unit_price
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
+                          {item.quantity}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 text-right font-mono font-medium">
+                          {new Intl.NumberFormat('vi-VN').format(item.subtotal)}
+                        </td>
+                      </tr>
+                    ))}
+
+                    {/* Fallback to Legacy BOM if no live data */}
+                    {!project.products?.length &&
+                    !project.materials?.length &&
+                    project.bom &&
+                    project.bom.length > 0
+                      ? project.bom.map((item, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                              <Link
+                                href={`/diy-maker/${item.product_id}`}
+                                className="hover:text-blue-600 hover:underline decoration-blue-600/30"
+                                title="View Component Details"
+                              >
+                                {item.product_name}
+                              </Link>
+                            </td>
+                            <td className="px-6 py-4 text-xs text-gray-500 uppercase">
+                              Snapshot
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
+                              {new Intl.NumberFormat('vi-VN').format(
+                                item.unit_price
+                              )}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500 text-right font-mono">
+                              {item.quantity}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-900 text-right font-mono font-medium">
+                              {new Intl.NumberFormat('vi-VN').format(
+                                item.unit_price * item.quantity
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      : !project.products?.length &&
+                        !project.materials?.length && (
+                          <tr>
+                            <td
+                              colSpan={5}
+                              className="px-6 py-4 text-center text-sm text-gray-500 italic"
+                            >
+                              No configuration data available.
+                            </td>
+                          </tr>
+                        )}
                   </tbody>
                 </table>
               </div>

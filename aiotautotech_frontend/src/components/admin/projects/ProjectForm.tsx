@@ -48,6 +48,11 @@ export default function ProjectForm({
     complexity_software: initialData?.complexity_software || 1,
     estimated_hours: initialData?.estimated_hours || 0,
     required_skills: initialData?.required_skills || [],
+    version: initialData?.version || 'v1.0',
+    status: initialData?.status || 'PROTOTYPE',
+    problem_statement: initialData?.problem_statement || '',
+    solution_analysis: initialData?.solution_analysis || '',
+    block_diagram_url: initialData?.block_diagram_url || '',
   });
   const [tagInput, setTagInput] = useState('');
   const [skillInput, setSkillInput] = useState('');
@@ -205,6 +210,48 @@ export default function ProjectForm({
         />
       </div>
 
+      {/* Version & Status */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div>
+          <label
+            htmlFor="version"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Phiên bản (Version)
+          </label>
+          <input
+            type="text"
+            name="version"
+            id="version"
+            value={formData.version}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+            placeholder="v1.0"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="status"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Trạng thái
+          </label>
+          <select
+            name="status"
+            id="status"
+            value={formData.status}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+          >
+            <option value="CONCEPT">Concept (Ý tưởng)</option>
+            <option value="PROTOTYPE">Prototype (Mẫu thử)</option>
+            <option value="STABLE">Stable (Ổn định)</option>
+            <option value="DEPRECATED">Deprecated (Ngưng hỗ trợ)</option>
+          </select>
+        </div>
+      </div>
+
       {/* Slug */}
       <div>
         <label
@@ -301,8 +348,46 @@ export default function ProjectForm({
         />
       </div>
 
-      {/* Video URL */}
+      {/* Problem Statement */}
       <div>
+        <label
+          htmlFor="problem_statement"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Vấn đề / Bài toán (Problem Statement)
+        </label>
+        <textarea
+          name="problem_statement"
+          id="problem_statement"
+          rows={3}
+          value={formData.problem_statement}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+          placeholder="Mô tả vấn đề cần giải quyết..."
+        />
+      </div>
+
+      {/* Solution Analysis */}
+      <div>
+        <label
+          htmlFor="solution_analysis"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Phân tích giải pháp (Markdown)
+        </label>
+        <textarea
+          name="solution_analysis"
+          id="solution_analysis"
+          rows={6}
+          value={formData.solution_analysis}
+          onChange={handleChange}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2 font-mono"
+          placeholder="Phân tích kỹ thuật, lý do chọn linh kiện..."
+        />
+      </div>
+
+      {/* URLs */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <div>
           <label
             htmlFor="video_url"
@@ -318,6 +403,24 @@ export default function ProjectForm({
             onChange={handleChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
             placeholder="https://youtube.com/..."
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="block_diagram_url"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Block Diagram URL
+          </label>
+          <input
+            type="url"
+            name="block_diagram_url"
+            id="block_diagram_url"
+            value={formData.block_diagram_url}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+            placeholder="https://..."
           />
         </div>
       </div>

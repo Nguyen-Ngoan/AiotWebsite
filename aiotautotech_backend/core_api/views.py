@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser
+from django.shortcuts import get_object_or_404
 
 from aiotautotech_backend.firestore_client import db
 from .utils import slugify
@@ -14,6 +15,7 @@ from .serializers import ProductImageUploadSerializer, TechnicalDocSerializer
 from storage.r2 import upload_file_to_r2, generate_image_key, delete_files_from_r2
 from services.firestore_products import add_product_image_metadata
 from services.firestore_projects import ProjectService, ProjectData, InstructionStep
+from .models import Product, Material
 
 import io
 from PIL import Image
@@ -1399,3 +1401,32 @@ class ProjectThumbnailUploadView(APIView):
             return Response({"thumbnail_url": url})
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ProjectAddProductView(APIView):
+    """
+    POST /api/projects/<project_id>/add-product/
+    Add a product to a project (Live Reference via Django ORM).
+    Payload: { "product_id": 1, "quantity": 1 }
+    """
+    def post(self, request, project_id):
+        product_id_param = request.data.get('product_id')
+        quantity = int(request.data.get('quantity', 1))
+
+        try:
+            project_service.add_product(project_id, product_id_param, quantity)
+            return Response({'status': 'success', 'message': 'Product added to project'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProjectAddMaterialView(APIView):
+    def post(self, request, project_id):
+        material_id = request.data.get('material_id')
+        quantity = int(request.data.get('quantity', 1))
+
+        try:
+            project_service.add_material(project_id, material_id, quantity)
+            return Response({'status': 'success', 'message': 'Material added to project'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -47,24 +47,33 @@ export default function ProjectStepsPage() {
 
   return (
     <div className="mx-auto max-w-5xl py-8 px-4 sm:px-6 lg:px-8">
+      <div className="mb-4">
+        <Link
+          href={`/projects/${slug}`}
+          className="inline-flex items-center text-sm text-gray-500 hover:text-blue-600 transition-colors"
+        >
+          <svg
+            className="mr-2 h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+          Quay lại chi tiết dự án
+        </Link>
+      </div>
       <div className="md:flex md:items-center md:justify-between mb-6">
         <div className="min-w-0 flex-1">
-          <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-            Quản lý Hướng dẫn: {project.title}
+          <h2 className="text-xl font-bold text-gray-900 sm:truncate sm:text-2xl sm:tracking-tight">
+            Edit Project Steps
           </h2>
-          <div className="mt-1 flex flex-col sm:mt-0 sm:flex-row sm:flex-wrap sm:space-x-6">
-            <div className="mt-2 flex items-center text-sm text-gray-500">
-              Slug: {project.slug}
-            </div>
-          </div>
-        </div>
-        <div className="mt-4 flex md:ml-4 md:mt-0">
-          <Link
-            href={`/projects/${slug}`}
-            className="ml-3 inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-          >
-            Xem trang hiển thị &rarr;
-          </Link>
+          <p className="mt-1 text-sm text-gray-500">{project.title}</p>
         </div>
       </div>
 

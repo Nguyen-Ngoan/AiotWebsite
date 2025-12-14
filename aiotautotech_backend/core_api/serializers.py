@@ -1,7 +1,7 @@
 # core_api/serializers.py
 from rest_framework import serializers
 
-from .models import Product, ProductItem
+from .models import Product, ProductItem, Material
 
 
 class PostSerializer(serializers.Serializer):
@@ -105,3 +105,9 @@ class TechnicalDocSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=255)
     description = serializers.CharField(required=False, allow_blank=True)
     version = serializers.CharField(max_length=50, required=False, allow_blank=True)
+
+
+class MaterialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Material
+        fields = ['id', 'name', 'unit_price', 'specifications']

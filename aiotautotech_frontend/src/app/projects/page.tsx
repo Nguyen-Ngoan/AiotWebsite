@@ -11,7 +11,7 @@ import { Search, SlidersHorizontal } from 'lucide-react';
 export const metadata = {
   title: 'Dự án DIY - AiotAutotech',
   description:
-    'Danh sách các dự án DIY, hướng dẫn chế tạo robot và tự động hóa.',
+    'Danh sách các dự án DIY, hướng dẫn chế tạo các máy sản xuất nhỏ tự động hóa.',
 };
 
 export default async function ProjectsPage() {
@@ -75,12 +75,12 @@ export default async function ProjectsPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           {/* Page Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Dự án DIY & Giải pháp
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-2xl">
+              AIOT AUTOTECH PROJECT
             </h1>
             <p className="mt-3 max-w-2xl text-lg text-gray-500">
-              Kho tàng kiến thức và hướng dẫn chế tạo robot, hệ thống tự động
-              hóa cho mọi cấp độ.
+              Các dự án chế tạo các cơ cấu tự động hoá, các máy tự động hóa cho
+              sản phẩm nhỏ.
             </p>
           </div>
 

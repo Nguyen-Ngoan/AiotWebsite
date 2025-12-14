@@ -26,7 +26,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   };
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md hover:border-blue-200">
+    <div className="group flex flex-col overflow-hidden rounded-xl border border-[#ffca47] bg-white shadow-sm transition-all hover:shadow-md hover:border-blue-200">
       {/* Image Section - 16:9 Aspect Ratio */}
       <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
         {project.thumbnail_url ? (
