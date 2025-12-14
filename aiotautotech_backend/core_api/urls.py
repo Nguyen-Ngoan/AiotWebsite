@@ -23,6 +23,8 @@ from .views import (
     ProjectThumbnailUploadView,
     ProjectAddProductView,
     ProjectAddMaterialView,
+    ProjectImageUploadView,
+    ProjectImageDeleteView,
 )
 
 urlpatterns = [
@@ -73,4 +75,6 @@ urlpatterns = [
     path("projects/<str:project_id>/thumbnail/", ProjectThumbnailUploadView.as_view(), name="project-upload-thumbnail"),
     path("projects/<str:project_id>/add-product/", ProjectAddProductView.as_view(), name="project-add-product"),
     path("projects/<str:project_id>/add-material/", ProjectAddMaterialView.as_view(), name="project-add-material"),
+    path("projects/<str:project_id>/images/", ProjectImageUploadView.as_view(), name="project-image-upload"),
+    path("projects/<str:project_id>/images/delete/", ProjectImageDeleteView.as_view(), name="project-image-delete"),
 ]

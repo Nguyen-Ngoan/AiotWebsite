@@ -52,6 +52,8 @@ export default async function ProjectDetailPage({
     ? [...project.steps].sort((a, b) => a.order - b.order)
     : [];
 
+  const hasGallery = project.images && project.images.length > 0;
+
   return (
     <>
       <Header navItems={navItems} />
@@ -103,23 +105,31 @@ export default async function ProjectDetailPage({
                 >
                   2. Solution Analysis
                 </a>
+                {hasGallery && (
+                  <a
+                    href="#gallery"
+                    className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
+                  >
+                    3. Project Gallery
+                  </a>
+                )}
                 <a
                   href="#implementation"
                   className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
                 >
-                  3. Implementation Log
+                  {hasGallery ? '4.' : '3.'} Implementation Log
                 </a>
                 <a
                   href="#configuration"
                   className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
                 >
-                  4. Configuration
+                  {hasGallery ? '5.' : '4.'} Configuration
                 </a>
                 <a
                   href="#downloads"
                   className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
                 >
-                  5. Resources
+                  {hasGallery ? '6.' : '5.'} Resources
                 </a>
               </nav>
 
@@ -148,6 +158,12 @@ export default async function ProjectDetailPage({
                     >
                       [Edit Log]
                     </Link>
+                    <Link
+                      href={`/admin/projects/${project.slug}/images`}
+                      className="text-xs font-mono text-gray-500 hover:text-blue-600"
+                    >
+                      [Edit Gallery]
+                    </Link>
                   </div>
                 </div>
               )}
@@ -156,8 +172,43 @@ export default async function ProjectDetailPage({
 
           {/* MAIN CONTENT */}
           <main className="flex-1 max-w-3xl min-w-0">
+            {/* Mobile Admin Controls */}
+            {isAdmin && (
+              <div className="lg:hidden mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
+                  Admin Controls
+                </h4>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href={`/admin/projects/${project.slug}/edit`}
+                    className="text-xs font-mono text-blue-600 hover:underline"
+                  >
+                    [Metadata]
+                  </Link>
+                  <Link
+                    href={`/admin/projects/${project.slug}/bom`}
+                    className="text-xs font-mono text-blue-600 hover:underline"
+                  >
+                    [BOM]
+                  </Link>
+                  <Link
+                    href={`/admin/projects/${project.slug}/steps`}
+                    className="text-xs font-mono text-blue-600 hover:underline"
+                  >
+                    [Log]
+                  </Link>
+                  <Link
+                    href={`/admin/projects/${project.slug}/images`}
+                    className="text-xs font-mono text-blue-600 hover:underline"
+                  >
+                    [Gallery]
+                  </Link>
+                </div>
+              </div>
+            )}
+
             {/* Title Section */}
-            <div className="mb-12 border-b border-gray-200 pb-8">
+            <div className="mb-8 border-b border-gray-200 pb-6">
               <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-4">
                 {project.title}
                 {isAdmin && (
@@ -185,8 +236,67 @@ export default async function ProjectDetailPage({
               </div>
             </div>
 
+            {/* Mobile Table of Contents */}
+            <div className="lg:hidden mb-8 p-5 bg-gray-50 rounded-xl border border-gray-200">
+              <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
+                Contents
+              </h4>
+              <nav className="flex flex-col space-y-3">
+                <a
+                  href="#overview"
+                  className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
+                >
+                  <span className="w-6 text-gray-400 font-mono">1.</span>{' '}
+                  Overview
+                </a>
+                <a
+                  href="#solution"
+                  className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
+                >
+                  <span className="w-6 text-gray-400 font-mono">2.</span>{' '}
+                  Solution Analysis
+                </a>
+                {hasGallery && (
+                  <a
+                    href="#gallery"
+                    className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
+                  >
+                    <span className="w-6 text-gray-400 font-mono">3.</span>{' '}
+                    Project Gallery
+                  </a>
+                )}
+                <a
+                  href="#implementation"
+                  className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
+                >
+                  <span className="w-6 text-gray-400 font-mono">
+                    {hasGallery ? '4.' : '3.'}
+                  </span>{' '}
+                  Implementation Log
+                </a>
+                <a
+                  href="#configuration"
+                  className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
+                >
+                  <span className="w-6 text-gray-400 font-mono">
+                    {hasGallery ? '5.' : '4.'}
+                  </span>{' '}
+                  Configuration
+                </a>
+                <a
+                  href="#downloads"
+                  className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
+                >
+                  <span className="w-6 text-gray-400 font-mono">
+                    {hasGallery ? '6.' : '5.'}
+                  </span>{' '}
+                  Resources
+                </a>
+              </nav>
+            </div>
+
             {/* Problem Statement */}
-            <section id="overview" className="mb-16 scroll-mt-28">
+            <section id="overview" className="mb-10 scroll-mt-28">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">1.</span> Problem
                 Statement
@@ -213,7 +323,7 @@ export default async function ProjectDetailPage({
             </section>
 
             {/* Solution Analysis */}
-            <section id="solution" className="mb-16 scroll-mt-28">
+            <section id="solution" className="mb-10 scroll-mt-28">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <span className="text-gray-400 font-mono">2.</span> Solution
                 Analysis
@@ -282,10 +392,46 @@ export default async function ProjectDetailPage({
               )}
             </section>
 
+            {/* Project Gallery */}
+            {hasGallery && (
+              <section id="gallery" className="mb-10 scroll-mt-28">
+                <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                  <span className="text-gray-400 font-mono">3.</span> Project
+                  Gallery
+                  {isAdmin && (
+                    <Link
+                      href={`/admin/projects/${project.slug}/images`}
+                      className="ml-2 text-xs font-mono font-normal text-gray-300 hover:text-blue-600"
+                    >
+                      [Edit]
+                    </Link>
+                  )}
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {project.images?.map((img, idx) => (
+                    <div
+                      key={img.id || idx}
+                      className="group relative aspect-video bg-gray-100 rounded-lg overflow-hidden border border-gray-200"
+                    >
+                      <Image
+                        src={img.url_medium || img.url}
+                        alt={img.alt || project.title}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* Implementation Log */}
-            <section id="implementation" className="mb-16 scroll-mt-28">
-              <h2 className="group text-xl font-bold text-gray-900 mb-8 flex items-center gap-2">
-                <span className="text-gray-400 font-mono">3.</span>{' '}
+            <section id="implementation" className="mb-10 scroll-mt-28">
+              <h2 className="group text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <span className="text-gray-400 font-mono">
+                  {hasGallery ? '4.' : '3.'}
+                </span>{' '}
                 Implementation Log
                 {isAdmin && (
                   <Link
@@ -296,7 +442,7 @@ export default async function ProjectDetailPage({
                   </Link>
                 )}
               </h2>
-              <div className="space-y-12 border-l-2 border-gray-100 pl-6 ml-2">
+              <div className="space-y-8 border-l-2 border-gray-100 pl-6 ml-2">
                 {sortedSteps.length > 0 ? (
                   sortedSteps.map((step, index) => (
                     <div key={index} className="relative group">
@@ -331,9 +477,11 @@ export default async function ProjectDetailPage({
             </section>
 
             {/* Configuration Table */}
-            <section id="configuration" className="mb-16 scroll-mt-28">
+            <section id="configuration" className="mb-10 scroll-mt-28">
               <h2 className="group text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <span className="text-gray-400 font-mono">4.</span>{' '}
+                <span className="text-gray-400 font-mono">
+                  {hasGallery ? '5.' : '4.'}
+                </span>{' '}
                 Configuration
                 {isAdmin && (
                   <Link

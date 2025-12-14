@@ -44,6 +44,18 @@ export interface InstructionStep {
   image_url?: string;
 }
 
+export interface ProjectImage {
+  id: string;
+  fileName: string;
+  type: 'cover' | 'gallery' | 'detail' | 'dimension';
+  isPrimary: boolean;
+  url: string;
+  url_medium: string;
+  url_thumb: string;
+  alt?: string;
+  title?: string;
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -67,6 +79,7 @@ export interface Project {
 
   // Embedded Data
   bom?: BOMItem[];
+  images?: ProjectImage[];
   products?: ProjectProduct[];
   materials?: ProjectMaterial[];
   steps?: InstructionStep[];
@@ -95,6 +108,7 @@ export interface CreateProjectData {
   problem_statement?: string;
   solution_analysis?: string;
   block_diagram_url?: string;
+  images?: ProjectImage[];
 }
 
 export interface AddBOMItemData {
@@ -340,6 +354,54 @@ export const projectService = {
     }
 
     return res.json();
+  },
+
+  /**
+   * Upload ảnh gallery cho dự án
+   */
+  async uploadProjectImage(
+    projectId: string,
+    file: File,
+    metadata: {
+      seo_file_name: string;
+      type: string;
+      is_primary: boolean;
+      alt?: string;
+      title?: string;
+    }
+  ): Promise<{ images: ProjectImage[] }> {
+    const url = getApiUrl(`/projects/${projectId}/images/`);
+    const formData = new FormData();
+    formData.append('file', file);
+    Object.entries(metadata).forEach(([key, value]) => {
+      formData.append(key, String(value));
+    });
+
+    const res = await fetch(url, { method: 'POST', body: formData });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Upload failed');
+    }
+    return res.json();
+  },
+
+  /**
+   * Xóa ảnh khỏi thư viện dự án
+   */
+  async deleteProjectImage(projectId: string, fileName: string): Promise<void> {
+    const url = getApiUrl(`/projects/${projectId}/images/delete/`);
+    const res = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ fileName }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Delete failed');
+    }
   },
 
   /**

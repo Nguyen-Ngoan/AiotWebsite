@@ -1262,6 +1262,12 @@ class ProjectListView(APIView):
                 description=data.get("description", ""),
                 video_url=data.get("video_url", ""),
                 thumbnail_url=data.get("thumbnail_url", ""),
+                version=data.get("version", "v1.0"),
+                status=data.get("status", "PROTOTYPE"),
+                problem_statement=data.get("problem_statement", ""),
+                solution_analysis=data.get("solution_analysis", ""),
+                block_diagram_url=data.get("block_diagram_url", ""),
+                images=data.get("images", []),
                 slug=data.get("slug", ""),
                 tags=data.get("tags", []),
                 complexity_mechanical=int(data.get("complexity_mechanical", 1)),
@@ -1295,6 +1301,12 @@ class ProjectDetailView(APIView):
                 description=data.get("description", ""),
                 video_url=data.get("video_url", ""),
                 thumbnail_url=data.get("thumbnail_url", ""),
+                version=data.get("version", "v1.0"),
+                status=data.get("status", "PROTOTYPE"),
+                problem_statement=data.get("problem_statement", ""),
+                solution_analysis=data.get("solution_analysis", ""),
+                block_diagram_url=data.get("block_diagram_url", ""),
+                images=data.get("images", []),
                 slug=data.get("slug", ""),
                 tags=data.get("tags", []),
                 complexity_mechanical=int(data.get("complexity_mechanical", 1)),
@@ -1430,3 +1442,142 @@ class ProjectAddMaterialView(APIView):
             return Response({'status': 'success', 'message': 'Material added to project'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProjectImageUploadView(APIView):
+    """
+    POST /api/projects/<project_id>/images/
+    Upload ảnh gallery cho dự án.
+    """
+    parser_classes = [MultiPartParser]
+
+    def post(self, request, project_id):
+        try:
+            file = request.FILES.get("file")
+            if not file:
+                return Response({"error": "No file uploaded"}, status=400)
+
+            # Reuse ProductImageUploadSerializer
+            serializer = ProductImageUploadSerializer(data=request.data)
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            validated_data = serializer.validated_data
+            seo_file_name = validated_data.get("seo_file_name") or file.name.rsplit(".", 1)[0]
+
+            img = Image.open(file).convert("RGBA")
+            SIZES = {
+                "large":  (1920, 1080), # Full HD for projects
+                "medium": (1280, 720),
+                "thumb":  (640, 360),
+            }
+
+            resized_files = {}
+            for key, (w, h) in SIZES.items():
+                buf = io.BytesIO()
+                # Resize cover/contain logic could be improved here, currently simple resize
+                resized = img.resize((w, h), Image.Resampling.LANCZOS)
+                resized.save(buf, format="WEBP", quality=90)
+                buf.seek(0)
+                resized_files[key] = buf
+
+            session = boto3.session.Session()
+            s3 = session.client(
+                "s3",
+                endpoint_url=f"https://{settings.R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+                aws_access_key_id=settings.R2_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
+            )
+
+            base_name = slugify(seo_file_name)
+            folder = f"images/projects/{project_id}"
+            urls = {}
+
+            for key, buf in resized_files.items():
+                r2_key = f"{folder}/{base_name}-{key}.webp"
+                s3.upload_fileobj(
+                    buf,
+                    settings.R2_BUCKET_NAME,
+                    r2_key,
+                    ExtraArgs={"ContentType": "image/webp"}
+                )
+                urls[key] = f"{settings.CDN_URL}/{r2_key}"
+
+            doc_ref = db.collection("projects").document(project_id)
+            doc = doc_ref.get()
+            data = doc.to_dict() or {}
+
+            images = data.get("images", [])
+            
+            # Nếu chưa có ảnh nào, ảnh đầu tiên sẽ là primary
+            if not images:
+                validated_data["is_primary"] = True
+
+            new_img_meta = {
+                "id": base_name,
+                "fileName": base_name,
+                "type": validated_data.get("type", "gallery"),
+                "isPrimary": validated_data.get("is_primary", False),
+                "url": urls["large"],
+                "url_medium": urls["medium"],
+                "url_thumb": urls["thumb"],
+                "alt": validated_data.get("alt", ""),
+                "title": validated_data.get("title", ""),
+            }
+
+            updates = {}
+
+            # Nếu ảnh này là primary, bỏ primary của các ảnh khác
+            if new_img_meta["isPrimary"]:
+                for img in images:
+                    img["isPrimary"] = False
+                # Cập nhật luôn thumbnail_url của project
+                updates["thumbnail_url"] = urls["thumb"]
+
+            images.append(new_img_meta)
+            updates["images"] = images
+            
+            doc_ref.update(updates)
+
+            return Response({"images": images}, status=200)
+
+        except Exception as e:
+            print("Project Image Upload error:", e)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ProjectImageDeleteView(APIView):
+    def delete(self, request, project_id: str):
+        file_name = request.data.get("fileName")
+
+        if not file_name:
+            return Response(
+                {"error": "fileName is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        folder = f"images/projects/{project_id}"
+        keys_to_delete = [
+            f"{folder}/{file_name}-large.webp",
+            f"{folder}/{file_name}-medium.webp",
+            f"{folder}/{file_name}-thumb.webp",
+        ]
+
+        try:
+            delete_files_from_r2(keys_to_delete)
+            
+            # Cập nhật Firestore: Xoá ảnh khỏi mảng images
+            doc_ref = db.collection("projects").document(project_id)
+            doc = doc_ref.get()
+            if doc.exists:
+                data = doc.to_dict()
+                images = data.get("images", [])
+                new_images = [img for img in images if img.get("fileName") != file_name]
+                doc_ref.update({"images": new_images})
+
+            return Response(
+                {"message": "Files deleted.", "deleted_keys": keys_to_delete},
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            print(f"Error calling R2 deletion for project {project_id}: {e}")
+            return Response({"error": "Failed to delete files from storage."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

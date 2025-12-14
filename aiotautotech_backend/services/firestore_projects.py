@@ -75,6 +75,7 @@ class ProjectData:
     block_diagram_url: str = ""
     # -----------------------------------------
     video_url: str = ""
+    images: List[Dict[str, Any]] = field(default_factory=list)
     thumbnail_url: str = ""
     slug: str = ""         # Nếu không truyền sẽ tự generate từ title
     tags: List[str] = field(default_factory=list)
@@ -134,6 +135,7 @@ class ProjectService:
             "solution_analysis": data.solution_analysis,
             "block_diagram_url": data.block_diagram_url,
             "video_url": data.video_url,
+            "images": data.images,
             "thumbnail_url": data.thumbnail_url,
             "tags": data.tags,
             "complexity_mechanical": data.complexity_mechanical,
@@ -429,6 +431,9 @@ class ProjectService:
 
         if data.thumbnail_url:
             update_payload["thumbnail_url"] = data.thumbnail_url
+
+        if data.images:
+            update_payload["images"] = data.images
 
         # 3. Thực hiện update
         doc_ref.update(update_payload)
