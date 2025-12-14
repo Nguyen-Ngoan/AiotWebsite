@@ -80,7 +80,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="mt-16 border-t border-gray-700 bg-[#3a4754]">
+    <footer className="mt-0 border-t border-gray-700 bg-[#3a4754]">
       <div className="mx-auto max-w-6xl px-4 pt-4 pb-8 md:pt-10 md:pb-12 lg:px-6 text-xs text-gray-300">
         {/* ====== GIAO DIỆN MOBILE (DẠNG ACCORDION) ====== */}
         <div className="md:hidden">

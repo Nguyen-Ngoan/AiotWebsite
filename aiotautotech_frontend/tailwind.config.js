@@ -1,53 +1,65 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'class',
-
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    container: {
+      center: true,
+      padding: '2rem',
+      screens: {
+        '2xl': '1400px',
+      },
+    },
     extend: {
-      // Cập nhật fontFamily để sử dụng biến CSS từ next/font
       fontFamily: {
-        sans: [
-          'var(--font-roboto)',
-          'Helvetica Neue',
-          'Helvetica',
-          'Arial',
-          'sans-serif',
-        ],
-        display: [
-          'var(--font-roboto)',
-          'Helvetica Neue',
-          'Helvetica',
-          'Arial',
-          'sans-serif',
-        ],
+        sans: ['var(--font-geist-sans)'],
+        mono: ['var(--font-geist-mono)'],
       },
       colors: {
-        'apple-blue': '#0070c9',
-        'apple-gray-light': '#f5f5f7',
-        'apple-gray-dark': '#1a1a1a',
-        'apple-text-light': '#1d1d1f',
-        'apple-text-dark': '#f5f5f7',
-        // Thêm các màu theo cấu trúc của shadcn/ui
-        border: 'hsl(214.3 31.8% 91.4%)',
-        input: 'hsl(214.3 31.8% 91.4%)', // Màu border mặc định
-        ring: 'hsl(221.2 83.2% 53.3%)', // Màu focus (xanh)
-        background: 'hsl(0 0% 100%)',
-        foreground: 'hsl(222.2 84% 4.9%)',
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'oklch(var(--background))',
+        foreground: 'oklch(var(--foreground))',
         primary: {
-          DEFAULT: 'hsl(222.2 47.4% 11.2%)',
-          foreground: 'hsl(210 40% 98%)',
+          DEFAULT: 'oklch(var(--primary))',
+          foreground: 'oklch(var(--primary-foreground))',
         },
         secondary: {
-          DEFAULT: 'hsl(210 40% 96.1%)',
-          foreground: 'hsl(222.2 47.4% 11.2%)',
+          DEFAULT: 'oklch(var(--secondary))',
+          foreground: 'oklch(var(--secondary-foreground))',
         },
+        destructive: {
+          DEFAULT: 'oklch(var(--destructive))',
+          foreground: 'oklch(var(--primary-foreground))',
+        },
+        muted: {
+          DEFAULT: 'oklch(var(--muted))',
+          foreground: 'oklch(var(--muted-foreground))',
+        },
+        accent: {
+          DEFAULT: 'oklch(var(--accent))',
+          foreground: 'oklch(var(--accent-foreground))',
+        },
+        popover: {
+          DEFAULT: 'oklch(var(--popover))',
+          foreground: 'oklch(var(--popover-foreground))',
+        },
+        card: {
+          DEFAULT: 'oklch(var(--card))',
+          foreground: 'oklch(var(--card-foreground))',
+        },
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
     },
   },
-  plugins: [],
+  plugins: [require('tailwindcss-animate')],
 };

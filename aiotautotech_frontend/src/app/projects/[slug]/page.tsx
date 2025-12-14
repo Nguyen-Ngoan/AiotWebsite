@@ -6,6 +6,7 @@ import { projectService } from '@/lib/api/projectService';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { navItems } from '@/components/layout/nav-items';
+import { DetailedAnalysisPanel } from './components/DetailedAnalysisPanel';
 
 interface ProjectDetailPageProps {
   params: Promise<{
@@ -57,11 +58,33 @@ export default async function ProjectDetailPage({
   return (
     <>
       <Header navItems={navItems} />
-      <div className="min-h-screen bg-white pt-20 pb-24">
+      <div className="min-h-screen bg-white pt-12 pb-12 md:pt-28">
         {/* Breadcrumb - Minimal */}
-        <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4 border-b border-gray-100">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 border-b border-gray-100">
           <nav className="flex" aria-label="Breadcrumb">
             <ol role="list" className="flex items-center space-x-2">
+              <li className="flex">
+                <div className="flex items-center">
+                  <Link href="/" className="text-gray-400 hover:text-gray-500">
+                    <svg
+                      className="h-5 w-5 flex-shrink-0"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="sr-only">Trang chủ</span>
+                  </Link>
+                </div>
+              </li>
+              <li>
+                <span className="text-gray-300">/</span>
+              </li>
               <li>
                 <Link
                   href="/projects"
@@ -85,7 +108,7 @@ export default async function ProjectDetailPage({
           </nav>
         </div>
 
-        <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 mt-8 flex gap-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-8 sm:mt-2 flex gap-12">
           {/* LEFT SIDEBAR - TOC */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-28">
@@ -174,10 +197,7 @@ export default async function ProjectDetailPage({
           <main className="flex-1 max-w-3xl min-w-0">
             {/* Mobile Admin Controls */}
             {isAdmin && (
-              <div className="lg:hidden mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
-                  Admin Controls
-                </h4>
+              <div className="lg:hidden mb-6 px-4 py-2 bg-gray-50 border border-gray-200">
                 <div className="flex flex-wrap gap-3">
                   <Link
                     href={`/admin/projects/${project.slug}/edit`}
@@ -208,19 +228,11 @@ export default async function ProjectDetailPage({
             )}
 
             {/* Title Section */}
-            <div className="mb-8 border-b border-gray-200 pb-6">
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-4">
+            <div className="mb-8 pb-0">
+              <h1 className="text-3xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-4">
                 {project.title}
-                {isAdmin && (
-                  <Link
-                    href={`/admin/projects/${project.slug}/edit`}
-                    className="ml-3 text-base font-mono font-normal text-gray-300 hover:text-blue-600 align-middle"
-                  >
-                    [Edit]
-                  </Link>
-                )}
               </h1>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500 font-mono">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 font-mono">
                 <span title="Phiên bản hiện tại">
                   Ver: {project.version || '1.0.0'}
                 </span>
@@ -329,7 +341,7 @@ export default async function ProjectDetailPage({
                 Analysis
                 {isAdmin && (
                   <Link
-                    href={`/admin/projects/${project.slug}/edit`}
+                    href={`/admin/projects/${project.slug}/solution`}
                     className="ml-2 text-xs font-mono font-normal text-gray-300 hover:text-blue-600"
                   >
                     [Edit]
@@ -360,11 +372,9 @@ export default async function ProjectDetailPage({
               </p>
 
               {project.solution_analysis && (
-                <div className="mt-6 prose prose-slate max-w-none text-gray-700">
-                  <div className="whitespace-pre-line">
-                    {project.solution_analysis}
-                  </div>
-                </div>
+                <DetailedAnalysisPanel
+                  htmlContent={project.solution_analysis}
+                />
               )}
 
               {project.video_url && (

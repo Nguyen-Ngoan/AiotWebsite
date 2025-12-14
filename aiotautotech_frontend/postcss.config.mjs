@@ -1,7 +1,8 @@
-const config = {
+export default {
   plugins: {
-    "@tailwindcss/postcss": {},
+    "@tailwindcss/postcss": {
+      // Point Tailwind to the project config so custom utilities/classes resolve.
+      config: "./tailwind.config.js",
+    },
   },
 };
-
-export default config;
