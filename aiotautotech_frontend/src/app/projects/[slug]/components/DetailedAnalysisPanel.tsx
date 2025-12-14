@@ -9,7 +9,7 @@ interface DetailedAnalysisPanelProps {
 export function DetailedAnalysisPanel({
   htmlContent,
 }: DetailedAnalysisPanelProps) {
-  const [isOpen, setIsOpen] = useState(true); // Mặc định mở
+  const [isOpen, setIsOpen] = useState(false); // Mặc định đóng
 
   return (
     <div className="group mt-6 rounded-lg border border-gray-200 bg-white">

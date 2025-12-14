@@ -82,6 +82,11 @@ export const ConfigurationTable: React.FC<ConfigurationTableProps> = ({
                   >
                     {item.product.title}
                   </Link>
+                  {item.product.short_description && (
+                    <div className="hidden sm:block text-xs text-gray-500 font-normal">
+                      {item.product.short_description}
+                    </div>
+                  )}
                 </td>
                 <td className="px-2 py-3 text-xs sm:text-sm text-gray-500 text-right font-mono">
                   {new Intl.NumberFormat('vi-VN').format(
@@ -105,7 +110,7 @@ export const ConfigurationTable: React.FC<ConfigurationTableProps> = ({
               <tr key={`mat-${item.id}`} className="hover:bg-gray-50">
                 <td className="pl-4 pr-2 py-3 text-xs sm:text-sm font-medium text-gray-900">
                   {item.material.name}
-                  <div className="text-xs text-gray-500 font-normal">
+                  <div className="hidden sm:block text-xs text-gray-500 font-normal">
                     {item.material.specifications}
                   </div>
                 </td>

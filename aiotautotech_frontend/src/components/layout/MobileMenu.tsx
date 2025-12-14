@@ -28,6 +28,11 @@ export function MobileMenu({ open, items, onClose }: MobileMenuProps) {
       title: 'Tạo Dự án Mới',
       subtitle: 'Thêm dự án DIY',
     },
+    {
+      href: '/admin/materials',
+      title: 'Quản lý vật tư',
+      subtitle: 'Danh sách vật tư',
+    },
   ];
 
   return (

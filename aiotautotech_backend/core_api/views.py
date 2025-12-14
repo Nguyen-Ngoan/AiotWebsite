@@ -1290,6 +1290,33 @@ class ProjectDetailView(APIView):
         project = project_service.get_project_by_slug(slug)
         if not project:
             return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Bổ sung logic để đảm bảo `product` trong `project['products']` được serialize đầy đủ.
+        # Điều này đảm bảo các trường mới như `short_description` được trả về.
+        if project.get("products"):
+            # Lấy ra danh sách ID của các product cần lấy thông tin chi tiết
+            product_ids = [
+                p.get("product", {}).get("id") for p in project.get("products", [])
+            ]
+            # Lọc bỏ các giá trị None/trống
+            product_ids = [pid for pid in product_ids if pid]
+
+            if product_ids:
+                # Lấy thông tin chi tiết của tất cả product trong một lần query (batch get)
+                product_refs = [db.collection("products").document(pid) for pid in product_ids]
+                product_docs = db.get_all(product_refs)
+                
+                # Tạo một map từ ID sang product đã được serialize đầy đủ
+                products_map = {
+                    doc.id: _serialize_product(doc) for doc in product_docs if doc.exists
+                }
+
+                # Cập nhật lại thông tin product trong project
+                for item in project["products"]:
+                    product_id = item.get("product", {}).get("id")
+                    if product_id and product_id in products_map:
+                        item["product"] = products_map[product_id]
+
         return Response(project)
 
     def put(self, request, slug):
