@@ -405,6 +405,29 @@ export const projectService = {
   },
 
   /**
+   * Cập nhật (thay thế) toàn bộ danh sách các bước thực hiện của dự án.
+   * Dùng cho việc sắp xếp, sửa, xoá các bước.
+   */
+  async updateProjectSteps(projectId: string, steps: any[]): Promise<void> {
+    const url = getApiUrl(`/projects/${projectId}/steps/`);
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ steps }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to update project steps: ${res.statusText}`
+      );
+    }
+    // No content is returned on success, so the promise is void
+  },
+
+  /**
    * Thêm bước hướng dẫn (Steps)
    */
   async addInstructionStep(

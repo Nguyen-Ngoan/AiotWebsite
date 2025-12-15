@@ -1414,6 +1414,48 @@ class ProjectStepView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class ProjectStepsUpdateView(APIView):
+    """
+    PUT /api/projects/<project_id>/steps/
+    Replaces the entire 'steps' array for a project.
+    This is used for reordering, editing, and deleting steps.
+    """
+    def put(self, request, project_id):
+        # The frontend sends an object: {"steps": [...]}
+        steps_data = request.data.get('steps')
+        if steps_data is None or not isinstance(steps_data, list):
+            return Response({"error": "Request body must be an object containing a 'steps' array."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Sanitize data before passing to the service layer.
+            # This rebuilds the step objects to ensure they match the LogEntry model,
+            # preserving existing values and removing frontend-only fields like 'clientId'.
+            clean_steps = []
+            for i, step in enumerate(steps_data):
+                if isinstance(step, dict):
+                    clean_steps.append({
+                        'order': int(step.get('order', i)),
+                        'title': str(step.get('title', '')),
+                        'content': str(step.get('content', '')),
+                        'section': str(step.get('section', 'MECHANICAL')),
+                        'image_url': str(step.get('image_url', '') or ''),
+                        'code_snippet': str(step.get('code_snippet', ''))
+                    })
+
+            # Call the correct method name. `update_instruction_steps` is an alias.
+            project_service.update_instruction_steps(project_id, clean_steps)
+            return Response({"status": "Steps updated successfully"}, status=status.HTTP_200_OK)
+        except ValueError as e:
+            # Handle validation errors from the service layer (e.g., project not found)
+            error_message = str(e)
+            status_code = status.HTTP_404_NOT_FOUND if 'not found' in error_message else status.HTTP_400_BAD_REQUEST
+            return Response({"error": error_message}, status=status_code)
+        except Exception as e:
+            # Catch any other unexpected errors
+            print(f"Unexpected error in ProjectStepsUpdateView for project {project_id}: {e}")
+            return Response({"error": "An unexpected server error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 class ProjectThumbnailUploadView(APIView):
     """
     POST /api/projects/<project_id>/thumbnail/ -> Upload ảnh đại diện dự án

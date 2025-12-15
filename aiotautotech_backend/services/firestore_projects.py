@@ -377,8 +377,39 @@ class ProjectService:
             "updated_at": datetime.utcnow()
         })
 
+    def update_log_entries(self, project_id: str, entries: List[Dict[str, Any]]) -> None:
+        """
+        Cập nhật (ghi đè) toàn bộ danh sách các bước hướng dẫn (Engineering Log).
+        Hữu ích cho việc sắp xếp lại, sửa đổi hoặc xóa hàng loạt các bước.
+        """
+        project_ref = self.collection.document(project_id)
+
+        project_snapshot = project_ref.get()
+        if not project_snapshot.exists:
+            raise ValueError(f"Project with id '{project_id}' not found.")
+
+        # Validate and reconstruct entries to ensure data integrity and apply defaults.
+        reconstructed_entries = []
+        for entry_data in entries:
+            try:
+                # This validates data and applies defaults from the LogEntry dataclass.
+                entry = LogEntry(**entry_data)
+                reconstructed_entries.append(entry.to_dict())
+            except TypeError as e:
+                # This catches missing required fields or wrong data types.
+                raise ValueError(f"Invalid log entry data: {entry_data}. Error: {e}")
+
+        # Sắp xếp các bước theo 'order' trước khi lưu để đảm bảo thứ tự.
+        sorted_entries = sorted(reconstructed_entries, key=lambda e: e.get('order', 0))
+
+        project_ref.update({
+            "steps": sorted_entries,
+            "updated_at": datetime.utcnow()
+        })
+
     # Alias để tương thích ngược
     add_instruction_step = add_log_entry
+    update_instruction_steps = update_log_entries
 
     def add_attachment(self, project_id: str, attachment: Attachment) -> None:
         """

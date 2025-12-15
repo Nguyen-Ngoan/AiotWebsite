@@ -19,12 +19,12 @@ from .views import (
     ProjectDetailView,
     ProjectBOMView,
     ProjectSlugCheckView,
-    ProjectStepView,
     ProjectThumbnailUploadView,
     ProjectAddProductView,
     ProjectAddMaterialView,
     ProjectImageUploadView,
     ProjectImageDeleteView,
+    ProjectStepsUpdateView,
 )
 
 urlpatterns = [
@@ -71,7 +71,9 @@ urlpatterns = [
     path("projects/check-slug/", ProjectSlugCheckView.as_view(), name="project-check-slug"),
     path("projects/<str:slug>/", ProjectDetailView.as_view(), name="project-detail"),
     path("projects/<str:project_id>/bom/", ProjectBOMView.as_view(), name="project-add-bom"),
-    path("projects/<str:project_id>/steps/", ProjectStepView.as_view(), name="project-add-step"),
+    # This path now points to the view that handles PUT requests for updating all steps.
+    # The frontend's StepsManager uses a PUT request to save all changes.
+    path("projects/<str:project_id>/steps/", ProjectStepsUpdateView.as_view(), name="project-steps-update"),
     path("projects/<str:project_id>/thumbnail/", ProjectThumbnailUploadView.as_view(), name="project-upload-thumbnail"),
     path("projects/<str:project_id>/add-product/", ProjectAddProductView.as_view(), name="project-add-product"),
     path("projects/<str:project_id>/add-material/", ProjectAddMaterialView.as_view(), name="project-add-material"),
