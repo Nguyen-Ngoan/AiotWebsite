@@ -6,13 +6,11 @@ import React from 'react';
 interface ConfigurationTableProps {
   project: any;
   isAdmin: boolean;
-  hasGallery: boolean;
 }
 
 export const ConfigurationTable: React.FC<ConfigurationTableProps> = ({
   project,
   isAdmin,
-  hasGallery,
 }) => {
   const hasLiveItems =
     (project.products && project.products.length > 0) ||
@@ -21,10 +19,7 @@ export const ConfigurationTable: React.FC<ConfigurationTableProps> = ({
   return (
     <section id="configuration" className="mb-4 scroll-mt-20">
       <h2 className="group text-base sm:text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <span className="text-gray-400 font-mono">
-          {hasGallery ? '5.' : '4.'}
-        </span>{' '}
-        DANH SÁCH VẬT TƯ
+        <span className="text-gray-400 font-mono">4.</span> DANH SÁCH VẬT TƯ
         {isAdmin && (
           <Link
             href={`/admin/projects/${project.slug}/bom`}

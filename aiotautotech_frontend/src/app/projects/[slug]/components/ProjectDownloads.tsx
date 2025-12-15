@@ -4,12 +4,10 @@ interface ProjectDownloadsProps {
   project: {
     attachments?: (string | null)[] | null;
   };
-  hasGallery: boolean;
 }
 
 export const ProjectDownloads: React.FC<ProjectDownloadsProps> = ({
   project,
-  hasGallery,
 }) => {
   return (
     <section
@@ -17,10 +15,7 @@ export const ProjectDownloads: React.FC<ProjectDownloadsProps> = ({
       className="pt-4 border-t border-gray-200 scroll-mt-20"
     >
       <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wider mb-4">
-        <span className="text-gray-400 font-mono">
-          {hasGallery ? '6.' : '5.'}
-        </span>{' '}
-        TÀI LIỆU
+        <span className="text-gray-400 font-mono">5.</span> TÀI LIỆU
       </h2>
       <div className="flex flex-wrap gap-4">
         {project.attachments && project.attachments.length > 0 ? (

@@ -1,17 +1,16 @@
+'use client';
+
 import Link from 'next/link';
-import React from 'react';
+import React, { useState } from 'react';
 
 interface MobileNavProps {
   slug: string;
-  hasGallery: boolean;
   isAdmin: boolean;
 }
 
-export const MobileNav: React.FC<MobileNavProps> = ({
-  slug,
-  hasGallery,
-  isAdmin,
-}) => {
+export const MobileNav: React.FC<MobileNavProps> = ({ slug, isAdmin }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <div className="lg:hidden mb-4">
       {/* Mobile Admin Controls */}
@@ -48,60 +47,70 @@ export const MobileNav: React.FC<MobileNavProps> = ({
 
       {/* Mobile Table of Contents */}
       <div className="px-5 py-2 bg-gray-50 rounded-xl border border-gray-200">
-        <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
-          NỘI DUNG
-        </h4>
-        <nav className="flex flex-col space-y-2">
-          <a
-            href="#overview"
-            className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full flex justify-between items-center text-left"
+        >
+          <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+            NỘI DUNG
+          </h4>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={`h-5 w-5 text-gray-500 transition-transform ${
+              isOpen ? 'rotate-180' : ''
+            }`}
+            viewBox="0 0 20 20"
+            fill="currentColor"
           >
-            <span className="w-6 text-gray-400 font-mono">1.</span> Giới thiệu
-          </a>
-          <a
-            href="#solution"
-            className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
-          >
-            <span className="w-6 text-gray-400 font-mono">2.</span> Phân tích dự
-            án
-          </a>
-          {hasGallery && (
+            <path
+              fillRule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </button>
+
+        <div
+          className={`overflow-hidden transition-[max-height] duration-300 ease-in-out ${
+            isOpen ? 'max-h-[500px]' : 'max-h-0'
+          }`}
+        >
+          <nav className="mt-4 flex flex-col space-y-2">
             <a
-              href="#gallery"
+              href="#overview"
               className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
             >
-              <span className="w-6 text-gray-400 font-mono">3.</span> Thư viện
-              ảnh
+              <span className="w-6 text-gray-400 font-mono">1.</span> Giới thiệu
             </a>
-          )}
-          <a
-            href="#implementation"
-            className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
-          >
-            <span className="w-6 text-gray-400 font-mono">
-              {hasGallery ? '4.' : '3.'}
-            </span>{' '}
-            Các bước thực hiện
-          </a>
-          <a
-            href="#configuration"
-            className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
-          >
-            <span className="w-6 text-gray-400 font-mono">
-              {hasGallery ? '5.' : '4.'}
-            </span>{' '}
-            Danh sách vật tư
-          </a>
-          <a
-            href="#downloads"
-            className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
-          >
-            <span className="w-6 text-gray-400 font-mono">
-              {hasGallery ? '6.' : '5.'}
-            </span>{' '}
-            Tài liệu
-          </a>
-        </nav>
+            <a
+              href="#solution"
+              className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
+            >
+              <span className="w-6 text-gray-400 font-mono">2.</span> Phân tích
+              dự án
+            </a>
+            <a
+              href="#implementation"
+              className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
+            >
+              <span className="w-6 text-gray-400 font-mono">3.</span> Các bước
+              thực hiện
+            </a>
+            <a
+              href="#configuration"
+              className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
+            >
+              <span className="w-6 text-gray-400 font-mono">4.</span> Danh sách
+              vật tư
+            </a>
+            <a
+              href="#downloads"
+              className="text-sm font-medium text-gray-600 hover:text-blue-600 flex items-center"
+            >
+              <span className="w-6 text-gray-400 font-mono">5.</span> Tài liệu
+            </a>
+          </nav>
+        </div>
       </div>
     </div>
   );

@@ -9,7 +9,6 @@ interface ProjectSolutionProps {
     block_diagram_url?: string | null;
     thumbnail_url?: string | null;
     solution_analysis?: string | null;
-    video_url?: string | null;
   };
   isAdmin: boolean;
 }
@@ -54,30 +53,6 @@ export const ProjectSolution: React.FC<ProjectSolutionProps> = ({
 
       {project.solution_analysis && (
         <DetailedAnalysisPanel htmlContent={project.solution_analysis} />
-      )}
-
-      {project.video_url && (
-        <div className="mt-8">
-          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-            VIDEO
-            {isAdmin && (
-              <Link
-                href={`/admin/projects/${project.slug}/edit`}
-                className="ml-2 text-xs font-mono font-normal text-gray-300 hover:text-blue-600 normal-case"
-              >
-                [Edit]
-              </Link>
-            )}
-          </h3>
-          <div className="aspect-video w-full rounded-lg overflow-hidden border border-gray-200 bg-black">
-            <iframe
-              src={project.video_url.replace('watch?v=', 'embed/')}
-              title="Video hướng dẫn"
-              className="w-full h-full"
-              allowFullScreen
-            />
-          </div>
-        </div>
       )}
     </section>
   );

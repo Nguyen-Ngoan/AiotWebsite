@@ -9,13 +9,13 @@ import { navItems } from '@/components/layout/nav-items';
 import { ConfigurationTable } from './components/ConfigurationTable';
 import { ProjectBreadcrumb } from './components/ProjectBreadcrumb';
 import { ProjectDownloads } from './components/ProjectDownloads';
-import { ProjectGallery } from './components/ProjectGallery';
 import { ProjectHeader } from './components/ProjectHeader';
 import { ProjectImplementationLog } from './components/ProjectImplementationLog';
 import { ProjectOverview } from './components/ProjectOverview';
 import { ProjectSidebar } from './components/ProjectSidebar';
 import { ProjectSolution } from './components/ProjectSolution';
 import { MobileNav } from './components/MobileNav';
+import { ProjectMediaSlider } from './components/ProjectMediaSlider';
 
 interface ProjectDetailPageProps {
   params: Promise<{
@@ -62,7 +62,9 @@ export default async function ProjectDetailPage({
     ? [...project.steps].sort((a, b) => a.order - b.order)
     : [];
 
-  const hasGallery = !!(project.images && project.images.length > 0);
+  // Check if there is any media (video or images) to display in the slider
+  const hasMedia =
+    !!project.video_url || !!(project.images && project.images.length > 0);
 
   return (
     <>
@@ -73,22 +75,17 @@ export default async function ProjectDetailPage({
 
         <div className="mx-auto max-w-7xl px-4 lg:px-8 mt-1 lg:mt-4 flex gap-12">
           {/* LEFT SIDEBAR - TOC */}
-          <ProjectSidebar
-            slug={project.slug}
-            hasGallery={hasGallery}
-            isAdmin={isAdmin}
-          />
+          <ProjectSidebar slug={project.slug} isAdmin={isAdmin} />
 
           {/* MAIN CONTENT */}
           <main className="flex-1 max-w-3xl min-w-0">
-            <MobileNav
-              slug={project.slug}
-              isAdmin={isAdmin}
-              hasGallery={hasGallery}
-            />
-
             {/* Title Section */}
             <ProjectHeader project={project} />
+
+            {/* Media Slider (Video + Gallery) */}
+            {hasMedia && <ProjectMediaSlider project={project} />}
+
+            <MobileNav slug={project.slug} isAdmin={isAdmin} />
 
             {/* Problem Statement */}
             <ProjectOverview project={project} />
@@ -96,27 +93,36 @@ export default async function ProjectDetailPage({
             {/* Solution Analysis */}
             <ProjectSolution project={project} isAdmin={isAdmin} />
 
-            {/* Project Gallery */}
-            {hasGallery && (
-              <ProjectGallery project={project} isAdmin={isAdmin} />
-            )}
-
             {/* Implementation Log */}
             <ProjectImplementationLog
               project={project}
               sortedSteps={sortedSteps}
-              hasGallery={hasGallery}
               isAdmin={isAdmin}
             />
 
-            <ConfigurationTable
-              project={project}
-              isAdmin={isAdmin}
-              hasGallery={hasGallery}
-            />
+            <ConfigurationTable project={project} isAdmin={isAdmin} />
 
             {/* Footer / Downloads */}
-            <ProjectDownloads project={project} hasGallery={hasGallery} />
+            <ProjectDownloads project={project} />
+
+            {/* Project Meta Footer */}
+            <div className="mt-8 border-t border-gray-100 pt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500 font-mono">
+              <span title="Phiên bản hiện tại">
+                Ver: {project.version || '1.0'}
+              </span>
+              {project.updated_at && (
+                <span title="Ngày cập nhật cuối cùng">
+                  Cập nhật:{' '}
+                  {new Date(project.updated_at).toLocaleDateString('vi-VN')}
+                </span>
+              )}
+              <span title="Tác giả">Tác giả: AiotAutotech</span>
+              {project.complexity_mechanical && (
+                <span className="px-2 py-0.5 bg-gray-100 rounded text-xs">
+                  Độ khó: {project.complexity_mechanical}/3
+                </span>
+              )}
+            </div>
           </main>
         </div>
       </div>

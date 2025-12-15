@@ -3,59 +3,49 @@ import React from 'react';
 
 interface ProjectSidebarProps {
   slug: string;
-  hasGallery: boolean;
   isAdmin: boolean;
 }
 
 export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
   slug,
-  hasGallery,
   isAdmin,
 }) => {
   return (
     <aside className="hidden lg:block w-64 shrink-0">
       <div className="sticky top-28">
         <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-4">
-          Contents
+          Nội dung
         </h4>
         <nav className="space-y-1 border-l border-gray-200">
           <a
             href="#overview"
             className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
           >
-            1. Overview
+            1. Giới thiệu
           </a>
           <a
             href="#solution"
             className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
           >
-            2. Solution Analysis
+            2. Phân tích dự án
           </a>
-          {hasGallery && (
-            <a
-              href="#gallery"
-              className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
-            >
-              3. Project Gallery
-            </a>
-          )}
           <a
             href="#implementation"
             className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
           >
-            {hasGallery ? '4.' : '3.'} Implementation Log
+            3. Các bước thực hiện
           </a>
           <a
             href="#configuration"
             className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
           >
-            {hasGallery ? '5.' : '4.'} Configuration
+            4. Danh sách vật tư
           </a>
           <a
             href="#downloads"
             className="block pl-4 text-sm text-gray-600 hover:text-gray-900 hover:border-l-2 hover:border-gray-900 py-1 -ml-px"
           >
-            {hasGallery ? '6.' : '5.'} Resources
+            5. Tài liệu
           </a>
         </nav>
 
