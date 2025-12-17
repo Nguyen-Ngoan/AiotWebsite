@@ -39,7 +39,7 @@ export default async function ProjectsPage() {
               <div className="flex items-center">
                 <Link href="/" className="text-gray-400 hover:text-gray-500">
                   <svg
-                    className="h-5 w-5 flex-shrink-0"
+                    className="h-5 w-5 shrink-0"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                     aria-hidden="true"

@@ -33,6 +33,16 @@ export function MobileMenu({ open, items, onClose }: MobileMenuProps) {
       title: 'Quản lý vật tư',
       subtitle: 'Danh sách vật tư',
     },
+    {
+      href: '/admin/printing/parts',
+      title: 'Quản lý In 3D (Parts)',
+      subtitle: 'Danh sách part in 3D',
+    },
+    {
+      href: '/admin/printing/settings',
+      title: 'Cấu hình In 3D',
+      subtitle: 'Máy in, nhựa, chi phí',
+    },
   ];
 
   return (
