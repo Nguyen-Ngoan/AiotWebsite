@@ -66,6 +66,21 @@ export function MobileMenu({ open, items, onClose }: MobileMenuProps) {
           </Link>
         ))}
 
+        <Link
+          href="/parts"
+          onClick={onClose}
+          className="block rounded-lg px-2 py-2 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+        >
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              Sản phẩm In 3D
+            </span>
+            <span className="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
+              Danh sách sản phẩm in 3D
+            </span>
+          </div>
+        </Link>
+
         {/* Admin Section */}
         <div className="my-2 border-t border-gray-200 dark:border-gray-700" />
 
