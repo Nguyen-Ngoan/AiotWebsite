@@ -10,12 +10,13 @@ from rest_framework.parsers import MultiPartParser
 from django.shortcuts import get_object_or_404
 
 from aiotautotech_backend.firestore_client import db
-from .utils import slugify
+from .utils import slugify, GcodeParser
 from .serializers import ProductImageUploadSerializer, TechnicalDocSerializer
 from storage.r2 import upload_file_to_r2, generate_image_key, delete_files_from_r2
 from services.firestore_products import add_product_image_metadata
 from services.firestore_projects import ProjectService, ProjectData, InstructionStep
 from .models import Product, Material
+from django.core.files.base import ContentFile
 
 import io
 from PIL import Image
@@ -887,6 +888,29 @@ class TechnicalDocListView(APIView):
                         )
                         thumbnail_url = f"{settings.CDN_URL}/{thumbnail_r2_key}"
                 file.seek(0)
+            elif doc_type == "gcode_file":
+                try:
+                    content = file.read()
+                    file.seek(0)  # IMPORTANT: Reset file pointer for main upload
+                    
+                    parser = GcodeParser(content)
+                    thumb_data = parser.extract_thumbnail()
+
+                    if thumb_data:
+                        thumb_bytes, thumb_ext = thumb_data
+                        thumb_file = ContentFile(thumb_bytes, name=f"{uuid.uuid4()}.{thumb_ext}")
+                        
+                        thumbnail_r2_key = f"technical_docs/thumbnails/{uuid.uuid4()}.{thumb_ext}"
+                        s3.upload_fileobj(
+                            thumb_file,
+                            settings.R2_BUCKET_NAME,
+                            thumbnail_r2_key,
+                            ExtraArgs={"ContentType": f"image/{thumb_ext}"},
+                        )
+                        thumbnail_url = f"{settings.CDN_URL}/{thumbnail_r2_key}"
+                except Exception as e:
+                    print(f"G-code thumbnail extraction failed: {e}")
+                    # Don't fail the whole upload, just log the error.
 
             original_file_extension = os.path.splitext(file.name)[1]
             r2_key = f"technical_docs/files/{uuid.uuid4()}{original_file_extension}"
@@ -939,7 +963,8 @@ class TechnicalDocDetailView(APIView):
 
     def put(self, request, doc_id: str, *args, **kwargs):
         doc_ref = db.collection("technical_docs").document(doc_id)
-        if not doc_ref.get().exists:
+        doc_snapshot = doc_ref.get()
+        if not doc_snapshot.exists:
             return Response({"error": "Document not found"}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = TechnicalDocSerializer(data=request.data, partial=True) # partial=True cho phép cập nhật một phần
@@ -959,6 +984,34 @@ class TechnicalDocDetailView(APIView):
                     update_data["metadata"] = raw_meta
             except Exception as e:
                 print(f"Metadata parsing error on PUT: {e}")
+
+        # Xử lý upload file mới (nếu có) để cập nhật thumbnail cho G-code
+        file = request.FILES.get("file")
+        current_doc_type = update_data.get("doc_type") or doc_snapshot.to_dict().get("doc_type")
+
+        if file and current_doc_type == "gcode_file":
+             try:
+                content = file.read()
+                file.seek(0)
+                
+                parser = GcodeParser(content)
+                thumb_data = parser.extract_thumbnail()
+
+                if thumb_data:
+                    thumb_bytes, thumb_ext = thumb_data
+                    thumb_file = ContentFile(thumb_bytes, name=f"{uuid.uuid4()}.{thumb_ext}")
+                    
+                    thumbnail_r2_key = f"technical_docs/thumbnails/{uuid.uuid4()}.{thumb_ext}"
+                    s3 = boto3.client(
+                        "s3",
+                        endpoint_url=f"https://{settings.R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+                        aws_access_key_id=settings.R2_ACCESS_KEY_ID,
+                        aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
+                    )
+                    s3.upload_fileobj(thumb_file, settings.R2_BUCKET_NAME, thumbnail_r2_key, ExtraArgs={"ContentType": f"image/{thumb_ext}"})
+                    update_data["thumbnail_url"] = f"{settings.CDN_URL}/{thumbnail_r2_key}"
+             except Exception as e:
+                print(f"G-code thumbnail extraction failed on PUT: {e}")
 
         # Xử lý upload thumbnail mới nếu có
         thumbnail_file = update_data.get("thumbnail_file")

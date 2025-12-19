@@ -986,7 +986,9 @@ export default function PrintingSettingsPage() {
           </span>
         </nav>
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">3D Printing Management</h1>
+          <h1 className="text-md sm:text-2xl font-bold">
+            3D Printing Management
+          </h1>
           <Button asChild variant="outline">
             <Link href="/admin/printing/parts">
               Manage Parts <ArrowRight className="ml-2 h-4 w-4" />

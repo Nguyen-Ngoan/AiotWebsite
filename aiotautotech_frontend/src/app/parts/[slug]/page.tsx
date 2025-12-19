@@ -64,6 +64,13 @@ export default function PartDetailPage() {
             <Home className="h-4 w-4" />
           </Link>
           <ChevronRight className="h-4 w-4 mx-2" />
+          <Link
+            href="/parts"
+            className="text-sm font-medium text-gray-500 hover:text-gray-700"
+          >
+            3D Printed Parts
+          </Link>
+          <ChevronRight className="h-4 w-4 mx-2" />
           <span className="font-medium text-foreground truncate">
             {part.title}
           </span>
