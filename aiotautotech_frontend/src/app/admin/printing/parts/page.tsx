@@ -48,6 +48,7 @@ import {
   ArrowLeft,
   ChevronRight,
   Home,
+  Star,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -69,13 +70,43 @@ interface PrintProfile {
   is_default: boolean;
 }
 
+interface ProductImage {
+  id: string;
+  fileName: string;
+  type: string;
+  isPrimary: boolean;
+  url: string;
+  url_medium: string;
+  url_thumb: string;
+  alt: string;
+  title: string;
+}
+
 interface PrintedPart {
   id: string;
   title: string;
   slug: string;
-  design_file_ref: string;
+  step_file_id: string;
+  stl_file_id: string;
+  gcode_file_ids: string[];
   thumbnail_url: string;
   print_profiles: PrintProfile[];
+  images?: ProductImage[];
+}
+
+interface TechnicalDoc {
+  id: string;
+  doc_type: string;
+  title: string;
+  description: string;
+  url: string;
+  thumbnail_url?: string;
+  version: string;
+  metadata?: {
+    machine_model?: string;
+    material_type?: string;
+    nozzle?: number;
+  };
 }
 
 interface MachineGroup {
@@ -94,11 +125,13 @@ const slugify = (text: string) =>
 
 export default function PrintedPartsPage() {
   const [parts, setParts] = useState<PrintedPart[]>([]);
+  const [techDocs, setTechDocs] = useState<TechnicalDoc[]>([]);
   const [machineGroups, setMachineGroups] = useState<MachineGroup[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPart, setEditingPart] = useState<Partial<PrintedPart> | null>(
     null
   );
+  const [isUploading, setIsUploading] = useState(false);
 
   const fetchParts = async () => {
     try {
@@ -122,9 +155,21 @@ export default function PrintedPartsPage() {
     }
   };
 
+  const fetchTechDocs = async () => {
+    try {
+      const response = await fetch(getApiUrl('/technical-docs/'));
+      if (!response.ok) throw new Error('Failed to fetch technical documents');
+      const data: TechnicalDoc[] = await response.json();
+      setTechDocs(data);
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
+
   useEffect(() => {
     fetchParts();
     fetchMachineGroups();
+    fetchTechDocs();
   }, []);
 
   const handleSavePart = async (e: FormEvent) => {
@@ -174,7 +219,14 @@ export default function PrintedPartsPage() {
   };
 
   const openAddDialog = () => {
-    setEditingPart({ title: '', slug: '', print_profiles: [] });
+    setEditingPart({
+      title: '',
+      slug: '',
+      print_profiles: [],
+      step_file_id: '',
+      stl_file_id: '',
+      gcode_file_ids: [],
+    });
     setIsDialogOpen(true);
   };
 
@@ -225,6 +277,106 @@ export default function PrintedPartsPage() {
     );
     setEditingPart({ ...editingPart, print_profiles: updatedProfiles });
   };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!editingPart?.id || !e.target.files?.[0]) return;
+
+    setIsUploading(true);
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'gallery');
+    formData.append('seo_file_name', file.name.split('.')[0]);
+
+    try {
+      const response = await fetch(
+        getApiUrl(`/printing/parts/${editingPart.id}/images/`),
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to upload image');
+
+      const data = await response.json();
+      setEditingPart((prev) =>
+        prev ? { ...prev, images: data.images } : null
+      );
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      toast.error('Upload failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDeleteImage = async (fileName: string) => {
+    if (!editingPart?.id) return;
+    if (!confirm('Delete this image?')) return;
+
+    try {
+      const response = await fetch(
+        getApiUrl(`/printing/parts/${editingPart.id}/images/delete/`),
+        {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileName }),
+        }
+      );
+
+      if (!response.ok) throw new Error('Failed to delete image');
+
+      setEditingPart((prev) => {
+        if (!prev) return null;
+        const newImages = (prev.images || []).filter(
+          (img) => img.fileName !== fileName
+        );
+        return { ...prev, images: newImages };
+      });
+      toast.success('Image deleted');
+    } catch (error) {
+      toast.error('Delete failed');
+    }
+  };
+
+  const handleSetPrimary = async (fileName: string) => {
+    if (!editingPart?.id) return;
+
+    const updatedImages = (editingPart.images || []).map((img) => ({
+      ...img,
+      isPrimary: img.fileName === fileName,
+    }));
+
+    // Optimistic update
+    setEditingPart((prev) =>
+      prev ? { ...prev, images: updatedImages } : null
+    );
+
+    // Call PUT to save changes (including thumbnail_url update on backend)
+    try {
+      const response = await fetch(
+        getApiUrl(`/printing/parts/${editingPart.id}/`),
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...editingPart, images: updatedImages }),
+        }
+      );
+      if (!response.ok) throw new Error('Failed to update primary image');
+      toast.success('Primary image updated');
+      fetchParts(); // Refresh list to update thumbnail in table
+    } catch (error) {
+      toast.error('Failed to set primary image');
+    }
+  };
+
+  // Derived lists for selectors
+  const stlDocs = techDocs.filter((doc) => doc.doc_type === 'stl_files');
+
+  const stepDocs = techDocs.filter((doc) => doc.doc_type === 'step_model');
+
+  const gcodeDocs = techDocs.filter((doc) => doc.doc_type === 'gcode_file');
 
   return (
     <>
@@ -388,20 +540,246 @@ export default function PrintedPartsPage() {
                     />
                   </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="part-doc-ref">Technical Doc ID</Label>
-                  <Input
-                    id="part-doc-ref"
-                    placeholder="ID of the document in technical_docs collection"
-                    value={editingPart?.design_file_ref || ''}
-                    onChange={(e) =>
-                      setEditingPart({
-                        ...editingPart,
-                        design_file_ref: e.target.value,
-                      })
-                    }
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="stl-file-id">STL File (Required)</Label>
+                    <Select
+                      value={editingPart?.stl_file_id || ''}
+                      onValueChange={(value) =>
+                        setEditingPart({
+                          ...editingPart,
+                          stl_file_id: value,
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select STL file..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {stlDocs.length > 0 ? (
+                          stlDocs.map((doc) => (
+                            <SelectItem key={doc.id} value={doc.id}>
+                              {doc.title} ({doc.version || 'v1'})
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <div className="p-4 text-sm text-muted-foreground">
+                            No STL files found.{' '}
+                            <Link
+                              href="/admin/technical-docs"
+                              className="text-primary underline"
+                            >
+                              Upload one?
+                            </Link>
+                          </div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="step-file-id">STEP File (Optional)</Label>
+                    <Select
+                      value={editingPart?.step_file_id || ''}
+                      onValueChange={(value) =>
+                        setEditingPart({ ...editingPart, step_file_id: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select STEP file..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {stepDocs.length > 0 ? (
+                          stepDocs.map((doc) => (
+                            <SelectItem key={doc.id} value={doc.id}>
+                              {doc.title} ({doc.version || 'v1'})
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <div className="p-4 text-sm text-muted-foreground">
+                            No STEP files found.{' '}
+                            <Link
+                              href="/admin/technical-docs"
+                              className="text-primary underline"
+                            >
+                              Upload one?
+                            </Link>
+                          </div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="gcode-files">Associated G-code Files</Label>
+                    <div className="space-y-2">
+                      {(editingPart?.gcode_file_ids || []).map((gcodeId) => {
+                        const doc = techDocs.find((d) => d.id === gcodeId);
+                        return (
+                          <div
+                            key={gcodeId}
+                            className="flex items-center justify-between rounded-md border p-2 text-sm bg-muted/50"
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                {doc?.title || 'Unknown File'}
+                              </span>
+                              {doc?.metadata && (
+                                <span className="text-xs text-muted-foreground">
+                                  {doc.metadata.machine_model || 'N/A'} -{' '}
+                                  {doc.metadata.material_type || 'N/A'}
+                                </span>
+                              )}
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive/90"
+                              onClick={() => {
+                                const newIds = (
+                                  editingPart?.gcode_file_ids || []
+                                ).filter((id) => id !== gcodeId);
+                                setEditingPart({
+                                  ...editingPart,
+                                  gcode_file_ids: newIds,
+                                });
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <Select
+                      value=""
+                      onValueChange={(value) => {
+                        if (
+                          value &&
+                          !(editingPart?.gcode_file_ids || []).includes(value)
+                        ) {
+                          setEditingPart({
+                            ...editingPart,
+                            gcode_file_ids: [
+                              ...(editingPart?.gcode_file_ids || []),
+                              value,
+                            ],
+                          });
+                        }
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Add G-code file..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {gcodeDocs
+                          .filter(
+                            (doc) =>
+                              !(editingPart?.gcode_file_ids || []).includes(
+                                doc.id
+                              )
+                          )
+                          .map((doc) => (
+                            <SelectItem key={doc.id} value={doc.id}>
+                              {doc.title} (
+                              {doc.metadata?.machine_model || 'N/A'} -{' '}
+                              {doc.metadata?.material_type || 'N/A'})
+                            </SelectItem>
+                          ))}
+                        {gcodeDocs.filter(
+                          (doc) =>
+                            !(editingPart?.gcode_file_ids || []).includes(
+                              doc.id
+                            )
+                        ).length === 0 && (
+                          <div className="p-2 text-sm text-muted-foreground text-center">
+                            No more files available
+                          </div>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Image Gallery Section */}
+              <div className="space-y-4 rounded-md border p-4">
+                <h3 className="font-semibold">Images</h3>
+                {!editingPart?.id ? (
+                  <div className="text-sm text-muted-foreground text-center py-4 bg-muted/50 rounded-md">
+                    Please save the part first to upload images.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {(editingPart.images || []).map((img) => (
+                        <div
+                          key={img.fileName}
+                          className="relative group aspect-square rounded-md overflow-hidden border bg-muted"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={img.url_thumb}
+                            alt={img.alt}
+                            className="w-full h-full object-cover"
+                          />
+                          {img.isPrimary && (
+                            <div className="absolute top-1 left-1 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-current" /> Primary
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                            {!img.isPrimary && (
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                className="h-6 text-xs"
+                                onClick={() => handleSetPrimary(img.fileName)}
+                                type="button"
+                              >
+                                Set Primary
+                              </Button>
+                            )}
+                            <Button
+                              size="icon"
+                              variant="destructive"
+                              className="h-8 w-8"
+                              onClick={() => handleDeleteImage(img.fileName)}
+                              type="button"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {/* Upload Button */}
+                      <div className="aspect-square rounded-md border border-dashed flex items-center justify-center bg-muted/30 hover:bg-muted/50 transition-colors relative">
+                        {isUploading ? (
+                          <div className="text-sm text-muted-foreground">
+                            Uploading...
+                          </div>
+                        ) : (
+                          <>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                              onChange={handleImageUpload}
+                              disabled={isUploading}
+                            />
+                            <div className="text-center">
+                              <ImageIcon className="mx-auto h-8 w-8 text-muted-foreground mb-1" />
+                              <span className="text-xs text-muted-foreground">
+                                Upload
+                              </span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Profile Manager */}

@@ -99,7 +99,7 @@ class TechnicalDocSerializer(serializers.Serializer):
     doc_type = serializers.ChoiceField(
         choices=[
             "datasheet", "schematic", "step_model",
-            "stl_files", "user_manual", "github_repo"
+            "stl_files", "user_manual", "github_repo", "gcode_file"
         ]
     )
     title = serializers.CharField(max_length=255)

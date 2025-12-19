@@ -25,6 +25,7 @@ import os
 from django.core.files.temp import NamedTemporaryFile
 import pyvista as pv
 import sys
+import json
 
 
 from django.conf import settings
@@ -61,6 +62,7 @@ def _serialize_tech_doc(doc):
         "version": data.get("version", ""),
         "file_size": data.get("file_size"),
         "updated_at": data.get("updated_at"),
+        "metadata": data.get("metadata", {}),
     }
 
 def _serialize_product(doc):
@@ -843,6 +845,22 @@ class TechnicalDocListView(APIView):
         if not file:
             return Response({"error": "File is required for creation."}, status=400)
 
+        # --- Metadata Extraction & G-code Validation ---
+        metadata = {}
+        if "metadata" in request.data:
+            try:
+                raw_meta = request.data["metadata"]
+                if isinstance(raw_meta, str):
+                    metadata = json.loads(raw_meta)
+                elif isinstance(raw_meta, dict):
+                    metadata = raw_meta
+            except Exception as e:
+                print(f"Metadata parsing error: {e}")
+
+        if doc_type == "gcode_file":
+            if not file.name.lower().endswith(('.gcode', '.gco', '.g')):
+                return Response({"error": "Invalid file extension for G-code. Allowed: .gcode, .gco, .g"}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             session = boto3.session.Session()
             s3 = session.client(
@@ -884,6 +902,7 @@ class TechnicalDocListView(APIView):
                 "url": url,
                 "r2_key": r2_key, # Lưu lại key để có thể xoá file
                 "file_size": file.size,
+                "metadata": metadata,
                 "created_at": now,
                 "updated_at": now,
             }
@@ -929,6 +948,17 @@ class TechnicalDocDetailView(APIView):
 
         update_data = serializer.validated_data
         update_data["updated_at"] = timezone.now()
+
+        # --- Metadata Update ---
+        if "metadata" in request.data:
+            try:
+                raw_meta = request.data["metadata"]
+                if isinstance(raw_meta, str):
+                    update_data["metadata"] = json.loads(raw_meta)
+                elif isinstance(raw_meta, dict):
+                    update_data["metadata"] = raw_meta
+            except Exception as e:
+                print(f"Metadata parsing error on PUT: {e}")
 
         # Xử lý upload thumbnail mới nếu có
         thumbnail_file = update_data.get("thumbnail_file")

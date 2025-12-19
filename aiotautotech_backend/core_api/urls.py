@@ -35,6 +35,8 @@ from .views_printing import (
     PrintedPartListView,
     PrintedPartDetailView,
     PrintedPartPublicDetailView,
+    PrintedPartImageUploadView,
+    PrintedPartImageDeleteView,
 )
 
 urlpatterns = [
@@ -83,4 +85,6 @@ urlpatterns = [
     path("printing/parts/", PrintedPartListView.as_view(), name="printed-part-list"),
     path("printing/parts/<str:doc_id>/", PrintedPartDetailView.as_view(), name="printed-part-detail"),
     path("printing/parts/by-slug/<str:slug>/", PrintedPartPublicDetailView.as_view(), name="printed-part-public-detail"),
+    path("printing/parts/<str:part_id>/images/", PrintedPartImageUploadView.as_view(), name="printed-part-image-upload"),
+    path("printing/parts/<str:part_id>/images/delete/", PrintedPartImageDeleteView.as_view(), name="printed-part-image-delete"),
 ]
