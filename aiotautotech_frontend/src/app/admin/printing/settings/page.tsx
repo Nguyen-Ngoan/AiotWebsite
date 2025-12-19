@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, Fragment } from 'react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
@@ -48,6 +48,8 @@ import {
   ArrowRight,
   ChevronRight,
   Home,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -83,9 +85,15 @@ interface Filament {
   brand: string;
   material_type: string;
   color_hex: string;
+  texture?: string;
   spool_weight_g: number;
   cost_per_spool: number;
   stock_qty: number;
+  density_g_cm3?: number;
+  diameter_mm?: number;
+  print_temp_min?: number;
+  print_temp_max?: number;
+  bed_temp_min?: number;
 }
 
 // --- 1. General Config Tab ---
@@ -419,6 +427,9 @@ const FilamentsTab = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingFilament, setEditingFilament] =
     useState<Partial<Filament> | null>(null);
+  const [expandedFilamentId, setExpandedFilamentId] = useState<string | null>(
+    null
+  );
 
   const fetchFilaments = async () => {
     try {
@@ -480,7 +491,16 @@ const FilamentsTab = () => {
   };
 
   const openAddDialog = () => {
-    setEditingFilament({ spool_weight_g: 1000, color_hex: '#FFFFFF' }); // Default weight and color
+    setEditingFilament({
+      spool_weight_g: 1000,
+      color_hex: '#FFFFFF',
+      density_g_cm3: 1.24,
+      diameter_mm: 1.75,
+      print_temp_min: 200,
+      print_temp_max: 220,
+      bed_temp_min: 60,
+      texture: 'Glossy',
+    });
     setIsDialogOpen(true);
   };
 
@@ -490,6 +510,10 @@ const FilamentsTab = () => {
       color_hex: filament.color_hex || '#FFFFFF',
     });
     setIsDialogOpen(true);
+  };
+
+  const toggleExpand = (id: string) => {
+    setExpandedFilamentId(expandedFilamentId === id ? null : id);
   };
 
   return (
@@ -521,159 +545,36 @@ const FilamentsTab = () => {
           </TableHeader>
           <TableBody>
             {filaments.map((filament) => (
-              <TableRow key={filament.id}>
-                <TableCell className="font-medium">{filament.name}</TableCell>
-                <TableCell>{filament.brand}</TableCell>
-                <TableCell>{filament.material_type}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {(filament.color_hex || '#FFFFFF').trim().toUpperCase() ===
-                    '#000000' ? (
-                      <div
-                        className="h-4 w-4 rounded-full border shadow-sm"
-                        style={{
-                          backgroundColor: 'transparent',
-                          boxShadow: 'inset 0 0 0 50px #000000',
-                        }}
-                      />
-                    ) : (
-                      <Circle
-                        className="h-4 w-4"
-                        fill={(filament.color_hex || '#FFFFFF').trim()}
-                        stroke="currentColor"
-                        strokeWidth={1}
-                      />
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {filament.cost_per_spool.toLocaleString()} VND
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem
-                        onClick={() => openEditDialog(filament)}
-                      >
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDeleteFilament(filament.id)}
-                        className="text-red-600"
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>
-              {editingFilament?.id ? 'Edit' : 'Add'} Filament
-            </DialogTitle>
-            <DialogDescription>
-              Fill in the details for the filament.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSaveFilament} className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="filament-name" className="text-right">
-                Name
-              </Label>
-              <Input
-                id="filament-name"
-                value={editingFilament?.name || ''}
-                onChange={(e) =>
-                  setEditingFilament({
-                    ...editingFilament,
-                    name: e.target.value,
-                  })
-                }
-                className="col-span-3"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="filament-brand" className="text-right">
-                Brand
-              </Label>
-              <Input
-                id="filament-brand"
-                value={editingFilament?.brand || ''}
-                onChange={(e) =>
-                  setEditingFilament({
-                    ...editingFilament,
-                    brand: e.target.value,
-                  })
-                }
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="filament-type" className="text-right">
-                Type
-              </Label>
-              <Select
-                onValueChange={(value) =>
-                  setEditingFilament({
-                    ...editingFilament,
-                    material_type: value,
-                  })
-                }
-                value={editingFilament?.material_type}
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Select material type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PLA">PLA</SelectItem>
-                  <SelectItem value="PETG">PETG</SelectItem>
-                  <SelectItem value="ABS">ABS</SelectItem>
-                  <SelectItem value="TPU">TPU</SelectItem>
-                  <SelectItem value="ASA">ASA</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="text-right pt-2">Color</Label>
-              <div className="col-span-3">
-                <div className="flex flex-wrap gap-2">
-                  {PRESET_COLORS.map((color) => (
-                    <button
-                      key={color.hex}
-                      type="button"
-                      className={`rounded-full ${
-                        (
-                          editingFilament?.color_hex || '#FFFFFF'
-                        ).toUpperCase() === color.hex
-                          ? 'ring-2 ring-offset-2 ring-primary'
-                          : ''
-                      }`}
-                      onClick={() =>
-                        setEditingFilament({
-                          ...editingFilament,
-                          color_hex: color.hex,
-                        })
-                      }
-                      title={color.name}
+              <Fragment key={filament.id}>
+                <TableRow
+                  className={
+                    expandedFilamentId === filament.id
+                      ? 'border-b-0 bg-muted/50'
+                      : ''
+                  }
+                >
+                  <TableCell className="font-medium">
+                    <div
+                      className="flex w-full items-center justify-between gap-2 cursor-pointer hover:text-primary transition-colors"
+                      onClick={() => toggleExpand(filament.id)}
                     >
-                      {color.hex === '#000000' ? (
+                      {filament.name}
+                      {expandedFilamentId === filament.id ? (
+                        <ChevronUp className="h-3 w-3" />
+                      ) : (
+                        <ChevronDown className="h-3 w-3" />
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>{filament.brand}</TableCell>
+                  <TableCell>{filament.material_type}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      {(filament.color_hex || '#FFFFFF')
+                        .trim()
+                        .toUpperCase() === '#000000' ? (
                         <div
-                          className="h-6 w-6 rounded-full border shadow-sm"
+                          className="h-4 w-4 rounded-full border shadow-sm"
                           style={{
                             backgroundColor: 'transparent',
                             boxShadow: 'inset 0 0 0 50px #000000',
@@ -681,54 +582,375 @@ const FilamentsTab = () => {
                         />
                       ) : (
                         <Circle
-                          className="h-6 w-6"
-                          fill={color.hex}
+                          className="h-4 w-4"
+                          fill={(filament.color_hex || '#FFFFFF').trim()}
                           stroke="currentColor"
                           strokeWidth={1}
                         />
                       )}
-                    </button>
-                  ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {filament.cost_per_spool.toLocaleString()} VND
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          aria-haspopup="true"
+                          size="icon"
+                          variant="ghost"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem
+                          onClick={() => openEditDialog(filament)}
+                        >
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteFilament(filament.id)}
+                          className="text-red-600"
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+                {expandedFilamentId === filament.id && (
+                  <TableRow className="bg-muted/30 hover:bg-muted/30">
+                    <TableCell colSpan={6}>
+                      <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-muted-foreground">
+                            Technical Specs
+                          </h4>
+                          <div className="grid grid-cols-2 gap-1">
+                            <span className="text-muted-foreground">
+                              Diameter:
+                            </span>
+                            <span>{filament.diameter_mm || 'N/A'} mm</span>
+                            <span className="text-muted-foreground">
+                              Density:
+                            </span>
+                            <span>{filament.density_g_cm3 || 'N/A'} g/cm³</span>
+                            <span className="text-muted-foreground">
+                              Texture:
+                            </span>
+                            <span>{filament.texture || 'N/A'}</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-muted-foreground">
+                            Temperature
+                          </h4>
+                          <div className="grid grid-cols-2 gap-1">
+                            <span className="text-muted-foreground">
+                              Print Temp:
+                            </span>
+                            <span>
+                              {filament.print_temp_min || '?'} -{' '}
+                              {filament.print_temp_max || '?'} °C
+                            </span>
+                            <span className="text-muted-foreground">
+                              Bed Temp:
+                            </span>
+                            <span>{filament.bed_temp_min || '?'} °C</span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-muted-foreground">
+                            Inventory
+                          </h4>
+                          <div className="grid grid-cols-2 gap-1">
+                            <span className="text-muted-foreground">
+                              Stock Qty:
+                            </span>
+                            <span>{filament.stock_qty} spools</span>
+                            <span className="text-muted-foreground">
+                              Weight/Spool:
+                            </span>
+                            <span>{filament.spool_weight_g} g</span>
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </Fragment>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingFilament?.id ? 'Edit' : 'Add'} Filament
+            </DialogTitle>
+            <DialogDescription>
+              Configure technical specifications and pricing for this material.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSaveFilament} className="space-y-6 py-4">
+            {/* Group 1: Basic Info */}
+            <div className="space-y-4 rounded-md border p-4">
+              <h4 className="font-medium text-sm text-muted-foreground">
+                Basic Information
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="filament-name">Name</Label>
+                  <Input
+                    id="filament-name"
+                    value={editingFilament?.name || ''}
+                    onChange={(e) =>
+                      setEditingFilament({
+                        ...editingFilament,
+                        name: e.target.value,
+                      })
+                    }
+                    required
+                  />
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Selected: {editingFilament?.color_hex || '#FFFFFF'}
-                </p>
+                <div className="grid gap-2">
+                  <Label htmlFor="filament-brand">Brand</Label>
+                  <Input
+                    id="filament-brand"
+                    value={editingFilament?.brand || ''}
+                    onChange={(e) =>
+                      setEditingFilament({
+                        ...editingFilament,
+                        brand: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="filament-type">Type</Label>
+                  <Select
+                    onValueChange={(value) =>
+                      setEditingFilament({
+                        ...editingFilament,
+                        material_type: value,
+                      })
+                    }
+                    value={editingFilament?.material_type}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PLA">PLA</SelectItem>
+                      <SelectItem value="PETG">PETG</SelectItem>
+                      <SelectItem value="ABS">ABS</SelectItem>
+                      <SelectItem value="TPU">TPU</SelectItem>
+                      <SelectItem value="ASA">ASA</SelectItem>
+                      <SelectItem value="NYLON">Nylon</SelectItem>
+                      <SelectItem value="PC">PC</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="filament-stock">Stock Qty</Label>
+                  <Input
+                    id="filament-stock"
+                    type="number"
+                    value={editingFilament?.stock_qty || 0}
+                    onChange={(e) =>
+                      setEditingFilament({
+                        ...editingFilament,
+                        stock_qty: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="filament-cost">Cost/Spool (VND)</Label>
+                  <Input
+                    id="filament-cost"
+                    type="number"
+                    value={editingFilament?.cost_per_spool || ''}
+                    onChange={(e) =>
+                      setEditingFilament({
+                        ...editingFilament,
+                        cost_per_spool: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="filament-weight">Spool Weight (g)</Label>
+                  <Input
+                    id="filament-weight"
+                    type="number"
+                    value={editingFilament?.spool_weight_g || ''}
+                    onChange={(e) =>
+                      setEditingFilament({
+                        ...editingFilament,
+                        spool_weight_g: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="filament-cost" className="text-right">
-                Cost/Spool (VND)
-              </Label>
-              <Input
-                id="filament-cost"
-                type="number"
-                value={editingFilament?.cost_per_spool || ''}
-                onChange={(e) =>
-                  setEditingFilament({
-                    ...editingFilament,
-                    cost_per_spool: Number(e.target.value),
-                  })
-                }
-                className="col-span-3"
-              />
+
+            {/* Group 2: Technical Specs */}
+            <div className="space-y-4 rounded-md border p-4">
+              <h4 className="font-medium text-sm text-muted-foreground">
+                Technical Specifications
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="filament-density">Density (g/cm³)</Label>
+                  <Input
+                    id="filament-density"
+                    type="number"
+                    step="0.01"
+                    value={editingFilament?.density_g_cm3 || ''}
+                    onChange={(e) =>
+                      setEditingFilament({
+                        ...editingFilament,
+                        density_g_cm3: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="filament-diameter">Diameter (mm)</Label>
+                  <Input
+                    id="filament-diameter"
+                    type="number"
+                    step="0.01"
+                    value={editingFilament?.diameter_mm || ''}
+                    onChange={(e) =>
+                      setEditingFilament({
+                        ...editingFilament,
+                        diameter_mm: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="filament-bed-temp">Bed Temp (°C)</Label>
+                  <Input
+                    id="filament-bed-temp"
+                    type="number"
+                    value={editingFilament?.bed_temp_min || ''}
+                    onChange={(e) =>
+                      setEditingFilament({
+                        ...editingFilament,
+                        bed_temp_min: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="filament-print-min">
+                    Print Temp Min (°C)
+                  </Label>
+                  <Input
+                    id="filament-print-min"
+                    type="number"
+                    value={editingFilament?.print_temp_min || ''}
+                    onChange={(e) =>
+                      setEditingFilament({
+                        ...editingFilament,
+                        print_temp_min: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="filament-print-max">
+                    Print Temp Max (°C)
+                  </Label>
+                  <Input
+                    id="filament-print-max"
+                    type="number"
+                    value={editingFilament?.print_temp_max || ''}
+                    onChange={(e) =>
+                      setEditingFilament({
+                        ...editingFilament,
+                        print_temp_max: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="filament-weight" className="text-right">
-                Weight (g)
-              </Label>
-              <Input
-                id="filament-weight"
-                type="number"
-                value={editingFilament?.spool_weight_g || ''}
-                onChange={(e) =>
-                  setEditingFilament({
-                    ...editingFilament,
-                    spool_weight_g: Number(e.target.value),
-                  })
-                }
-                className="col-span-3"
-              />
+
+            {/* Group 3: Visuals */}
+            <div className="space-y-4 rounded-md border p-4">
+              <h4 className="font-medium text-sm text-muted-foreground">
+                Visual Properties
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="filament-color">Color</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="filament-color"
+                      type="color"
+                      className="w-12 h-10 p-1 cursor-pointer"
+                      value={editingFilament?.color_hex || '#FFFFFF'}
+                      onChange={(e) =>
+                        setEditingFilament({
+                          ...editingFilament,
+                          color_hex: e.target.value,
+                        })
+                      }
+                    />
+                    <Input
+                      type="text"
+                      value={editingFilament?.color_hex || '#FFFFFF'}
+                      onChange={(e) =>
+                        setEditingFilament({
+                          ...editingFilament,
+                          color_hex: e.target.value,
+                        })
+                      }
+                      className="font-mono"
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="filament-texture">Texture / Finish</Label>
+                  <Select
+                    onValueChange={(value) =>
+                      setEditingFilament({
+                        ...editingFilament,
+                        texture: value,
+                      })
+                    }
+                    value={editingFilament?.texture || 'Glossy'}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select finish" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Glossy">Glossy</SelectItem>
+                      <SelectItem value="Matte">Matte</SelectItem>
+                      <SelectItem value="Silk">Silk</SelectItem>
+                      <SelectItem value="Transparent">Transparent</SelectItem>
+                      <SelectItem value="Wood">Wood Fill</SelectItem>
+                      <SelectItem value="Carbon">Carbon Fiber</SelectItem>
+                      <SelectItem value="Glow">Glow in Dark</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
+
             <DialogFooter>
               <Button
                 type="button"
@@ -764,10 +986,10 @@ export default function PrintingSettingsPage() {
           </span>
         </nav>
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">3D Printing Management</h1>
+          <h1 className="text-2xl font-bold">3D Printing Management</h1>
           <Button asChild variant="outline">
             <Link href="/admin/printing/parts">
-              Manage Printed Parts <ArrowRight className="ml-2 h-4 w-4" />
+              Manage Parts <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>

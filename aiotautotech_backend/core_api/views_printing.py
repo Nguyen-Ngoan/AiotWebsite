@@ -54,9 +54,15 @@ def _serialize_filament(doc):
         "brand": data.get("brand", ""),
         "material_type": data.get("material_type", ""),
         "color_hex": data.get("color_hex", ""),
+        "texture": data.get("texture", ""),
         "spool_weight_g": data.get("spool_weight_g", 1000),
         "cost_per_spool": data.get("cost_per_spool", 0),
         "stock_qty": data.get("stock_qty", 0),
+        "density_g_cm3": data.get("density_g_cm3", 1.24),
+        "diameter_mm": data.get("diameter_mm", 1.75),
+        "print_temp_min": data.get("print_temp_min", 0),
+        "print_temp_max": data.get("print_temp_max", 0),
+        "bed_temp_min": data.get("bed_temp_min", 0),
         "created_at": data.get("created_at"),
         "updated_at": data.get("updated_at"),
     }
@@ -224,15 +230,25 @@ class FilamentListView(APIView):
             return Response({"error": "Name is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            density = float(data.get("density_g_cm3", 1.24))
+            if density <= 0:
+                density = 1.24
+
             now = timezone.now()
             payload = {
                 "name": data.get("name", ""),
                 "brand": data.get("brand", ""),
                 "material_type": data.get("material_type", ""),
                 "color_hex": (data.get("color_hex") or "").strip(),
+                "texture": (data.get("texture") or "").strip(),
                 "spool_weight_g": int(data.get("spool_weight_g", 1000)),
                 "cost_per_spool": int(data.get("cost_per_spool", 0)),
                 "stock_qty": int(data.get("stock_qty", 0)),
+                "density_g_cm3": density,
+                "diameter_mm": float(data.get("diameter_mm", 1.75)),
+                "print_temp_min": int(data.get("print_temp_min", 0)),
+                "print_temp_max": int(data.get("print_temp_max", 0)),
+                "bed_temp_min": int(data.get("bed_temp_min", 0)),
                 "created_at": now,
                 "updated_at": now,
             }
@@ -264,9 +280,18 @@ class FilamentDetailView(APIView):
         if "brand" in data: update_data["brand"] = data["brand"]
         if "material_type" in data: update_data["material_type"] = data["material_type"]
         if "color_hex" in data: update_data["color_hex"] = (data["color_hex"] or "").strip()
+        if "texture" in data: update_data["texture"] = (data["texture"] or "").strip()
         if "spool_weight_g" in data: update_data["spool_weight_g"] = int(data["spool_weight_g"])
         if "cost_per_spool" in data: update_data["cost_per_spool"] = int(data["cost_per_spool"])
         if "stock_qty" in data: update_data["stock_qty"] = int(data["stock_qty"])
+        if "density_g_cm3" in data:
+            d = float(data["density_g_cm3"])
+            if d > 0:
+                update_data["density_g_cm3"] = d
+        if "diameter_mm" in data: update_data["diameter_mm"] = float(data["diameter_mm"])
+        if "print_temp_min" in data: update_data["print_temp_min"] = int(data["print_temp_min"])
+        if "print_temp_max" in data: update_data["print_temp_max"] = int(data["print_temp_max"])
+        if "bed_temp_min" in data: update_data["bed_temp_min"] = int(data["bed_temp_min"])
 
         if not update_data:
             return Response({"error": "No data to update"}, status=status.HTTP_400_BAD_REQUEST)
