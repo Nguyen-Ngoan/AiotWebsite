@@ -67,6 +67,19 @@ export interface TechnicalDoc {
     machine_model?: string;
     material_type?: string;
     nozzle?: number;
+    estimated_time_min?: number;
+    filament_weight_g?: number;
+    filament_length_m?: number;
+    filament_type?: string;
+    tech_params?: {
+      layer_height?: number;
+      nozzle_diameter?: number;
+      bed_temp?: number;
+      nozzle_temp?: number;
+      infill_density?: string | number;
+      wall_loops?: number;
+      has_support?: boolean;
+    };
   };
 }
 

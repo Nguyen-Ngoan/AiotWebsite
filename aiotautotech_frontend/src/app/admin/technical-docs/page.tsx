@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, FormEvent, useMemo } from 'react';
+import { useState, useEffect, FormEvent, useMemo, Fragment } from 'react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
@@ -48,6 +48,8 @@ import {
   ChevronRight,
   Home,
   ArrowUpDown,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -73,6 +75,19 @@ interface TechnicalDoc {
     machine_model?: string;
     material_type?: string;
     nozzle?: number;
+    estimated_time_min?: number;
+    filament_weight_g?: number;
+    filament_length_m?: number;
+    filament_type?: string;
+    tech_params?: {
+      layer_height?: number;
+      nozzle_diameter?: number;
+      bed_temp?: number;
+      nozzle_temp?: number;
+      infill_density?: string | number;
+      wall_loops?: number;
+      has_support?: boolean;
+    };
   };
 }
 
@@ -92,6 +107,7 @@ export default function TechnicalDocsPage() {
     key: 'title',
     direction: 'ascending',
   });
+  const [expandedDocId, setExpandedDocId] = useState<string | null>(null);
 
   const fetchDocs = async () => {
     try {
@@ -126,6 +142,13 @@ export default function TechnicalDocsPage() {
     }
     return sortableDocs;
   }, [docs, sortConfig]);
+
+  const formatTime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = Math.round(minutes % 60);
+    if (hours > 0) return `${hours}h ${mins}m`;
+    return `${mins}m`;
+  };
 
   const handleSaveDoc = async (e: FormEvent) => {
     e.preventDefault();
@@ -209,6 +232,10 @@ export default function TechnicalDocsPage() {
     setSortConfig({ key, direction });
   };
 
+  const toggleExpand = (id: string) => {
+    setExpandedDocId(expandedDocId === id ? null : id);
+  };
+
   return (
     <>
       <Header navItems={navItems} />
@@ -238,6 +265,7 @@ export default function TechnicalDocsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-[40px]"></TableHead>
                   <TableHead className="w-[80px]">Thumbnail</TableHead>
                   <TableHead>
                     <Button
@@ -263,70 +291,202 @@ export default function TechnicalDocsPage() {
               </TableHeader>
               <TableBody>
                 {sortedDocs.map((doc) => (
-                  <TableRow key={doc.id}>
-                    <TableCell>
-                      {doc.thumbnail_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={doc.thumbnail_url}
-                          alt={doc.title}
-                          className="h-10 w-10 rounded-md border object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted">
-                          <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:underline"
-                      >
-                        {doc.title}
-                      </a>
-                      {doc.doc_type === 'gcode_file' &&
-                        doc.metadata?.machine_model && (
-                          <Badge variant="outline" className="ml-2 font-normal">
-                            {doc.metadata.machine_model}
-                          </Badge>
-                        )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {doc.doc_type}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {doc.version}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
+                  <Fragment key={doc.id}>
+                    <TableRow>
+                      <TableCell>
+                        {doc.doc_type === 'gcode_file' && doc.metadata && (
                           <Button
-                            aria-haspopup="true"
-                            size="icon"
                             variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => toggleExpand(doc.id)}
                           >
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
+                            {expandedDocId === doc.id ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => openEditDialog(doc)}>
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDeleteDoc(doc.id, doc.title)}
-                            className="text-red-600"
-                          >
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {doc.thumbnail_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={doc.thumbnail_url}
+                            alt={doc.title}
+                            className="h-10 w-10 rounded-md border object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-md border bg-muted">
+                            <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:underline"
+                        >
+                          {doc.title}
+                        </a>
+                        {doc.doc_type === 'gcode_file' &&
+                          doc.metadata?.machine_model && (
+                            <Badge
+                              variant="outline"
+                              className="ml-2 font-normal"
+                            >
+                              {doc.metadata.machine_model}
+                            </Badge>
+                          )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {doc.doc_type}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {doc.version}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              aria-haspopup="true"
+                              size="icon"
+                              variant="ghost"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem
+                              onClick={() => openEditDialog(doc)}
+                            >
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteDoc(doc.id, doc.title)}
+                              className="text-red-600"
+                            >
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                    {expandedDocId === doc.id && doc.metadata && (
+                      <TableRow className="bg-muted/30">
+                        <TableCell colSpan={6}>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 text-sm">
+                            <div className="space-y-1">
+                              <p className="text-muted-foreground text-xs uppercase font-semibold">
+                                Machine
+                              </p>
+                              <p className="font-medium">
+                                {doc.metadata.machine_model || 'N/A'}
+                              </p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-muted-foreground text-xs uppercase font-semibold">
+                                Print Time
+                              </p>
+                              <p className="font-medium">
+                                {doc.metadata.estimated_time_min
+                                  ? formatTime(doc.metadata.estimated_time_min)
+                                  : 'N/A'}
+                              </p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-muted-foreground text-xs uppercase font-semibold">
+                                Filament
+                              </p>
+                              <p className="font-medium">
+                                {doc.metadata.filament_weight_g
+                                  ? `${doc.metadata.filament_weight_g.toFixed(
+                                      1
+                                    )}g`
+                                  : 'N/A'}
+                                {doc.metadata.filament_length_m
+                                  ? ` / ${doc.metadata.filament_length_m.toFixed(
+                                      2
+                                    )}m`
+                                  : ''}
+                                {doc.metadata.filament_type
+                                  ? ` (${doc.metadata.filament_type})`
+                                  : ''}
+                              </p>
+                            </div>
+                            {doc.metadata.tech_params && (
+                              <>
+                                <div className="space-y-1">
+                                  <p className="text-muted-foreground text-xs uppercase font-semibold">
+                                    Layer Height
+                                  </p>
+                                  <p className="font-medium">
+                                    {doc.metadata.tech_params.layer_height
+                                      ? `${doc.metadata.tech_params.layer_height}mm`
+                                      : 'N/A'}
+                                  </p>
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-muted-foreground text-xs uppercase font-semibold">
+                                    Nozzle Diameter
+                                  </p>
+                                  <p className="font-medium">
+                                    {doc.metadata.tech_params.nozzle_diameter
+                                      ? `${doc.metadata.tech_params.nozzle_diameter}mm`
+                                      : 'N/A'}
+                                  </p>
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-muted-foreground text-xs uppercase font-semibold">
+                                    Wall Loops
+                                  </p>
+                                  <p className="font-medium">
+                                    {doc.metadata.tech_params.wall_loops ||
+                                      'N/A'}
+                                  </p>
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-muted-foreground text-xs uppercase font-semibold">
+                                    Nozzle/Bed Temp
+                                  </p>
+                                  <p className="font-medium">
+                                    {doc.metadata.tech_params.nozzle_temp ||
+                                      '?'}
+                                    /{doc.metadata.tech_params.bed_temp || '?'}{' '}
+                                    °C
+                                  </p>
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-muted-foreground text-xs uppercase font-semibold">
+                                    Infill
+                                  </p>
+                                  <p className="font-medium">
+                                    {doc.metadata.tech_params.infill_density ||
+                                      'N/A'}
+                                  </p>
+                                </div>
+                                <div className="space-y-1">
+                                  <p className="text-muted-foreground text-xs uppercase font-semibold">
+                                    Support
+                                  </p>
+                                  <p className="font-medium">
+                                    {doc.metadata.tech_params.has_support
+                                      ? 'Yes'
+                                      : 'No'}
+                                  </p>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </Fragment>
                 ))}
               </TableBody>
             </Table>

@@ -894,10 +894,14 @@ class TechnicalDocListView(APIView):
                     file.seek(0)  # IMPORTANT: Reset file pointer for main upload
                     
                     parser = GcodeParser(content)
-                    thumb_data = parser.extract_thumbnail()
+                    parsed_result = parser.parse()
+                    
+                    # Cập nhật metadata từ G-code
+                    metadata.update(parsed_result.get("metadata", {}))
 
-                    if thumb_data:
-                        thumb_bytes, thumb_ext = thumb_data
+                    if parsed_result.get("thumbnail_bytes"):
+                        thumb_bytes = parsed_result["thumbnail_bytes"]
+                        thumb_ext = parsed_result["thumbnail_ext"]
                         thumb_file = ContentFile(thumb_bytes, name=f"{uuid.uuid4()}.{thumb_ext}")
                         
                         thumbnail_r2_key = f"technical_docs/thumbnails/{uuid.uuid4()}.{thumb_ext}"
@@ -972,6 +976,8 @@ class TechnicalDocDetailView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         update_data = serializer.validated_data
+        new_file = update_data.pop('file', None)
+        new_thumbnail_file = update_data.pop('thumbnail_file', None)
         update_data["updated_at"] = timezone.now()
 
         # --- Metadata Update ---
@@ -985,36 +991,68 @@ class TechnicalDocDetailView(APIView):
             except Exception as e:
                 print(f"Metadata parsing error on PUT: {e}")
 
-        # Xử lý upload file mới (nếu có) để cập nhật thumbnail cho G-code
-        file = request.FILES.get("file")
+        # Xử lý upload file mới (nếu có)
+        file = new_file or request.FILES.get("file")
         current_doc_type = update_data.get("doc_type") or doc_snapshot.to_dict().get("doc_type")
 
-        if file and current_doc_type == "gcode_file":
+        if file:
              try:
-                content = file.read()
-                file.seek(0)
-                
-                parser = GcodeParser(content)
-                thumb_data = parser.extract_thumbnail()
+                session = boto3.session.Session()
+                s3 = session.client(
+                    "s3",
+                    endpoint_url=f"https://{settings.R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
+                    aws_access_key_id=settings.R2_ACCESS_KEY_ID,
+                    aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
+                )
 
-                if thumb_data:
-                    thumb_bytes, thumb_ext = thumb_data
-                    thumb_file = ContentFile(thumb_bytes, name=f"{uuid.uuid4()}.{thumb_ext}")
+                # 1. Upload main file
+                original_file_extension = os.path.splitext(file.name)[1]
+                r2_key = f"technical_docs/files/{uuid.uuid4()}{original_file_extension}"
+                s3.upload_fileobj(file, settings.R2_BUCKET_NAME, r2_key, ExtraArgs={"ContentType": file.content_type})
+                
+                update_data["url"] = f"{settings.CDN_URL}/{r2_key}"
+                update_data["r2_key"] = r2_key
+                update_data["file_size"] = file.size
+
+                # 2. Nếu là G-code, trích xuất metadata và thumbnail
+                if current_doc_type == "gcode_file":
+                    if not file.name.lower().endswith(('.gcode', '.gco', '.g')):
+                        return Response({"error": "Invalid file extension for G-code."}, status=400)
                     
-                    thumbnail_r2_key = f"technical_docs/thumbnails/{uuid.uuid4()}.{thumb_ext}"
-                    s3 = boto3.client(
-                        "s3",
-                        endpoint_url=f"https://{settings.R2_ACCOUNT_ID}.r2.cloudflarestorage.com",
-                        aws_access_key_id=settings.R2_ACCESS_KEY_ID,
-                        aws_secret_access_key=settings.R2_SECRET_ACCESS_KEY,
-                    )
-                    s3.upload_fileobj(thumb_file, settings.R2_BUCKET_NAME, thumbnail_r2_key, ExtraArgs={"ContentType": f"image/{thumb_ext}"})
-                    update_data["thumbnail_url"] = f"{settings.CDN_URL}/{thumbnail_r2_key}"
+                    file.seek(0)
+                    content = file.read()
+                    
+                    parser = GcodeParser(content)
+                    parsed_result = parser.parse()
+                    
+                    # Cập nhật metadata (hợp nhất với metadata hiện tại)
+                    extracted_meta = parsed_result.get("metadata", {})
+                    current_meta = update_data.get("metadata", doc_snapshot.to_dict().get("metadata", {}))
+                    current_meta.update(extracted_meta)
+                    update_data["metadata"] = current_meta
+
+                    # Xử lý thumbnail từ G-code
+                    if parsed_result.get("thumbnail_bytes"):
+                        thumb_bytes = parsed_result["thumbnail_bytes"]
+                        thumb_ext = parsed_result["thumbnail_ext"]
+                        thumb_file = ContentFile(thumb_bytes, name=f"{uuid.uuid4()}.{thumb_ext}")
+                        
+                        thumbnail_r2_key = f"technical_docs/thumbnails/{uuid.uuid4()}.{thumb_ext}"
+                        s3.upload_fileobj(
+                            thumb_file, 
+                            settings.R2_BUCKET_NAME, 
+                            thumbnail_r2_key, 
+                            ExtraArgs={"ContentType": f"image/{thumb_ext}"}
+                        )
+                        update_data["thumbnail_url"] = f"{settings.CDN_URL}/{thumbnail_r2_key}"
+                
+                # Reset pointer nếu cần dùng tiếp (dù ở đây là cuối block)
+                file.seek(0)
              except Exception as e:
-                print(f"G-code thumbnail extraction failed on PUT: {e}")
+                print(f"File upload or G-code parsing failed on PUT: {e}")
 
         # Xử lý upload thumbnail mới nếu có
-        thumbnail_file = update_data.get("thumbnail_file")
+        thumbnail_file = new_thumbnail_file
         if thumbnail_file:
             try:
                 session = boto3.session.Session()
