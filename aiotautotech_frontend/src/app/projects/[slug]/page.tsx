@@ -82,6 +82,21 @@ export default async function ProjectDetailPage({
             {/* Title Section */}
             <ProjectHeader project={project} />
 
+            {/* Status & Tags */}
+            <div className="flex flex-wrap items-center gap-2 mb-6">
+              <span className="px-2 py-1 bg-blue-600 text-white text-[10px] font-bold rounded uppercase tracking-wider">
+                {project.status || 'PROTOTYPE'}
+              </span>
+              {project.tags?.map((tag: string) => (
+                <span
+                  key={tag}
+                  className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded hover:bg-gray-200 transition-colors"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+
             {/* Media Slider (Video + Gallery) */}
             {hasMedia && <ProjectMediaSlider project={project} />}
 
@@ -117,10 +132,45 @@ export default async function ProjectDetailPage({
                 </span>
               )}
               <span title="Tác giả">Tác giả: AiotAutotech</span>
-              {project.complexity_mechanical && (
-                <span className="px-2 py-0.5 bg-gray-100 rounded text-xs">
-                  Độ khó: {project.complexity_mechanical}/3
+
+              {/* Complexities */}
+              <div className="flex gap-2">
+                {(project.complexity_mechanical ?? 0) > 0 && (
+                  <span
+                    className="px-2 py-0.5 bg-gray-100 rounded text-[10px]"
+                    title="Độ khó cơ khí"
+                  >
+                    Cơ khí: {project.complexity_mechanical}/5
+                  </span>
+                )}
+                {(project.complexity_electrical ?? 0) > 0 && (
+                  <span
+                    className="px-2 py-0.5 bg-gray-100 rounded text-[10px]"
+                    title="Độ khó điện tử"
+                  >
+                    Điện tử: {project.complexity_electrical}/5
+                  </span>
+                )}
+                {(project.complexity_software ?? 0) > 0 && (
+                  <span
+                    className="px-2 py-0.5 bg-gray-100 rounded text-[10px]"
+                    title="Độ khó phần mềm"
+                  >
+                    Lập trình: {project.complexity_software}/5
+                  </span>
+                )}
+              </div>
+
+              {(project.estimated_hours ?? 0) > 0 && (
+                <span title="Thời gian thực hiện dự kiến">
+                  Ước tính: ~{project.estimated_hours}h
                 </span>
+              )}
+
+              {(project.required_skills?.length ?? 0) > 0 && (
+                <div className="w-full mt-2 text-[11px] text-gray-400 italic">
+                  Kỹ năng cần thiết: {project.required_skills?.join(', ')}
+                </div>
               )}
             </div>
           </main>

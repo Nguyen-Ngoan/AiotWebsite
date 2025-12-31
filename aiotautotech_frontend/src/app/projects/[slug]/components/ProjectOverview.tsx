@@ -12,13 +12,20 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({
 }) => {
   return (
     <section id="overview" className="mb-6 scroll-mt-20">
-      <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <span className="text-gray-400 font-mono">1.</span> GIỚI THIỆU
-      </h2>
       <div className="prose prose-slate max-w-none text-gray-700">
-        <p className="lead whitespace-pre-line">
-          {project.problem_statement || project.description}
-        </p>
+        {project.description && (
+          <p className="whitespace-pre-line">{project.description}</p>
+        )}
+        {project.problem_statement && (
+          <>
+            <h3 className="text-md font-bold text-gray-900 mb-1 mt-6 flex items-center gap-2">
+              NHU CẦU
+            </h3>
+            <p className="lead whitespace-pre-line mb-4">
+              {project.problem_statement}
+            </p>
+          </>
+        )}
       </div>
     </section>
   );

@@ -20,7 +20,7 @@ export const ProjectSolution: React.FC<ProjectSolutionProps> = ({
   return (
     <section id="solution" className="mb-6 scroll-mt-20">
       <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <span className="text-gray-400 font-mono">2.</span> PHÂN TÍCH DỰ ÁN
+        <span className="text-gray-400 font-mono">1.</span> PHÂN TÍCH DỰ ÁN
         {isAdmin && (
           <Link
             href={`/admin/projects/${project.slug}/solution`}
@@ -30,26 +30,6 @@ export const ProjectSolution: React.FC<ProjectSolutionProps> = ({
           </Link>
         )}
       </h2>
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-2 mb-4">
-        {/* Image as Diagram */}
-        {project.block_diagram_url || project.thumbnail_url ? (
-          <div className="relative aspect-video w-full overflow-hidden rounded bg-white">
-            <Image
-              src={project.block_diagram_url || project.thumbnail_url || ''}
-              alt="System Diagram"
-              fill
-              className="object-contain cursor-zoom-in"
-            />
-          </div>
-        ) : (
-          <div className="h-64 flex items-center justify-center text-gray-400 italic">
-            No system diagram available.
-          </div>
-        )}
-      </div>
-      <p className="text-sm text-gray-500 italic text-center font-mono">
-        Figure 1: System Architecture & Design Overview
-      </p>
 
       {project.solution_analysis && (
         <DetailedAnalysisPanel htmlContent={project.solution_analysis} />

@@ -164,7 +164,6 @@ def _serialize_material(doc):
         "updated_at": data.get("updated_at"),
     }
 
-
 def create_stl_thumbnail(stl_file_path):
     """
     Tạo ảnh thumbnail từ file STL và trả về dưới dạng bytes.
@@ -1577,6 +1576,7 @@ class ProjectStepsUpdateView(APIView):
             print(f"Unexpected error in ProjectStepsUpdateView for project {project_id}: {e}")
             return Response({"error": "An unexpected server error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 class ProjectThumbnailUploadView(APIView):
     """
     POST /api/projects/<project_id>/thumbnail/ -> Upload ảnh đại diện dự án
@@ -1734,6 +1734,7 @@ class ProjectImageUploadView(APIView):
         except Exception as e:
             print("Project Image Upload error:", e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class ProjectImageDeleteView(APIView):
     def delete(self, request, project_id: str):

@@ -19,7 +19,7 @@ export const ProjectImplementationLog: React.FC<
   return (
     <section id="implementation" className="mb-6 scroll-mt-20">
       <h2 className="group text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-        <span className="text-gray-400 font-mono">3.</span> CÁC BƯỚC THỰC HIỆN
+        <span className="text-gray-400 font-mono">2.</span> CÁC BƯỚC THỰC HIỆN
         {isAdmin && (
           <Link
             href={`/admin/projects/${project.slug}/steps`}
