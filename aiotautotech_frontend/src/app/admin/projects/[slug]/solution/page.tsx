@@ -82,7 +82,7 @@ export default function EditProjectSolutionPage() {
       <header className="bg-white shadow-sm sticky top-0 z-30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 min-w-0 mr-2">
               <Link
                 href={`/projects/${slug}`}
                 className="text-gray-500 hover:text-gray-800"
@@ -90,17 +90,19 @@ export default function EditProjectSolutionPage() {
               >
                 <ArrowLeftIcon className="h-5 w-5" />
               </Link>
-              <div>
-                <h1 className="text-lg font-semibold text-gray-900">
-                  Chỉnh sửa Phân tích Giải pháp
+              <div className="min-w-0">
+                <h1 className="text-lg font-semibold text-gray-900 truncate">
+                  Edit: Phân tích Giải pháp
                 </h1>
                 <p className="text-sm text-gray-500 truncate">
                   Dự án: {project?.title}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              {error && <p className="text-sm text-red-600">{error}</p>}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {error && (
+                <p className="hidden sm:block text-sm text-red-600">{error}</p>
+              )}
               {successMessage && (
                 <p className="text-sm text-green-600">{successMessage}</p>
               )}
@@ -109,7 +111,7 @@ export default function EditProjectSolutionPage() {
                 disabled={isSaving}
                 className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
+                {isSaving ? 'Saving...' : 'Save'}
               </button>
             </div>
           </div>

@@ -155,16 +155,8 @@ export default function EditPostPage() {
     <div className="min-h-screen bg-apple-gray dark:bg-apple-gray-dark dark:text-apple-text-dark">
       <Header navItems={navItems} />
 
-      <main className="pt-20 pb-16">
-        <div className="mx-auto max-w-4xl px-4">
-          <h1 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Chỉnh sửa bài viết
-          </h1>
-          <p className="mb-6 text-sm text-gray-600 dark:text-gray-300">
-            Cập nhật nội dung cho bài:{' '}
-            <span className="font-semibold">{post.title}</span>
-          </p>
-
+      <main className="pt-14 pb-4">
+        <div className="mx-auto max-w-4xl px-2 sm:px-4">
           {error && (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
               {error}
@@ -172,6 +164,15 @@ export default function EditPostPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Editor */}
+            <div>
+              {/* Chỉ render editor khi đã có contentHtml (sau khi load xong) */}
+              <PostEditor
+                initialContent={contentHtml}
+                onChange={setContentHtml}
+              />
+            </div>
+
             {/* Tiêu đề */}
             <div>
               <label className="mb-1 block text-sm font-medium text-gray-800 dark:text-gray-200">
@@ -201,32 +202,13 @@ export default function EditPostPage() {
               </div>
             </div>
 
-            {/* Editor */}
-            <div>
-              {/* Nếu sau này bạn muốn bỏ text này thì chỉ cần xoá label */}
-              <label className="mb-2 block text-sm font-medium text-gray-800 dark:text-gray-200">
-                Nội dung bài viết
-              </label>
-
-              {/* Chỉ render editor khi đã có contentHtml (sau khi load xong) */}
-              <PostEditor
-                initialContent={contentHtml}
-                onChange={setContentHtml}
-              />
-
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                Bạn có thể dùng tiêu đề (H1–H3), danh sách, in đậm, in nghiêng,
-                chèn ảnh (URL) và bảng (table).
-              </p>
-            </div>
-
-            <div className="pt-4 flex gap-3">
+            <div className="pt-2 flex gap-3">
               <button
                 type="submit"
                 disabled={saving}
                 className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-500 disabled:opacity-60"
               >
-                {saving ? 'Đang lưu...' : 'Lưu thay đổi'}
+                {saving ? 'Đang lưu...' : 'Save'}
               </button>
 
               <button
@@ -234,14 +216,12 @@ export default function EditPostPage() {
                 onClick={() => router.push(`/blog/${id}`)}
                 className="inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-[#222]"
               >
-                Huỷ
+                Cancel
               </button>
             </div>
           </form>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }
