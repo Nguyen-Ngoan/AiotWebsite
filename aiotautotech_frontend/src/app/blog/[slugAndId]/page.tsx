@@ -216,17 +216,17 @@ export default function BlogDetailPage() {
     <div className="min-h-screen flex flex-col bg-black text-gray-100">
       <Header navItems={navItems} />
 
-      <main className="flex-1 pt-16 pb-20 px-6 sm:px-8">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-gray-900 via-black to-black" />
+      <main className="flex-1 pt-16 pb-16 px-6 sm:px-8">
+        {/* <div className="absolute inset-0 -z-10 bg-gradient-to-b from-gray-900 via-black to-black" /> */}
 
         <article className="mx-auto w-full max-w-3xl">
           {/* breadcrumb + actions */}
           <div className="mb-6 flex items-center justify-between gap-4">
             <Link
-              href="/#blog"
+              href="/blog"
               className="inline-flex items-center text-xs font-semibold text-blue-400 hover:text-blue-300"
             >
-              ← Quay lại blog
+              ← Blog • AIOT AUTOTECH
             </Link>
 
             <div className="flex items-center gap-2">
@@ -234,7 +234,7 @@ export default function BlogDetailPage() {
                 href={`/admin/posts/${post.id}/edit`}
                 className="inline-flex items-center rounded-full border border-gray-700 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-200 hover:bg-gray-900/80"
               >
-                Sửa
+                Edit
               </Link>
               <button
                 type="button"
@@ -247,13 +247,8 @@ export default function BlogDetailPage() {
             </div>
           </div>
 
-          {/* label nhỏ */}
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-            Blog • AIOT AUTOTECH
-          </p>
-
           {/* title */}
-          <h1 className="mb-3 text-3xl sm:text-4xl font-semibold text-gray-50 leading-tight">
+          <h1 className="mb-3 text-xl sm:text-2xl font-semibold text-gray-50 leading-tight">
             {post.title}
           </h1>
 
@@ -265,7 +260,7 @@ export default function BlogDetailPage() {
                 {' • '}
               </>
             )}
-            Tác giả{' '}
+            Tác giả:{' '}
             <span className="font-medium text-gray-200">
               {post.author || 'Ẩn danh'}
             </span>
@@ -283,16 +278,16 @@ export default function BlogDetailPage() {
               [&_p]:not-italic
               [&_li]:not-italic
 
-              [&_p]:my-4
+              [&_p]:my-2
               [&_p:first-of-type]:mt-0
 
-              [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:mt-8 [&_h1]:mb-3
-              [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mt-8 [&_h2]:mb-3
-              [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:mt-6 [&_h3]:mb-2
-              [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mt-5 [&_h4]:mb-2
+              [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:mt-6 [&_h1]:mb-3
+              [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mt-5 [&_h2]:mb-3 [&_h2]:text-[#80a2ff]
+              [&_h3]:text-md [&_h3]:font-bold [&_h3]:mt-4 [&_h3]:mb-2 [&_h3]:text-[#8046f3]
+              [&_h4]:text-base [&_h4]:font-semibold [&_h4]:mt-3 [&_h4]:mb-2
 
-              [&_ul]:my-4 [&_ul]:list-disc [&_ul]:pl-5
-              [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:pl-5
+              [&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5
+              [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5
               [&_li]:my-1
 
               [&_a]:text-blue-400 [&_a]:underline-offset-2 [&_a]:hover:text-blue-300 [&_a]:hover:underline

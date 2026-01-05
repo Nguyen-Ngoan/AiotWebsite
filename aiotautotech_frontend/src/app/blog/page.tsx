@@ -133,8 +133,8 @@ export default function BlogPage() {
           </nav>
 
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-              Blog Kỹ thuật
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900">
+              BLOG KỸ THUẬT
             </h1>
             <Link
               href="/admin/posts/new"
@@ -145,7 +145,7 @@ export default function BlogPage() {
             </Link>
           </div>
 
-          <p className="mt-2 text-lg text-gray-600">
+          <p className="mt-2 text-md text-gray-600">
             Kiến thức, ghi chép và các dự án về IoT, DIY và Tự động hóa.
           </p>
 

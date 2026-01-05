@@ -153,9 +153,7 @@ export default function EditPostPage() {
 
   return (
     <div className="min-h-screen bg-apple-gray dark:bg-apple-gray-dark dark:text-apple-text-dark">
-      <Header navItems={navItems} />
-
-      <main className="pt-14 pb-4">
+      <main className="pt-2 pb-4">
         <div className="mx-auto max-w-4xl px-2 sm:px-4">
           {error && (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">

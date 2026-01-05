@@ -206,50 +206,8 @@ export default function ProjectForm({
           value={formData.title}
           onChange={handleChange}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
-          placeholder="Ví dụ: Cánh tay robot 4 bậc tự do"
+          // placeholder="Ví dụ: Cánh tay robot 4 bậc tự do"
         />
-      </div>
-
-      {/* Version & Status */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div>
-          <label
-            htmlFor="version"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Phiên bản (Version)
-          </label>
-          <input
-            type="text"
-            name="version"
-            id="version"
-            value={formData.version}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
-            placeholder="v1.0"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="status"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Trạng thái
-          </label>
-          <select
-            name="status"
-            id="status"
-            value={formData.status}
-            onChange={handleChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
-          >
-            <option value="CONCEPT">Concept (Ý tưởng)</option>
-            <option value="PROTOTYPE">Prototype (Mẫu thử)</option>
-            <option value="STABLE">Stable (Ổn định)</option>
-            <option value="DEPRECATED">Deprecated (Ngưng hỗ trợ)</option>
-          </select>
-        </div>
       </div>
 
       {/* Slug */}
@@ -267,7 +225,7 @@ export default function ProjectForm({
             id="slug"
             value={formData.slug}
             onChange={handleChange}
-            placeholder="canh-tay-robot-4-bac-tu-do"
+            // placeholder="canh-tay-robot-4-bac-tu-do"
             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2 pr-10"
           />
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
@@ -326,6 +284,48 @@ export default function ProjectForm({
             {slugMessage}
           </p>
         )}
+      </div>
+
+      {/* Version & Status */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div>
+          <label
+            htmlFor="version"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Phiên bản (Version)
+          </label>
+          <input
+            type="text"
+            name="version"
+            id="version"
+            value={formData.version}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+            placeholder="v1.0"
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="status"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Trạng thái
+          </label>
+          <select
+            name="status"
+            id="status"
+            value={formData.status}
+            onChange={handleChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border p-2"
+          >
+            <option value="CONCEPT">Concept (Ý tưởng)</option>
+            <option value="PROTOTYPE">Prototype (Mẫu thử)</option>
+            <option value="STABLE">Stable (Ổn định)</option>
+            <option value="DEPRECATED">Deprecated (Ngưng hỗ trợ)</option>
+          </select>
+        </div>
       </div>
 
       {/* Description */}

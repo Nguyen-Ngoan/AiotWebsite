@@ -44,12 +44,12 @@ export default function BlogSection({ posts }: BlogSectionProps) {
             Blog
           </p>
           <h2 className="mb-3 text-2xl font-semibold leading-tight text-gray-900 dark:text-gray-100 sm:text-3xl">
-            KINH NGHIỆM LẬP TRÌNH – DIY
+            KINH NGHIỆM LẬP TRÌNH
             <br />
-            TỰ ĐỘNG HOÁ
+            DIY - TỰ ĐỘNG HOÁ
           </h2>
           <p className="mx-auto max-w-2xl text-sm leading-relaxed text-gray-600 dark:text-gray-400 sm:text-base">
-            Chia sẻ kinh nghiệm về ESP32, điều khiển động cơ bước. Thiết kế chế
+            Tổng kết kinh nghiệm về ESP32, điều khiển động cơ bước. Thiết kế chế
             tạo chi tiết máy bằng cách in 3D Các dự án tự động hoá giá rẻ ứng
             dụng trong xưởng sản xuất nhỏ.
           </p>

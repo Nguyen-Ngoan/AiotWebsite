@@ -27,20 +27,17 @@ export default function NewProjectPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl py-8 px-4 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-4xl py-4 px-4 sm:px-6 lg:px-8">
       <div className="md:flex md:items-center md:justify-between mb-6">
         <div className="min-w-0 flex-1">
           <h2 className="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
-            Tạo dự án mới
+            Create New Project
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Điền thông tin cơ bản để bắt đầu một dự án DIY mới.
-          </p>
         </div>
       </div>
 
       {error && (
-        <div className="mb-6 rounded-md bg-red-50 p-4 border border-red-200">
+        <div className="mb-6 rounded-md bg-red-50 px-4 py-2 border border-red-200">
           <div className="flex">
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800">Lỗi</h3>
