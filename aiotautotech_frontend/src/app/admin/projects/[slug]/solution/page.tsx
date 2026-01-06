@@ -118,12 +118,12 @@ export default function EditProjectSolutionPage() {
         </div>
       </header>
 
-      <main className="p-4 sm:p-6 lg:p-8">
+      <main className="p-1 sm:p-4 lg:p-8">
         <div className="mx-auto max-w-4xl">
           <PostEditor
             initialContent={content}
             onChange={(html) => setContent(html)}
-            placeholder="Nhập nội dung phân tích giải pháp tại đây. Bạn có thể sử dụng Markdown hoặc các công cụ định dạng..."
+            // placeholder="Nhập nội dung phân tích giải pháp tại đây. Bạn có thể sử dụng Markdown hoặc các công cụ định dạng..."
           />
         </div>
       </main>
