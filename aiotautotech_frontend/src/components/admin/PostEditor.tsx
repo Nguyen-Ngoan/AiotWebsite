@@ -128,6 +128,22 @@ const IconImage = () => (
   </svg>
 );
 
+const IconCode = () => (
+  <svg
+    className="h-4 w-4"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="16 18 22 12 16 6" />
+    <polyline points="8 6 2 12 8 18" />
+  </svg>
+);
+
 const IconSymbol = () => (
   <svg
     className="h-4 w-4"
@@ -451,6 +467,14 @@ export default function PostEditor({
             </button>
             <button
               type="button"
+              onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+              className={iconButtonClass(editor.isActive('codeBlock'))}
+            >
+              <IconCode />
+              <span className="sr-only">Code block</span>
+            </button>
+            <button
+              type="button"
               onClick={insertCite}
               className={iconButtonClass(false)}
             >
@@ -584,6 +608,10 @@ export default function PostEditor({
               [&_table]:block
               [&_table]:overflow-x-auto
               [&_table]:whitespace-nowrap
+
+              [&_pre]:bg-[#1e1e1e] [&_pre]:text-gray-100 [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_pre]:my-4
+              [&_code]:font-mono [&_code]:text-sm
+              [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit
             `}
         />
       </div>

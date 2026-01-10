@@ -8,6 +8,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { getApiUrl } from '@/lib/apiConfig';
 import { navItems } from '@/components/layout/nav-items';
+import 'highlight.js/styles/vs2015.css';
 
 interface Post {
   id: string;
@@ -76,7 +77,7 @@ export default function BlogDetailPage() {
     fetchPost();
   }, [id]);
 
-  // KaTeX auto-render: dynamic import để tránh lỗi module
+  // KaTeX & Highlight.js auto-render: dynamic import
   useEffect(() => {
     if (!post || !contentRef.current) return;
 
@@ -84,13 +85,17 @@ export default function BlogDetailPage() {
 
     (async () => {
       try {
-        // dynamic import để tương thích ESM/CJS
+        // 1. Load KaTeX
         const katexModule = await import('katex/contrib/auto-render');
         const renderMathInElement =
           // một số phiên bản export default
           (katexModule as any).default ??
           // một số phiên bản export named
           (katexModule as any).renderMathInElement;
+
+        // 2. Load Highlight.js
+        const hljsModule = await import('highlight.js');
+        const hljs = hljsModule.default;
 
         if (cancelled) return;
 
@@ -103,6 +108,7 @@ export default function BlogDetailPage() {
         }
 
         if (contentRef.current) {
+          // Render Math
           renderMathInElement(contentRef.current, {
             delimiters: [
               { left: '$$', right: '$$', display: true },
@@ -112,10 +118,65 @@ export default function BlogDetailPage() {
             ],
             throwOnError: false,
           });
+
+          // Highlight Code & Add Copy Button
+          contentRef.current.querySelectorAll('pre').forEach((preBlock) => {
+            // 1. Highlight code
+            const codeBlock = preBlock.querySelector('code');
+            if (codeBlock) {
+              hljs.highlightElement(codeBlock as HTMLElement);
+            }
+
+            // 2. Add Copy Button (Wrapper pattern)
+            if (preBlock.parentElement?.classList.contains('code-wrapper'))
+              return;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'code-wrapper relative group my-4';
+
+            preBlock.parentNode?.insertBefore(wrapper, preBlock);
+            wrapper.appendChild(preBlock);
+            (preBlock as HTMLElement).style.margin = '0'; // Reset margin handled by wrapper
+
+            const btn = document.createElement('button');
+            btn.className =
+              'absolute top-2 right-2 p-1.5 rounded bg-gray-700/50 hover:bg-gray-600 text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:opacity-100';
+            btn.setAttribute('aria-label', 'Copy code');
+            btn.innerHTML = `
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            `;
+
+            btn.addEventListener('click', () => {
+              const text = codeBlock
+                ? (codeBlock as HTMLElement).innerText
+                : (preBlock as HTMLElement).innerText;
+              navigator.clipboard.writeText(text).then(() => {
+                btn.innerHTML = `
+                  <svg class="h-4 w-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                `;
+                setTimeout(() => {
+                  btn.innerHTML = `
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  `;
+                }, 2000);
+              });
+            });
+
+            wrapper.appendChild(btn);
+          });
         }
       } catch (err) {
         if (!cancelled) {
-          console.error('Error loading KaTeX auto-render:', err);
+          console.error(
+            'Error loading external libs (KaTeX/Highlight.js):',
+            err
+          );
         }
       }
     })();
@@ -325,7 +386,12 @@ export default function BlogDetailPage() {
               /* Đảm bảo bảng có thể cuộn ngang mà không làm vỡ layout */
               [&_table]:block
               [&_table]:max-w-full
-              [&_table]:overflow-x-auto              
+              [&_table]:overflow-x-auto
+
+              /* CODE BLOCK */
+              [&_pre]:bg-[#1e1e1e] [&_pre]:text-gray-100 [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_pre]:my-4
+              [&_code]:font-mono [&_code]:text-sm
+              [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit
             `}
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
