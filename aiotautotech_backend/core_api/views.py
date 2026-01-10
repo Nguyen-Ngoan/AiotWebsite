@@ -14,7 +14,7 @@ from .utils import slugify, GcodeParser
 from .serializers import ProductImageUploadSerializer, TechnicalDocSerializer
 from storage.r2 import upload_file_to_r2, generate_image_key, delete_files_from_r2
 from services.firestore_products import add_product_image_metadata
-from services.firestore_projects import ProjectService, ProjectData, InstructionStep
+from services.firestore_projects import ProjectService, ProjectData, InstructionStep, PlaybookService, PromptPlaybookData, PromptItem
 from .models import Product, Material
 from django.core.files.base import ContentFile
 
@@ -33,6 +33,7 @@ from django.conf import settings
 
 # Khởi tạo Project Service
 project_service = ProjectService()
+playbook_service = PlaybookService()
 
 
 def _serialize_post(doc):
@@ -1772,3 +1773,91 @@ class ProjectImageDeleteView(APIView):
         except Exception as e:
             print(f"Error calling R2 deletion for project {project_id}: {e}")
             return Response({"error": "Failed to delete files from storage."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ==============================================================================
+# PROMPT PLAYBOOK VIEWS
+# ==============================================================================
+
+class ProjectPlaybookListView(APIView):
+    """
+    GET /api/projects/<project_id>/playbooks/ -> Lấy danh sách playbook của dự án
+    POST /api/projects/<project_id>/playbooks/ -> Tạo playbook mới
+    """
+    def get(self, request, project_id):
+        try:
+            playbooks = playbook_service.get_playbooks_by_project(project_id)
+            return Response(playbooks)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, project_id):
+        data = request.data
+        try:
+            # Parse danh sách prompts
+            prompts_raw = data.get("prompts", [])
+            prompts = [
+                PromptItem(
+                    stage=p.get("stage", "CONCEPT"),
+                    title=p.get("title", ""),
+                    content=p.get("content", ""),
+                    variables=p.get("variables", []),
+                    include_project_context=p.get("include_project_context", True)
+                ) for p in prompts_raw
+            ]
+            
+            playbook_data = PromptPlaybookData(
+                topic_name=data.get("topic_name", ""),
+                domain=data.get("domain", "FIRMWARE"),
+                prompts=prompts
+            )
+            
+            result = playbook_service.create_playbook(project_id, playbook_data)
+            return Response(result, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProjectPlaybookDetailView(APIView):
+    """
+    GET /api/projects/<project_id>/playbooks/<playbook_id>/ -> Chi tiết playbook
+    PUT /api/projects/<project_id>/playbooks/<playbook_id>/ -> Cập nhật playbook
+    DELETE /api/projects/<project_id>/playbooks/<playbook_id>/ -> Xóa playbook
+    """
+    def get(self, request, project_id, playbook_id):
+        playbook = playbook_service.get_playbook_detail(project_id, playbook_id)
+        if not playbook:
+            return Response({"error": "Playbook not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(playbook)
+
+    def put(self, request, project_id, playbook_id):
+        data = request.data
+        try:
+            prompts_raw = data.get("prompts", [])
+            prompts = [
+                PromptItem(
+                    stage=p.get("stage", "CONCEPT"),
+                    title=p.get("title", ""),
+                    content=p.get("content", ""),
+                    variables=p.get("variables", []),
+                    include_project_context=p.get("include_project_context", True)
+                ) for p in prompts_raw
+            ]
+            
+            playbook_data = PromptPlaybookData(
+                topic_name=data.get("topic_name", ""),
+                domain=data.get("domain", "FIRMWARE"),
+                prompts=prompts
+            )
+            
+            result = playbook_service.update_playbook(project_id, playbook_id, playbook_data)
+            return Response(result)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, project_id, playbook_id):
+        try:
+            playbook_service.delete_playbook(project_id, playbook_id)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

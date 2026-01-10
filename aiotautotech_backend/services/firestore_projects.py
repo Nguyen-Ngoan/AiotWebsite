@@ -86,6 +86,31 @@ class ProjectData:
     estimated_hours: int = 0
     required_skills: List[str] = field(default_factory=list)
     
+@dataclass
+class PromptItem:
+    """
+    Đại diện cho 1 bước prompt trong playbook.
+    """
+    stage: str  # CONCEPT, UNIT_TEST, INTEGRATION, DEBUG
+    title: str
+    content: str
+    variables: List[str] = field(default_factory=list)
+    include_project_context: bool = True
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+@dataclass
+class PromptPlaybookData:
+    """
+    Data Transfer Object cho Prompt Playbook.
+    """
+    topic_name: str
+    domain: str  # FIRMWARE, BACKEND, MECHANICAL
+    prompts: List[PromptItem] = field(default_factory=list)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
 
 # ==============================================================================
 # 2. PROJECT SERVICE
@@ -474,3 +499,70 @@ class ProjectService:
         res = new_doc.to_dict()
         res["id"] = new_doc.id
         return res
+
+
+# ==============================================================================
+# 3. PLAYBOOK SERVICE
+# ==============================================================================
+
+class PlaybookService:
+    def __init__(self):
+        self.projects_collection = _db.collection("projects")
+
+    def _get_playbook_collection(self, project_id: str):
+        return self.projects_collection.document(project_id).collection("prompt_playbooks")
+
+    def create_playbook(self, project_id: str, data: PromptPlaybookData) -> Dict[str, Any]:
+        now = datetime.utcnow()
+        payload = data.to_dict()
+        payload["created_at"] = now
+        payload["updated_at"] = now
+        
+        col = self._get_playbook_collection(project_id)
+        doc_ref = col.document()
+        doc_ref.set(payload)
+        
+        payload["id"] = doc_ref.id
+        return payload
+
+    def get_playbooks_by_project(self, project_id: str) -> List[Dict[str, Any]]:
+        col = self._get_playbook_collection(project_id)
+        docs = col.order_by("created_at", direction="DESCENDING").stream()
+        
+        playbooks = []
+        for doc in docs:
+            d = doc.to_dict()
+            d["id"] = doc.id
+            playbooks.append(d)
+        return playbooks
+
+    def get_playbook_detail(self, project_id: str, playbook_id: str) -> Optional[Dict[str, Any]]:
+        doc_ref = self._get_playbook_collection(project_id).document(playbook_id)
+        doc = doc_ref.get()
+        if not doc.exists:
+            return None
+        d = doc.to_dict()
+        d["id"] = doc.id
+        return d
+
+    def update_playbook(self, project_id: str, playbook_id: str, data: PromptPlaybookData) -> Dict[str, Any]:
+        doc_ref = self._get_playbook_collection(project_id).document(playbook_id)
+        
+        # Kiểm tra tồn tại
+        if not doc_ref.get().exists:
+            raise ValueError("Playbook not found")
+            
+        payload = data.to_dict()
+        payload["updated_at"] = datetime.utcnow()
+        
+        doc_ref.update(payload)
+        
+        # Trả về dữ liệu mới nhất
+        updated_doc = doc_ref.get()
+        res = updated_doc.to_dict()
+        res["id"] = updated_doc.id
+        return res
+
+    def delete_playbook(self, project_id: str, playbook_id: str) -> None:
+        doc_ref = self._get_playbook_collection(project_id).document(playbook_id)
+        doc_ref.delete()

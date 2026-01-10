@@ -25,6 +25,8 @@ from .views import (
     ProjectStepsUpdateView,
     ProjectImageUploadView,
     ProjectImageDeleteView,
+    ProjectPlaybookListView,
+    ProjectPlaybookDetailView,
 )
 from .views_printing import (
     PrintingSystemConfigView,
@@ -75,6 +77,10 @@ urlpatterns = [
     path("projects/<str:project_id>/add-material/", ProjectAddMaterialView.as_view(), name="project-add-material"),
     path("projects/<str:project_id>/images/", ProjectImageUploadView.as_view(), name="project-image-upload"),
     path("projects/<str:project_id>/images/delete/", ProjectImageDeleteView.as_view(), name="project-image-delete"),
+
+    # Prompt Playbooks
+    path("projects/<str:project_id>/playbooks/", ProjectPlaybookListView.as_view(), name="project-playbook-list"),
+    path("projects/<str:project_id>/playbooks/<str:playbook_id>/", ProjectPlaybookDetailView.as_view(), name="project-playbook-detail"),
 
     # 3D Printing
     path("printing/config/", PrintingSystemConfigView.as_view(), name="printing-config"),

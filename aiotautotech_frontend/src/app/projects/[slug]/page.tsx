@@ -16,6 +16,7 @@ import { ProjectSidebar } from './components/ProjectSidebar';
 import { ProjectSolution } from './components/ProjectSolution';
 import { MobileNav } from './components/MobileNav';
 import { ProjectMediaSlider } from './components/ProjectMediaSlider';
+import { ProjectAIPlaybooks, Playbook } from './components/ProjectAIPlaybooks';
 
 interface ProjectDetailPageProps {
   params: Promise<{
@@ -65,6 +66,31 @@ export default async function ProjectDetailPage({
   // Check if there is any media (video or images) to display in the slider
   const hasMedia =
     !!project.video_url || !!(project.images && project.images.length > 0);
+
+  // Giả lập dữ liệu Playbooks (Thực tế sẽ lấy từ project object hoặc API riêng)
+  const playbooks: Playbook[] = [
+    {
+      id: 'pb-1',
+      topic_name: 'Modbus RTU Integration',
+      domain: 'FIRMWARE',
+      prompts: [
+        {
+          stage: 'CONCEPT',
+          title: 'Phân tích giao thức Modbus',
+          content:
+            'Tôi đang phát triển firmware cho thiết bị IoT sử dụng Modbus RTU. Hãy phân tích cấu trúc frame cho function code 0x03 (Read Holding Registers) với Slave ID là {{slave_id}} và bắt đầu từ thanh ghi {{start_addr}}.',
+          variables: ['slave_id', 'start_addr'],
+        },
+        {
+          stage: 'UNIT_TEST',
+          title: 'Viết Unit Test cho Parser',
+          content:
+            'Viết mã C++ sử dụng ArduinoFake để test hàm parseModbusResponse. Giả sử baudrate là {{baudrate}}.',
+          variables: ['baudrate'],
+        },
+      ],
+    },
+  ];
 
   return (
     <>
@@ -116,6 +142,8 @@ export default async function ProjectDetailPage({
             />
 
             <ConfigurationTable project={project} isAdmin={isAdmin} />
+
+            <ProjectAIPlaybooks projectId={project.id} playbooks={playbooks} />
 
             {/* Footer / Downloads */}
             <ProjectDownloads project={project} />
