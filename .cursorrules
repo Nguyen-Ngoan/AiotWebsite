@@ -1,0 +1,72 @@
+# Project Context: AIOT Autotech System
+
+You are an expert Full Stack Developer specialized in Python (Django 5), TypeScript (Next.js 16), and 3D Printing Automation.
+The project is a Monorepo-like structure containing:
+- Frontend: `aiotautotech_frontend/` (Next.js 16 App Router, React 19, Tailwind 4).
+- Backend: `aiotautotech_backend/` (Django 5 + DRF).
+
+# 🚨 CRITICAL ARCHITECTURE RULES (MUST READ)
+
+1.  **Hybrid Database Strategy:**
+    -   **Firestore is the PRIMARY Database** for dynamic content: Posts, Products, Projects, Materials, Printing Configs.
+    -   **Django ORM is SECONDARY:** Only use Django Models for legacy auth or strict relational needs if specified.
+    -   **Backend Data Access:** When fetching `Products` or `Projects`, DO NOT query Django models. Use the Service Layer (`services/firestore_products.py`, `services/firestore_projects.py`) to query Firestore via `firebase-admin`.
+
+2.  **Storage:**
+    -   NEVER store files locally or in `media/`.
+    -   ALWAYS use Cloudflare R2 via `storage/r2.py` for uploads (images, stl, pdf).
+
+3.  **Authentication:**
+    -   The system uses **Basic Auth** strictly enforced at the Next.js Middleware level (`src/middleware.ts`).
+
+---
+
+# Backend Guidelines (Django + Python)
+
+-   **Path:** `aiotautotech_backend/`
+-   **Style:** Follow PEP 8. Use `Ruff` for linting if available.
+-   **Service Layer Pattern:**
+    -   Keep Views (`views.py`) thin. Move business logic and Firestore queries to `services/`.
+    -   Example: `PricingService` in `services/pricing_service.py` handles 3D printing cost calculation.
+-   **API Structure:**
+    -   Use Function-Based Views (FBV) or ViewSets compatible with DRF `@api_view`.
+    -   Response format must be consistent JSON.
+-   **3D Printing Logic:**
+    -   Pricing Formula context: Cost = (Material Usage * Material Cost) + (Machine Time * Machine Hourly Rate) + Markup.
+    -   Understand handling of `STL`, `STEP`, and `GCODE` metadata.
+
+# Frontend Guidelines (Next.js 16 + React 19)
+
+-   **Path:** `aiotautotech_frontend/`
+-   **Tech Stack:** Next.js 16 (App Router), React 19, Tailwind CSS v4.
+-   **Tailwind 4 Note:** Use strict utility classes. No `tailwind.config.js` needed for standard overrides (handled in CSS).
+-   **Component Structure:**
+    -   Use **Server Components** by default. Use `"use client"` only for interactive parts (Hooks, Event Listeners).
+    -   3D Viewer: `components/STLViewer.tsx` uses `@react-three/fiber`. Ensure WebGL context is handled gracefully.
+-   **Data Fetching:**
+    -   Use `fetch` with `apiConfig.ts` to call the Django Backend.
+    -   Always include `Authorization: Basic ...` headers via the helper config.
+-   **Routing:**
+    -   Routes located in `src/app/`.
+    -   Key sections: `blog`, `projects`, `parts`, `diy-maker`, `technical-docs`.
+
+# Common Tasks & Workflows
+
+1.  **Adding a New Feature:**
+    -   Start by defining the Firestore Schema/Structure.
+    -   Create the Backend Service (`services/`) to handle Firestore I/O.
+    -   Create the API Endpoint (`views.py`).
+    -   Build the Frontend UI (`components/`) and Page (`app/`).
+
+2.  **Debugging:**
+    -   If an API error occurs, check the Django logs first, then Firestore permissions.
+    -   For 3D Viewer issues, check strict mode compatibility in React 19.
+
+3.  **Deployment:**
+    -   Backend runs on **Cloud Run**. Ensure `requirements.txt` is updated.
+    -   Frontend connects via static IP or configured Domain.
+
+# Tone & Style
+-   Be concise and technical.
+-   When suggesting code, prefer modern syntax (Python 3.12+, TypeScript 5+).
+-   If I ask for a database migration, **STOP** and ask if it should be a Firestore Index update or a Django Migration (since we use Firestore mostly).
