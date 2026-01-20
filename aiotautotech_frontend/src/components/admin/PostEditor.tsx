@@ -1,7 +1,13 @@
 // src/components/admin/PostEditor.tsx
 'use client';
 
-import { useEffect, useState, useRef, type ReactNode } from 'react';
+import {
+  useEffect,
+  useState,
+  useRef,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -13,6 +19,32 @@ interface PostEditorProps {
   placeholder?: string;
   toolbarActions?: ReactNode;
 }
+
+const Separator = () => (
+  <div className="mx-1 h-7 w-px bg-[#303030] opacity-80" />
+);
+
+const getViewportSnapshot = () =>
+  typeof window === 'undefined'
+    ? 0
+    : window.visualViewport?.height ?? window.innerHeight;
+
+const subscribeViewport = (callback: () => void) => {
+  if (typeof window === 'undefined') return () => {};
+
+  const visualViewport = window.visualViewport;
+  const handler = () => callback();
+
+  visualViewport?.addEventListener('resize', handler);
+  visualViewport?.addEventListener('scroll', handler);
+  window.addEventListener('resize', handler);
+
+  return () => {
+    visualViewport?.removeEventListener('resize', handler);
+    visualViewport?.removeEventListener('scroll', handler);
+    window.removeEventListener('resize', handler);
+  };
+};
 
 /* ================= ICONS (SVG) ================= */
 
@@ -197,57 +229,21 @@ export default function PostEditor({
   placeholder,
   toolbarActions,
 }: PostEditorProps) {
-  const [mounted, setMounted] = useState(false);
   const [showSymbols, setShowSymbols] = useState(false);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [showScrollLeft, setShowScrollLeft] = useState(false);
   const [showScrollRight, setShowScrollRight] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
   const hasToolbarActions = Boolean(toolbarActions);
+  const viewportHeight = useSyncExternalStore(
+    subscribeViewport,
+    getViewportSnapshot,
+    () => 0
+  );
+  const isMobile =
+    typeof window !== 'undefined'
+      ? window.matchMedia('(max-width: 640px)').matches
+      : false;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const mediaQuery = window.matchMedia('(max-width: 640px)');
-    const handleChange = () => setIsMobile(mediaQuery.matches);
-
-    handleChange();
-    mediaQuery.addEventListener('change', handleChange);
-
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!isMobile || typeof window === 'undefined') {
-      setViewportHeight(null);
-      return;
-    }
-
-    const updateHeight = () => {
-      const nextHeight = window.visualViewport?.height ?? window.innerHeight;
-      setViewportHeight(Math.round(nextHeight));
-    };
-
-    updateHeight();
-
-    const visualViewport = window.visualViewport;
-    visualViewport?.addEventListener('resize', updateHeight);
-    visualViewport?.addEventListener('scroll', updateHeight);
-    window.addEventListener('resize', updateHeight);
-
-    return () => {
-      visualViewport?.removeEventListener('resize', updateHeight);
-      visualViewport?.removeEventListener('scroll', updateHeight);
-      window.removeEventListener('resize', updateHeight);
-    };
-  }, [isMobile]);
 
   const editor = useEditor({
     extensions: [
@@ -304,7 +300,7 @@ export default function PostEditor({
     };
   }, [editor]); // Thêm editor vào dependency array để đảm bảo toolbarRef đã sẵn sàng
 
-  if (!mounted || !editor) return null;
+  if (!editor) return null;
 
   const addImage = () => {
     const url = window.prompt('Enter image URL:');
@@ -355,10 +351,6 @@ export default function PostEditor({
   const iconButtonClass = (active: boolean) =>
     `${btnBase} ${active ? btnActive : ''}`;
 
-  const Separator = () => (
-    <div className="mx-1 h-7 w-px bg-[#303030] opacity-80" />
-  );
-
   const getCurrentHeading = () => {
     if (editor.isActive('heading', { level: 1 })) return 'h1';
     if (editor.isActive('heading', { level: 2 })) return 'h2';
@@ -383,8 +375,8 @@ export default function PostEditor({
     <div
       className="relative flex w-full flex-col rounded-2xl border border-[#2a2a2a] bg-[#121212] pt-12 shadow-sm sm:h-full sm:max-h-[calc(100vh-250px)] sm:pt-0"
       style={
-        isMobile && viewportHeight
-          ? { height: `${viewportHeight}px` }
+        isMobile && viewportHeight > 0
+          ? { height: `${Math.round(viewportHeight)}px` }
           : undefined
       }
     >
@@ -395,7 +387,7 @@ export default function PostEditor({
           <button
             type="button"
             onClick={() => scrollToolbar('left')}
-            className={`absolute top-0 z-10 h-full w-8 bg-gradient-to-r from-[#1a1a1a] via-[#1a1a1a]/80 to-transparent ${
+            className={`absolute top-0 z-10 h-full w-8 bg-linear-to-r from-[#1a1a1a] via-[#1a1a1a]/80 to-transparent ${
               hasToolbarActions ? 'left-10' : 'left-0'
             }`}
           >
@@ -419,7 +411,7 @@ export default function PostEditor({
           <button
             type="button"
             onClick={() => scrollToolbar('right')}
-            className="absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-[#1a1a1a] via-[#1a1a1a]/80 to-transparent"
+            className="absolute right-0 top-0 z-10 h-full w-8 bg-linear-to-l from-[#1a1a1a] via-[#1a1a1a]/80 to-transparent"
           >
             <svg
               className="ml-auto h-4 w-4 text-gray-400"
