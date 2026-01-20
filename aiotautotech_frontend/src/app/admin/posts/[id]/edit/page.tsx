@@ -189,13 +189,6 @@ export default function EditPostPage() {
                         <path d="M7 19h10" />
                       </svg>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => router.push(`/blog/${id}`)}
-                      className="hidden items-center rounded-md border border-gray-400/60 px-3 py-1.5 text-[11px] font-semibold text-gray-100 hover:bg-gray-800/60 sm:inline-flex"
-                    >
-                      Cancel
-                    </button>
                   </>
                 }
               />
