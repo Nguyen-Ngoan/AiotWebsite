@@ -1,7 +1,7 @@
 // src/components/admin/PostEditor.tsx
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, type ReactNode } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -11,6 +11,7 @@ interface PostEditorProps {
   initialContent?: string;
   onChange: (html: string) => void;
   placeholder?: string;
+  toolbarActions?: ReactNode;
 }
 
 /* ================= ICONS (SVG) ================= */
@@ -194,16 +195,59 @@ export default function PostEditor({
   initialContent = '',
   onChange,
   placeholder,
+  toolbarActions,
 }: PostEditorProps) {
   const [mounted, setMounted] = useState(false);
   const [showSymbols, setShowSymbols] = useState(false);
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [showScrollLeft, setShowScrollLeft] = useState(false);
   const [showScrollRight, setShowScrollRight] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const hasToolbarActions = Boolean(toolbarActions);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const mediaQuery = window.matchMedia('(max-width: 640px)');
+    const handleChange = () => setIsMobile(mediaQuery.matches);
+
+    handleChange();
+    mediaQuery.addEventListener('change', handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isMobile || typeof window === 'undefined') {
+      setViewportHeight(null);
+      return;
+    }
+
+    const updateHeight = () => {
+      const nextHeight = window.visualViewport?.height ?? window.innerHeight;
+      setViewportHeight(Math.round(nextHeight));
+    };
+
+    updateHeight();
+
+    const visualViewport = window.visualViewport;
+    visualViewport?.addEventListener('resize', updateHeight);
+    visualViewport?.addEventListener('scroll', updateHeight);
+    window.addEventListener('resize', updateHeight);
+
+    return () => {
+      visualViewport?.removeEventListener('resize', updateHeight);
+      visualViewport?.removeEventListener('scroll', updateHeight);
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, [isMobile]);
 
   const editor = useEditor({
     extensions: [
@@ -336,15 +380,24 @@ export default function PostEditor({
   };
 
   return (
-    <div className="relative flex h-full max-h-[calc(100vh-250px)] flex-col rounded-2xl border border-[#2a2a2a] bg-[#121212] shadow-sm">
+    <div
+      className="relative flex w-full flex-col rounded-2xl border border-[#2a2a2a] bg-[#121212] pt-12 shadow-sm sm:h-full sm:max-h-[calc(100vh-250px)] sm:pt-0"
+      style={
+        isMobile && viewportHeight
+          ? { height: `${viewportHeight}px` }
+          : undefined
+      }
+    >
       {/* TOOLBAR CONTAINER */}
-      <div className="sticky top-0 z-20 rounded-t-2xl border-b border-[#2b2b2b] bg-[#1a1a1a] px-1 shadow-sm">
+      <div className="fixed inset-x-0 top-[env(safe-area-inset-top)] z-30 rounded-none border-b-0 bg-[#1a1a1a] px-1 shadow-sm sm:sticky sm:inset-x-auto sm:top-0 sm:z-20 sm:rounded-t-2xl sm:border-b sm:border-[#2b2b2b]">
         {/* Nút cuộn trái */}
         {showScrollLeft && (
           <button
             type="button"
             onClick={() => scrollToolbar('left')}
-            className="absolute left-0 top-0 z-10 h-full w-8 bg-gradient-to-r from-[#1a1a1a] via-[#1a1a1a]/80 to-transparent"
+            className={`absolute top-0 z-10 h-full w-8 bg-gradient-to-r from-[#1a1a1a] via-[#1a1a1a]/80 to-transparent ${
+              hasToolbarActions ? 'left-10' : 'left-0'
+            }`}
           >
             <svg
               className="h-4 w-4 text-gray-400"
@@ -384,8 +437,14 @@ export default function PostEditor({
           </button>
         )}
         {/* SCROLL AREA */}
-        <div ref={toolbarRef} className="hide-scrollbar overflow-x-auto px-1">
-          <div className="flex w-max items-center gap-1.5 px-2 py-1 text-xs">
+        <div className="relative flex items-center">
+          <div
+            ref={toolbarRef}
+            className={`hide-scrollbar w-full overflow-x-auto px-1 ${
+              hasToolbarActions ? 'pl-11 pr-32' : 'pr-32'
+            }`}
+          >
+            <div className="flex w-max items-center gap-1.5 px-2 py-1 text-xs">
             {/* Bold / Italic */}
             <button
               type="button"
@@ -524,6 +583,12 @@ export default function PostEditor({
               <span className="sr-only">Redo</span>
             </button>
           </div>
+          </div>
+          {toolbarActions && (
+            <div className="absolute left-1 top-1/2 flex -translate-y-1/2 items-center gap-2">
+              {toolbarActions}
+            </div>
+          )}
         </div>
       </div>
 
@@ -549,7 +614,7 @@ export default function PostEditor({
       )}
 
       {/* BODY */}
-      <div className="flex-1 overflow-y-auto rounded-b-2xl border-t-0 border-red-500 bg-black px-3 py-2 text-sm text-gray-100 shadow-inner min-h-[400px]">
+      <div className="min-h-0 flex-1 overflow-y-auto rounded-b-2xl bg-black px-3 py-2 text-sm text-gray-100 shadow-inner sm:min-h-[400px]">
         <EditorContent
           editor={editor}
           className={`

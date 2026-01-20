@@ -1,28 +1,27 @@
-// src/app/admin/posts/[id]/edit/page.tsx
+// src/app/admin/posts/[id]/edit-info/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import PostEditor from '@/components/admin/PostEditor';
 import { navItems } from '@/components/layout/nav-items';
 import { getApiUrl } from '@/lib/apiConfig';
 
 interface Post {
   id: string;
   title: string;
-  content: string; // HTML từ Tiptap
+  content: string;
   author: string;
   created_at: string;
 }
 
-export default function EditPostPage() {
+export default function EditPostInfoPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
   const router = useRouter();
 
-  const [post, setPost] = useState<Post | null>(null);
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('AiotAutotech');
   const [contentHtml, setContentHtml] = useState('');
@@ -30,7 +29,6 @@ export default function EditPostPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load dữ liệu bài viết
   useEffect(() => {
     if (!id || id === 'undefined') {
       setError('Thiếu ID bài viết hoặc ID không hợp lệ.');
@@ -41,7 +39,6 @@ export default function EditPostPage() {
     const fetchPost = async () => {
       try {
         const url = getApiUrl(`/posts/${id}/`);
-        console.log('Fetching post for edit from:', url);
         const res = await fetch(url);
 
         if (res.status === 404) {
@@ -53,7 +50,6 @@ export default function EditPostPage() {
         }
 
         const data: Post = await res.json();
-        setPost(data);
         setTitle(data.title || '');
         setAuthor(data.author || 'AiotAutotech');
         setContentHtml(data.content || '');
@@ -81,10 +77,6 @@ export default function EditPostPage() {
       setError('Vui lòng nhập tiêu đề bài viết.');
       return;
     }
-    if (!contentHtml || contentHtml.trim() === '') {
-      setError('Nội dung bài viết đang rỗng.');
-      return;
-    }
 
     setSaving(true);
     try {
@@ -106,8 +98,7 @@ export default function EditPostPage() {
         throw new Error(`HTTP ${res.status}: ${res.statusText} - ${text}`);
       }
 
-      // Sau khi lưu xong → quay lại trang chi tiết bài
-      router.push(`/blog/${id}`);
+      router.push(`/admin/posts/${id}/edit`);
     } catch (err) {
       if (err instanceof Error) {
         setError(`Không thể lưu thay đổi: ${err.message}`);
@@ -134,7 +125,7 @@ export default function EditPostPage() {
     );
   }
 
-  if (error || !post) {
+  if (error) {
     return (
       <div className="min-h-screen bg-apple-gray dark:bg-apple-gray-dark dark:text-apple-text-dark">
         <Header navItems={navItems} />
@@ -143,7 +134,7 @@ export default function EditPostPage() {
             KHÔNG CHỈNH SỬA ĐƯỢC BÀI VIẾT
           </h1>
           <p className="mb-4 text-sm text-gray-600 dark:text-gray-300 max-w-md">
-            {error || 'Không tìm thấy dữ liệu bài viết.'}
+            {error}
           </p>
         </main>
         <Footer />
@@ -153,56 +144,76 @@ export default function EditPostPage() {
 
   return (
     <div className="min-h-screen bg-apple-gray dark:bg-apple-gray-dark dark:text-apple-text-dark">
-      <main className="py-2 sm:py-4">
-        <div className="mx-auto max-w-4xl px-2 sm:px-4">
+      <main className="pt-6 pb-6">
+        <div className="mx-auto max-w-3xl px-4">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm">
+            <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Chỉnh sửa thông tin bài viết
+            </h1>
+            <Link
+              href={`/admin/posts/${id}/edit`}
+              className="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              Quay lại chỉnh sửa nội dung
+            </Link>
+          </div>
+
           {error && (
             <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-3">
-            {/* Editor */}
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              {/* Chỉ render editor khi đã có contentHtml (sau khi load xong) */}
-              <PostEditor
-                initialContent={contentHtml}
-                onChange={setContentHtml}
-                toolbarActions={
-                  <>
-                    <button
-                      type="submit"
-                      disabled={saving}
-                      aria-label="Save"
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-blue-600 text-white shadow hover:bg-blue-500 disabled:opacity-60"
-                    >
-                      <svg
-                        className="h-4 w-4"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        aria-hidden="true"
-                      >
-                        <path d="M4 7a2 2 0 012-2h9l5 5v9a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" />
-                        <path d="M14 5v6H8V5" />
-                        <path d="M7 19h10" />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => router.push(`/blog/${id}`)}
-                      className="hidden items-center rounded-md border border-gray-400/60 px-3 py-1.5 text-[11px] font-semibold text-gray-100 hover:bg-gray-800/60 sm:inline-flex"
-                    >
-                      Cancel
-                    </button>
-                  </>
-                }
+              <label className="mb-1 block text-sm font-medium text-gray-800 dark:text-gray-200">
+                Tiêu đề
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-[#111] dark:text-gray-100"
+                placeholder="Tiêu đề bài viết"
               />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-800 dark:text-gray-200">
+                Tác giả
+              </label>
+              <input
+                type="text"
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-700 dark:bg-[#111] dark:text-gray-100"
+              />
+            </div>
+
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              Nội dung bài viết được chỉnh sửa ở trang khác.
+            </div>
+
+            <div className="pt-2 flex gap-3">
+              <button
+                type="submit"
+                disabled={saving}
+                className="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-500 disabled:opacity-60"
+              >
+                {saving ? 'Đang lưu...' : 'Save'}
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push(`/admin/posts/${id}/edit`)}
+                className="inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-[#222]"
+              >
+                Cancel
+              </button>
             </div>
           </form>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

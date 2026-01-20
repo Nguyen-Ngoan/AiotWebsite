@@ -325,6 +325,12 @@ export default function BlogDetailPage() {
             <span className="font-medium text-gray-200">
               {post.author || 'Ẩn danh'}
             </span>
+            <Link
+              href={`/admin/posts/${post.id}/edit-info`}
+              className="ml-2 font-semibold text-blue-400 hover:text-blue-300"
+            >
+              Edit Info
+            </Link>
           </p>
 
           {/* nội dung (KaTeX sẽ xử lý $...$ trong đây) */}
