@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { navItems } from '@/components/layout/nav-items';
@@ -150,12 +149,12 @@ export default function EditPostInfoPage() {
             <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Chỉnh sửa thông tin bài viết
             </h1>
-            <Link
+            {/* <Link
               href={`/admin/posts/${id}/edit`}
               className="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
             >
               Quay lại chỉnh sửa nội dung
-            </Link>
+            </Link> */}
           </div>
 
           {error && (
@@ -204,7 +203,7 @@ export default function EditPostInfoPage() {
               </button>
               <button
                 type="button"
-                onClick={() => router.push(`/admin/posts/${id}/edit`)}
+                onClick={() => router.push(`/blog/${id}`)}
                 className="inline-flex items-center rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-[#222]"
               >
                 Cancel
