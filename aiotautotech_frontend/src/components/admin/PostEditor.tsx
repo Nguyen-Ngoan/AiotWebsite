@@ -373,7 +373,7 @@ export default function PostEditor({
 
   return (
     <div
-      className="relative flex w-full flex-col rounded-2xl border border-[#2a2a2a] bg-[#121212] pt-12 shadow-sm sm:h-full sm:max-h-[calc(100vh-250px)] sm:pt-0"
+      className="relative flex w-full flex-col rounded-none border border-[#2a2a2a] bg-[#121212] shadow-sm sm:h-full sm:max-h-[calc(100vh-250px)]"
       style={
         isMobile && viewportHeight > 0
           ? { height: `${Math.round(viewportHeight)}px` }
@@ -381,7 +381,7 @@ export default function PostEditor({
       }
     >
       {/* TOOLBAR CONTAINER */}
-      <div className="fixed inset-x-0 top-[env(safe-area-inset-top)] z-30 rounded-none border-b-0 bg-[#1a1a1a] px-1 shadow-sm sm:sticky sm:inset-x-auto sm:top-0 sm:z-20 sm:rounded-t-2xl sm:border-b sm:border-[#2b2b2b]">
+      <div className="sticky top-0 z-20 rounded-none border-b border-[#2b2b2b] bg-[#1a1a1a] px-1 shadow-sm">
         {/* Nút cuộn trái */}
         {showScrollLeft && (
           <button
@@ -606,7 +606,7 @@ export default function PostEditor({
       )}
 
       {/* BODY */}
-      <div className="min-h-0 flex-1 overflow-y-auto rounded-b-2xl bg-black px-3 py-2 text-sm text-gray-100 shadow-inner sm:min-h-[400px]">
+      <div className="min-h-0 flex-1 overflow-y-auto rounded-none bg-black px-3 py-2 text-sm text-gray-100 shadow-inner sm:min-h-[400px]">
         <EditorContent
           editor={editor}
           className={`
