@@ -120,13 +120,27 @@ export default function BlogPage() {
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb" className="mb-4">
             <ol className="flex items-center space-x-2 text-sm">
-              <li>
-                <Link href="/" className="text-gray-500 hover:text-gray-700">
-                  Trang chủ
-                </Link>
+              <li className="flex">
+                <div className="flex items-center">
+                  <Link href="/" className="text-gray-400 hover:text-gray-500">
+                    <svg
+                      className="h-4 w-4 shrink-0"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="sr-only">Trang chủ</span>
+                  </Link>
+                </div>
               </li>
               <li>
-                <span className="text-gray-400">/</span>
+                <span className="text-gray-300">&gt;</span>
               </li>
               <li className="font-medium text-gray-800">Blog</li>
             </ol>

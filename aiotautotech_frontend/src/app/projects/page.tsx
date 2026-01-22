@@ -39,7 +39,7 @@ export default async function ProjectsPage() {
               <div className="flex items-center">
                 <Link href="/" className="text-gray-400 hover:text-gray-500">
                   <svg
-                    className="h-5 w-5 shrink-0"
+                    className="h-4 w-4 shrink-0"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                     aria-hidden="true"
@@ -54,20 +54,13 @@ export default async function ProjectsPage() {
                 </Link>
               </div>
             </li>
-            <li className="flex">
-              <div className="flex items-center">
-                <svg
-                  className="h-5 w-5 flex-shrink-0 text-gray-300"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                  aria-hidden="true"
-                >
-                  <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
-                </svg>
-                <span className="ml-4 text-sm font-medium text-gray-500">
-                  Dự án DIY
-                </span>
-              </div>
+            <li>
+              <span className="text-gray-300">&gt;</span>
+            </li>
+            <li>
+              <span className="text-sm font-medium text-gray-500">
+                Dự án DIY
+              </span>
             </li>
           </ol>
         </nav>

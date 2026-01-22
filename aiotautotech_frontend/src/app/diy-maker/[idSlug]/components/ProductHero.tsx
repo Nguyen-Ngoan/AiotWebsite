@@ -16,16 +16,30 @@ export function ProductHero({ title, idSlug }: ProductHeroProps) {
       {/* Bên trái: breadcrumb + title + mô tả ngắn */}
       <div className="space-y-2">
         <nav className="text-xs text-gray-500">
-          <Link href="/" className="hover:text-gray-300">
-            Trang chủ
-          </Link>
-          <span className="mx-1">/</span>
-          <Link href="/diy-maker" className="hover:text-gray-300">
-            Sản phẩm DIY
-          </Link>
-          <span className="mx-1">/</span>
-          <span className="text-gray-300 line-clamp-1 max-w-[260px] sm:max-w-[360px]">
-            {displayTitle}
+          <span className="inline-flex items-center gap-2">
+            <Link href="/" className="text-gray-400 hover:text-gray-300">
+              <svg
+                className="h-4 w-4 shrink-0"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="sr-only">Trang chủ</span>
+            </Link>
+            <span className="text-gray-500">&gt;</span>
+            <Link href="/diy-maker" className="hover:text-gray-300">
+              Sản phẩm DIY
+            </Link>
+            <span className="text-gray-500">&gt;</span>
+            <span className="text-gray-300 line-clamp-1 max-w-[260px] sm:max-w-[360px]">
+              {displayTitle}
+            </span>
           </span>
         </nav>
 
