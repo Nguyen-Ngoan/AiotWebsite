@@ -1,13 +1,7 @@
 import Link from 'next/link';
 import React from 'react';
 
-interface ProjectBreadcrumbProps {
-  slug: string;
-}
-
-export const ProjectBreadcrumb: React.FC<ProjectBreadcrumbProps> = ({
-  slug,
-}) => {
+export const ProjectBreadcrumb: React.FC = () => {
   return (
     <div className="mx-auto max-w-7xl px-4 lg:px-8 py-2 border-b border-gray-100">
       <nav className="flex" aria-label="Breadcrumb">
@@ -16,7 +10,7 @@ export const ProjectBreadcrumb: React.FC<ProjectBreadcrumbProps> = ({
             <div className="flex items-center">
               <Link href="/" className="text-gray-400 hover:text-gray-500">
                 <svg
-                  className="h-5 w-5 shrink-0"
+                  className="h-4 w-4 shrink-0"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                   aria-hidden="true"
@@ -32,7 +26,7 @@ export const ProjectBreadcrumb: React.FC<ProjectBreadcrumbProps> = ({
             </div>
           </li>
           <li>
-            <span className="text-gray-300">/</span>
+            <span className="text-gray-300">&gt;</span>
           </li>
           <li>
             <Link
@@ -41,17 +35,6 @@ export const ProjectBreadcrumb: React.FC<ProjectBreadcrumbProps> = ({
             >
               Projects
             </Link>
-          </li>
-          <li>
-            <span className="text-gray-300">/</span>
-          </li>
-          <li>
-            <span
-              className="text-sm font-medium text-gray-900"
-              aria-current="page"
-            >
-              {slug}
-            </span>
           </li>
         </ol>
       </nav>

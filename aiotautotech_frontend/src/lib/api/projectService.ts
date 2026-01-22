@@ -44,6 +44,23 @@ export interface InstructionStep {
   image_url?: string;
 }
 
+export interface PromptItem {
+  stage: 'CONCEPT' | 'UNIT_TEST' | 'INTEGRATION' | 'DEBUG';
+  title: string;
+  content: string;
+  variables?: string[];
+  include_project_context?: boolean;
+}
+
+export interface PromptPlaybook {
+  id: string;
+  topic_name: string;
+  domain: 'FIRMWARE' | 'BACKEND' | 'MECHANICAL';
+  prompts: PromptItem[];
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface ProjectImage {
   id: string;
   fileName: string;
@@ -109,6 +126,12 @@ export interface CreateProjectData {
   solution_analysis?: string;
   block_diagram_url?: string;
   images?: ProjectImage[];
+}
+
+export interface CreatePlaybookData {
+  topic_name: string;
+  domain: PromptPlaybook['domain'];
+  prompts: PromptItem[];
 }
 
 export interface AddBOMItemData {
@@ -328,6 +351,99 @@ export const projectService = {
     }
 
     return res.json();
+  },
+
+  /**
+   * Lấy danh sách playbook theo project
+   */
+  async getPlaybooks(projectId: string): Promise<PromptPlaybook[]> {
+    const url = getApiUrl(`/projects/${projectId}/playbooks/`);
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+      cache: 'no-store',
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to fetch playbooks: ${res.statusText}`);
+    }
+
+    return res.json();
+  },
+
+  /**
+   * Tạo playbook mới
+   */
+  async createPlaybook(
+    projectId: string,
+    data: CreatePlaybookData
+  ): Promise<PromptPlaybook> {
+    const url = getApiUrl(`/projects/${projectId}/playbooks/`);
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to create playbook: ${res.statusText}`
+      );
+    }
+
+    return res.json();
+  },
+
+  /**
+   * Cập nhật playbook
+   */
+  async updatePlaybook(
+    projectId: string,
+    playbookId: string,
+    data: CreatePlaybookData
+  ): Promise<PromptPlaybook> {
+    const url = getApiUrl(`/projects/${projectId}/playbooks/${playbookId}/`);
+    const res = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to update playbook: ${res.statusText}`
+      );
+    }
+
+    return res.json();
+  },
+
+  /**
+   * Xóa playbook
+   */
+  async deletePlaybook(projectId: string, playbookId: string): Promise<void> {
+    const url = getApiUrl(`/projects/${projectId}/playbooks/${playbookId}/`);
+    const res = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.error || `Failed to delete playbook: ${res.statusText}`
+      );
+    }
   },
 
   /**

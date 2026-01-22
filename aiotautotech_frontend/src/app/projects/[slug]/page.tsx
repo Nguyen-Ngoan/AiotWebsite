@@ -1,8 +1,6 @@
 import React from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { projectService } from '@/lib/api/projectService';
+import { projectService, PromptPlaybook } from '@/lib/api/projectService';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { navItems } from '@/components/layout/nav-items';
@@ -16,7 +14,7 @@ import { ProjectSidebar } from './components/ProjectSidebar';
 import { ProjectSolution } from './components/ProjectSolution';
 import { MobileNav } from './components/MobileNav';
 import { ProjectMediaSlider } from './components/ProjectMediaSlider';
-import { ProjectAIPlaybooks, Playbook } from './components/ProjectAIPlaybooks';
+import { ProjectAIPlaybooks } from './components/ProjectAIPlaybooks';
 
 interface ProjectDetailPageProps {
   params: Promise<{
@@ -36,7 +34,7 @@ export async function generateMetadata({ params }: ProjectDetailPageProps) {
         images: project.thumbnail_url ? [project.thumbnail_url] : [],
       },
     };
-  } catch (error) {
+  } catch {
     return {
       title: 'Dự án không tồn tại',
     };
@@ -54,7 +52,7 @@ export default async function ProjectDetailPage({
   let project;
   try {
     project = await projectService.getProjectBySlug(slug);
-  } catch (error) {
+  } catch {
     notFound();
   }
 
@@ -67,37 +65,20 @@ export default async function ProjectDetailPage({
   const hasMedia =
     !!project.video_url || !!(project.images && project.images.length > 0);
 
-  // Giả lập dữ liệu Playbooks (Thực tế sẽ lấy từ project object hoặc API riêng)
-  const playbooks: Playbook[] = [
-    {
-      id: 'pb-1',
-      topic_name: 'Modbus RTU Integration',
-      domain: 'FIRMWARE',
-      prompts: [
-        {
-          stage: 'CONCEPT',
-          title: 'Phân tích giao thức Modbus',
-          content:
-            'Tôi đang phát triển firmware cho thiết bị IoT sử dụng Modbus RTU. Hãy phân tích cấu trúc frame cho function code 0x03 (Read Holding Registers) với Slave ID là {{slave_id}} và bắt đầu từ thanh ghi {{start_addr}}.',
-          variables: ['slave_id', 'start_addr'],
-        },
-        {
-          stage: 'UNIT_TEST',
-          title: 'Viết Unit Test cho Parser',
-          content:
-            'Viết mã C++ sử dụng ArduinoFake để test hàm parseModbusResponse. Giả sử baudrate là {{baudrate}}.',
-          variables: ['baudrate'],
-        },
-      ],
-    },
-  ];
+  let playbooks: PromptPlaybook[] = [];
+  try {
+    playbooks = await projectService.getPlaybooks(project.id);
+  } catch {
+    playbooks = [];
+  }
 
   return (
     <>
       <Header navItems={navItems} />
+      
       <div className="min-h-screen bg-white pt-12 pb-12 md:pt-28">
         {/* Breadcrumb - Minimal */}
-        <ProjectBreadcrumb slug={project.slug} />
+        <ProjectBreadcrumb />
 
         <div className="mx-auto max-w-7xl px-4 lg:px-8 mt-1 lg:mt-4 flex gap-12">
           {/* LEFT SIDEBAR - TOC */}
@@ -143,7 +124,12 @@ export default async function ProjectDetailPage({
 
             <ConfigurationTable project={project} isAdmin={isAdmin} />
 
-            <ProjectAIPlaybooks projectId={project.id} playbooks={playbooks} />
+            <ProjectAIPlaybooks
+              projectId={project.id}
+              playbooks={playbooks}
+              isAdmin={isAdmin}
+              manageHref={`/admin/projects/${project.slug}/playbooks`}
+            />
 
             {/* Footer / Downloads */}
             <ProjectDownloads project={project} />

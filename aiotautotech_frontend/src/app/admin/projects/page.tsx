@@ -119,6 +119,13 @@ export default async function AdminProjectsPage() {
                               </Link>
                               <span className="text-gray-300">|</span>
                               <Link
+                                href={`/admin/projects/${project.slug}/playbooks`}
+                                className="text-blue-600 hover:text-blue-900 font-semibold"
+                              >
+                                Playbooks
+                              </Link>
+                              <span className="text-gray-300">|</span>
+                              <Link
                                 href={`/projects/${project.slug}`}
                                 className="text-gray-600 hover:text-gray-900"
                               >
