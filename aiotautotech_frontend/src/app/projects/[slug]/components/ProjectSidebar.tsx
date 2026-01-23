@@ -51,7 +51,7 @@ export const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
 
         {/* Admin Quick Link */}
         {isAdmin && (
-          <div className="mt-8 pt-8 border-t border-gray-100">
+          <div className="mt-8 pt-8 border-t border-gray-100 hidden sm:block">
             <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">
               Admin Controls
             </h4>

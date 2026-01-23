@@ -1,14 +1,19 @@
 import React from 'react';
+import { MobileNav } from './MobileNav';
 
 interface ProjectOverviewProps {
   project: {
     problem_statement?: string | null;
     description?: string | null;
   };
+  slug: string;
+  isAdmin: boolean;
 }
 
 export const ProjectOverview: React.FC<ProjectOverviewProps> = ({
   project,
+  slug,
+  isAdmin,
 }) => {
   return (
     <section id="overview" className="mb-6 scroll-mt-20">
@@ -26,6 +31,9 @@ export const ProjectOverview: React.FC<ProjectOverviewProps> = ({
             </p>
           </>
         )}
+      </div>
+      <div className="mt-4">
+        <MobileNav slug={slug} isAdmin={isAdmin} />
       </div>
     </section>
   );

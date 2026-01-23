@@ -13,38 +13,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({ slug, isAdmin }) => {
 
   return (
     <div className="lg:hidden mb-4">
-      {/* Mobile Admin Controls */}
-      {isAdmin && (
-        <div className="mb-2 px-4 py-2 bg-gray-50 border border-gray-200">
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href={`/admin/projects/${slug}/edit`}
-              className="text-xs font-mono text-blue-600 hover:underline"
-            >
-              [Metadata]
-            </Link>
-            <Link
-              href={`/admin/projects/${slug}/bom`}
-              className="text-xs font-mono text-blue-600 hover:underline"
-            >
-              [BOM]
-            </Link>
-            <Link
-              href={`/admin/projects/${slug}/steps`}
-              className="text-xs font-mono text-blue-600 hover:underline"
-            >
-              [Log]
-            </Link>
-            <Link
-              href={`/admin/projects/${slug}/images`}
-              className="text-xs font-mono text-blue-600 hover:underline"
-            >
-              [Gallery]
-            </Link>
-          </div>
-        </div>
-      )}
-
       {/* Mobile Table of Contents */}
       <div className="px-5 py-2 bg-gray-50 rounded-xl border border-gray-200">
         <button
@@ -110,6 +78,37 @@ export const MobileNav: React.FC<MobileNavProps> = ({ slug, isAdmin }) => {
               <span className="w-6 text-gray-400 font-mono">5.</span> Tài liệu
             </a>
           </nav>
+          {/* Mobile Admin Controls */}
+          {isAdmin && (
+            <div className="mt-4 rounded-md border border-gray-200 bg-white px-3 py-2">
+              <div className="flex flex-wrap gap-3">
+                <Link
+                  href={`/admin/projects/${slug}/edit`}
+                  className="text-xs font-mono text-blue-600 hover:underline"
+                >
+                  [Metadata]
+                </Link>
+                <Link
+                  href={`/admin/projects/${slug}/bom`}
+                  className="text-xs font-mono text-blue-600 hover:underline"
+                >
+                  [BOM]
+                </Link>
+                <Link
+                  href={`/admin/projects/${slug}/steps`}
+                  className="text-xs font-mono text-blue-600 hover:underline"
+                >
+                  [Log]
+                </Link>
+                <Link
+                  href={`/admin/projects/${slug}/images`}
+                  className="text-xs font-mono text-blue-600 hover:underline"
+                >
+                  [Gallery]
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

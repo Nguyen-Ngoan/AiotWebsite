@@ -12,7 +12,6 @@ import { ProjectImplementationLog } from './components/ProjectImplementationLog'
 import { ProjectOverview } from './components/ProjectOverview';
 import { ProjectSidebar } from './components/ProjectSidebar';
 import { ProjectSolution } from './components/ProjectSolution';
-import { MobileNav } from './components/MobileNav';
 import { ProjectMediaSlider } from './components/ProjectMediaSlider';
 import { ProjectAIPlaybooks } from './components/ProjectAIPlaybooks';
 
@@ -107,10 +106,12 @@ export default async function ProjectDetailPage({
             {/* Media Slider (Video + Gallery) */}
             {hasMedia && <ProjectMediaSlider project={project} />}
 
-            <MobileNav slug={project.slug} isAdmin={isAdmin} />
-
             {/* Problem Statement */}
-            <ProjectOverview project={project} />
+            <ProjectOverview
+              project={project}
+              slug={project.slug}
+              isAdmin={isAdmin}
+            />
 
             {/* Solution Analysis */}
             <ProjectSolution project={project} isAdmin={isAdmin} />
