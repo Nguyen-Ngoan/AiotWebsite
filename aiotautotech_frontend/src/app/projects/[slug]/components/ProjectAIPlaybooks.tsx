@@ -21,6 +21,7 @@ interface ProjectAIPlaybooksProps {
   playbooks: PromptPlaybook[];
   isAdmin?: boolean;
   manageHref?: string;
+  showDivider?: boolean;
 }
 
 export const ProjectAIPlaybooks: React.FC<ProjectAIPlaybooksProps> = ({
@@ -28,6 +29,7 @@ export const ProjectAIPlaybooks: React.FC<ProjectAIPlaybooksProps> = ({
   isAdmin = false,
   projectId,
   manageHref,
+  showDivider = true,
 }) => {
   const [expandedPlaybook, setExpandedPlaybook] = useState<string | null>(null);
   const [playbooksState, setPlaybooksState] =
@@ -120,19 +122,25 @@ export const ProjectAIPlaybooks: React.FC<ProjectAIPlaybooksProps> = ({
         prev.map((pb) => (pb.id === updated.id ? updated : pb))
       );
       closePromptModal();
-    } catch (err: any) {
-      setModalError(err.message || 'Không thể thêm prompt.');
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : 'Không thể thêm prompt.';
+      setModalError(message);
     } finally {
       setIsSavingPrompt(false);
     }
   };
+
+  const sectionClassName = showDivider
+    ? 'mt-12 scroll-mt-20 border-t border-gray-100 pt-12'
+    : 'mt-8 scroll-mt-20';
 
   if (!playbooksState || playbooksState.length === 0) {
     if (!isAdmin) return null;
     return (
       <section
         id="ai-assistant"
-        className="mt-12 scroll-mt-20 border-t border-gray-100 pt-12"
+        className={sectionClassName}
       >
         <div className="flex items-center justify-between gap-2 mb-6">
           <div className="flex items-center gap-2">
@@ -153,7 +161,7 @@ export const ProjectAIPlaybooks: React.FC<ProjectAIPlaybooksProps> = ({
           )}
         </div>
         <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-6 text-sm text-gray-600">
-          Chưa có prompt nào. Hãy thêm playbook/prompt để hiển thị ở đây.
+          Chưa có prompt. Hãy thêm playbook/prompt.
         </div>
       </section>
     );
@@ -162,7 +170,7 @@ export const ProjectAIPlaybooks: React.FC<ProjectAIPlaybooksProps> = ({
   return (
     <section
       id="ai-assistant"
-      className="mt-12 scroll-mt-20 border-t border-gray-100 pt-12"
+      className={sectionClassName}
     >
       <div className="flex items-center justify-between gap-2 mb-6">
         <div className="flex items-center gap-2">
@@ -187,9 +195,9 @@ export const ProjectAIPlaybooks: React.FC<ProjectAIPlaybooksProps> = ({
         {playbooksState.map((playbook) => (
           <div
             key={playbook.id}
-            className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
+            className="overflow-hidden border border-[#262626] bg-[#1a1a1a] shadow-sm hover:shadow-md transition-shadow"
           >
-            <div className="flex items-center justify-between gap-3 p-4 bg-gray-50/50">
+            <div className="flex items-center justify-between gap-3 px-4 py-2 bg-[#262626]">
               <button
                 onClick={() =>
                   setExpandedPlaybook(
@@ -221,7 +229,7 @@ export const ProjectAIPlaybooks: React.FC<ProjectAIPlaybooksProps> = ({
             </div>
 
             {expandedPlaybook === playbook.id && (
-              <div className="p-4 border-t border-gray-100">
+              <div className="p-4">
                 <PlaybookContent prompts={playbook.prompts} />
                 {isAdmin && (
                   <div className="mt-4 flex justify-end">
@@ -392,35 +400,15 @@ const DomainBadge = ({ domain }: { domain: PromptPlaybook['domain'] }) => {
 };
 
 const PlaybookContent = ({ prompts }: { prompts: PromptItem[] }) => {
-  const stages = ['CONCEPT', 'UNIT_TEST', 'INTEGRATION', 'DEBUG'] as const;
-  const availableStages = stages.filter((s) =>
-    prompts.some((p) => p.stage === s)
-  );
-  const [activeStage, setActiveStage] = useState(availableStages[0]);
-
-  const currentPrompt = prompts.find((p) => p.stage === activeStage);
-
-  if (!currentPrompt) return null;
+  if (!prompts || prompts.length === 0) return null;
 
   return (
-    <div>
-      <div className="flex gap-2 mb-6 border-b border-gray-100 pb-2 overflow-x-auto">
-        {availableStages.map((stage) => (
-          <button
-            key={stage}
-            onClick={() => setActiveStage(stage)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors whitespace-nowrap ${
-              activeStage === stage
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-500 hover:bg-gray-100'
-            }`}
-          >
-            {stage.replace('_', ' ')}
-          </button>
-        ))}
-      </div>
-
-      <PromptViewer prompt={currentPrompt} />
+    <div className="space-y-6">
+      {prompts.map((prompt, index) => (
+        <div key={`${prompt.title}-${index}`} className="space-y-3">
+          <PromptViewer prompt={prompt} />
+        </div>
+      ))}
     </div>
   );
 };

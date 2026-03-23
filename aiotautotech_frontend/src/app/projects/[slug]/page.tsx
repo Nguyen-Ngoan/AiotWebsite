@@ -130,10 +130,11 @@ export default async function ProjectDetailPage({
               playbooks={playbooks}
               isAdmin={isAdmin}
               manageHref={`/admin/projects/${project.slug}/playbooks`}
+              showDivider={false}
             />
 
             {/* Footer / Downloads */}
-            <ProjectDownloads project={project} />
+            <ProjectDownloads project={project} showDivider={false} />
 
             {/* Project Meta Footer */}
             <div className="mt-8 border-t border-gray-100 pt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500 font-mono">

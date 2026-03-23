@@ -4,16 +4,19 @@ interface ProjectDownloadsProps {
   project: {
     attachments?: (string | null)[] | null;
   };
+  showDivider?: boolean;
 }
 
 export const ProjectDownloads: React.FC<ProjectDownloadsProps> = ({
   project,
+  showDivider = true,
 }) => {
+  const sectionClassName = showDivider
+    ? 'pt-4 border-t border-gray-200 scroll-mt-20'
+    : 'pt-2 scroll-mt-20';
+
   return (
-    <section
-      id="downloads"
-      className="pt-4 border-t border-gray-200 scroll-mt-20"
-    >
+    <section id="downloads" className={sectionClassName}>
       <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wider mb-4">
         <span className="text-gray-400 font-mono">4.</span> TÀI LIỆU
       </h2>
