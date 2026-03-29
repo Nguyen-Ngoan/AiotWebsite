@@ -132,6 +132,17 @@ export default function SchematicsLibraryPage() {
               <li>
                 <span className="text-gray-300">&gt;</span>
               </li>
+              <li>
+                <Link
+                  href="/technical-docs"
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  Tài liệu kỹ thuật
+                </Link>
+              </li>
+              <li>
+                <span className="text-gray-300">&gt;</span>
+              </li>
               <li className="font-medium text-gray-800">Sơ đồ mạch</li>
             </ol>
           </nav>

@@ -6,54 +6,12 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { getApiUrl } from '@/lib/apiConfig';
 import { navItems } from '@/components/layout/nav-items';
-
-import { getPrimaryImageUrl } from '@/lib/productMedia';
-
-interface ProductImage {
-  id?: string;
-  url?: string;
-  url_medium?: string;
-  url_thumb?: string;
-  fileName?: string;
-  alt?: string;
-  title?: string;
-  type?: string;
-  isPrimary?: boolean;
-}
-
-interface Product {
-  id: string;
-  title: string;
-  slug?: string;
-  short_description?: string;
-  description_html?: string;
-  product_type?: string;
-  status?: 'draft' | 'active' | 'archived' | string;
-  base_price?: number | null;
-  currency?: string;
-  sku?: string;
-  stock_tracking?: boolean;
-  stock_qty?: number;
-  min_order_qty?: number;
-  tags?: string[];
-  created_at?: string;
-  updated_at?: string;
-
-  // Media mới
-  images?: ProductImage[];
-}
+import {
+  DiyProductCard,
+  type Product,
+} from '@/components/diy-maker/DiyProductCard';
 
 interface DiyMakerPageProps {}
-
-function formatPrice(base_price?: number | null, currency?: string): string {
-  if (base_price === null || base_price === undefined) return 'Chưa cập nhật';
-  const cur = currency || 'VND';
-  const formatted = base_price.toLocaleString('vi-VN');
-  if (cur === 'VND') {
-    return `${formatted}₫`;
-  }
-  return `${formatted} ${cur}`;
-}
 
 export default function DiyMakerPage(_: DiyMakerPageProps) {
   const [products, setProducts] = useState<Product[]>([]);
@@ -82,14 +40,15 @@ export default function DiyMakerPage(_: DiyMakerPageProps) {
         let fetchedProducts: Product[] = [];
         if (Array.isArray(data)) {
           fetchedProducts = data as Product[];
-        } else if (data && Array.isArray((data as any).results)) {
-          fetchedProducts = (data as any).results as Product[];
+        } else if (data && Array.isArray((data as { results?: Product[] }).results)) {
+          fetchedProducts = (data as { results: Product[] }).results;
         } else {
           console.warn('Unexpected products response shape', data);
         }
         setProducts(fetchedProducts);
-      } catch (err: any) {
-        setError(err.message || 'An unknown error occurred.');
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'An unknown error occurred.';
+        setError(message);
       } finally {
         setIsLoading(false);
       }
@@ -192,76 +151,11 @@ export default function DiyMakerPage(_: DiyMakerPageProps) {
           </div>
         )}
 
-        {/* Grid sản phẩm */}
         {!isLoading && hasProducts && (
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {products.map((product) => {
-              const priceLabel = formatPrice(
-                product.base_price,
-                product.currency
-              );
-
-              const mainImage = getPrimaryImageUrl(
-                product.images || [],
-                'thumb'
-              );
-
-              const slugPart =
-                product.slug && product.slug.trim().length > 0
-                  ? product.slug
-                  : 'san-pham';
-
-              const detailHref = `/diy-maker/${product.id}-${slugPart}`;
-
-              return (
-                <Link
-                  href={detailHref}
-                  key={product.id}
-                  className="group flex flex-col rounded-2xl border border-gray-800 bg-[#111111] p-3 shadow-lg shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/15 sm:p-4"
-                >
-                  {/* Tên sản phẩm */}
-                  <h2 className="mb-3 line-clamp-2 text-sm font-semibold text-gray-100 transition-colors group-hover:text-blue-300 sm:text-base">
-                    {product.title || 'Sản phẩm chưa đặt tên'}
-                  </h2>
-
-                  {/* Bố cục 2 cột cho ảnh và mô tả */}
-                  <div className="grid grid-cols-5 gap-4">
-                    {/* Cột ảnh (2/5) */}
-                    <div className="col-span-2">
-                      {mainImage && (
-                        <div className="aspect-[3/2] overflow-hidden rounded-xl bg-black/60">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={mainImage}
-                            alt={product.title || 'Ảnh sản phẩm'}
-                            className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
-                          />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Cột mô tả (3/5) */}
-                    <div className="col-span-3">
-                      <div
-                        className="prose prose-xs prose-invert max-w-none text-gray-400"
-                        dangerouslySetInnerHTML={{
-                          __html:
-                            product.short_description ||
-                            'Chưa có mô tả ngắn cho sản phẩm này.',
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Giá */}
-                  <div className="mt-auto flex items-baseline justify-between gap-2 pt-4">
-                    <div className="text-base font-semibold text-blue-300">
-                      {priceLabel}
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+            {products.map((product) => (
+              <DiyProductCard key={product.id} product={product} />
+            ))}
           </div>
         )}
       </main>

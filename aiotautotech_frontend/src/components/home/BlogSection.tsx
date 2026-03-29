@@ -37,9 +37,9 @@ export default function BlogSection({ posts }: BlogSectionProps) {
       id="blog"
       className="w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-black"
     >
-      <div className="mx-auto max-w-6xl px-4 pt-8 pb-12 lg:px-6">
+      <div className="mx-auto max-w-6xl px-4 py-8 md:py-10 lg:px-6">
         {/* Heading */}
-        <div className="mb-8 text-center sm:mb-10">
+        <div className="mb-6 text-center sm:mb-8">
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
             Blog
           </p>
@@ -98,7 +98,7 @@ export default function BlogSection({ posts }: BlogSectionProps) {
         )}
 
         {/* CTA tổng blog + nút thêm bài viết */}
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
             href="/blog"
             className="inline-flex items-center rounded-full bg-[#f5f5f7] px-4 py-2 text-sm font-semibold text-[#0066CC] hover:bg-[#e5e5f0] dark:bg-[#111111] dark:text-[#2997FF] dark:hover:bg-[#1b1b1f]"

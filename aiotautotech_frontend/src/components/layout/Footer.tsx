@@ -4,12 +4,19 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useRef, useEffect, Fragment } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 
 const brandName = 'AIOT AutoTech'; // Đổi tên thương hiệu tại đây
 
-type SectionId = 'products' | 'docs' | 'blog' | 'contact';
+/** Giống menu chính / mobile menu: chữ hoa + tracking */
+const footerHeadingClass =
+  'text-sm font-semibold uppercase tracking-wide text-white';
+const footerLinkClass =
+  'uppercase tracking-wide hover:underline';
+const footerListTextClass = 'uppercase tracking-wide';
+
+type SectionId = 'products' | 'projects' | 'docs' | 'blog' | 'contact';
 
 type MobileSectionProps = {
   id: SectionId;
@@ -43,7 +50,7 @@ function MobileAccordionSection({
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between py-1.5 text-left text-sm font-semibold text-white"
+        className="flex w-full items-center justify-between py-1.5 text-left text-sm font-semibold uppercase tracking-wide text-white"
       >
         <span>{title}</span>
         <span className="ml-2 text-gray-400">
@@ -84,96 +91,115 @@ export default function Footer() {
       <div className="mx-auto max-w-6xl px-4 pt-4 pb-8 md:pt-10 md:pb-12 lg:px-6 text-xs text-gray-300">
         {/* ====== GIAO DIỆN MOBILE (DẠNG ACCORDION) ====== */}
         <div className="md:hidden">
-          {/* Cột 1: Sản phẩm */}
           <MobileAccordionSection
             id="products"
-            title="Sản phẩm"
+            title="SẢN PHẨM"
             isOpen={openSection === 'products'}
             onToggle={() => toggleSection('products')}
             withBorderBottom={true}
           >
             <ul className="mt-1 space-y-1">
               <li>
-                <Link href="#" className="hover:underline">
-                  Linh kiện DIY & Maker
+                <Link href="/diy-maker" className={footerLinkClass}>
+                  DIY Maker — linh kiện & máy tự động
                 </Link>
               </li>
               <li>
-                <Link href="#" className="hover:underline">
-                  Máy tự động hóa cho xưởng
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Thiết bị IoT nông nghiệp
+                <Link href="/parts" className={footerLinkClass}>
+                  Sản phẩm in 3D
                 </Link>
               </li>
             </ul>
           </MobileAccordionSection>
 
-          {/* Cột 3: Tài liệu & Hướng dẫn */}
+          <MobileAccordionSection
+            id="projects"
+            title="DỰ ÁN"
+            isOpen={openSection === 'projects'}
+            onToggle={() => toggleSection('projects')}
+            withBorderBottom={true}
+          >
+            <ul className="mt-1 space-y-1">
+              <li>
+                <Link href="/projects" className={footerLinkClass}>
+                  Các dự án DIY
+                </Link>
+              </li>
+            </ul>
+          </MobileAccordionSection>
+
           <MobileAccordionSection
             id="docs"
-            title="Tài liệu & Hướng dẫn"
+            title="TÀI LIỆU KỸ THUẬT"
             isOpen={openSection === 'docs'}
             onToggle={() => toggleSection('docs')}
             withBorderBottom={true}
           >
             <ul className="mt-1 space-y-1">
               <li>
-                <Link href="/docs/3d-files" className="hover:underline">
+                <Link href="/technical-docs" className={footerLinkClass}>
+                  Tổng quan tài liệu
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/technical-docs/file-3d"
+                  className={footerLinkClass}
+                >
                   File 3D
                 </Link>
               </li>
               <li>
-                <Link href="/docs/schematics" className="hover:underline">
+                <Link
+                  href="/technical-docs/schematics"
+                  className={footerLinkClass}
+                >
                   Sơ đồ mạch
                 </Link>
               </li>
               <li>
-                <Link href="/docs/guides" className="hover:underline">
-                  Hướng dẫn kỹ thuật
+                <Link
+                  href="/technical-docs/datasheets"
+                  className={footerLinkClass}
+                >
+                  Datasheet & hướng dẫn
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/technical-docs/code-samples"
+                  className={footerLinkClass}
+                >
+                  Code mẫu
                 </Link>
               </li>
             </ul>
           </MobileAccordionSection>
 
-          {/* Cột 4: Blog */}
           <MobileAccordionSection
             id="blog"
-            title="Blog"
+            title="BLOG"
             isOpen={openSection === 'blog'}
             onToggle={() => toggleSection('blog')}
             withBorderBottom={true}
           >
             <ul className="mt-1 space-y-1">
               <li>
-                <Link href="#" className="hover:underline">
-                  Bài viết mới
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Kiến thức DIY & Maker
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="hover:underline">
-                  Case Study Tự động hóa
+                <Link href="/blog" className={footerLinkClass}>
+                  Blog kỹ thuật
                 </Link>
               </li>
             </ul>
           </MobileAccordionSection>
 
-          {/* Cột 5: Thông tin liên hệ */}
           <MobileAccordionSection
             id="contact"
-            title="Thông tin liên hệ"
+            title="LIÊN HỆ"
             isOpen={openSection === 'contact'}
             onToggle={() => toggleSection('contact')}
-            withBorderBottom={false} // <-- bỏ đường phân cách dưới
+            withBorderBottom={false}
           >
-            <ul className="mt-1 space-y-1">
+            <ul className={`mt-1 space-y-1 ${footerListTextClass}`}>
               <li>Hotline: 0xxx xxx xxx</li>
               <li>Email: contact@aiotautotech.com</li>
               <li>Địa chỉ: (địa chỉ của bạn)</li>
@@ -183,83 +209,93 @@ export default function Footer() {
 
         {/* ====== GIAO DIỆN DESKTOP (DẠNG CỘT) ====== */}
         <div className="hidden md:block">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {/* Cột 1: Sản phẩm */}
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             <div>
-              <h3 className="mb-3 text-sm font-semibold text-white">
-                Sản phẩm
-              </h3>
+              <h3 className={`mb-3 ${footerHeadingClass}`}>SẢN PHẨM</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link href="#" className="hover:underline">
-                    Linh kiện DIY & Maker
+                  <Link href="/diy-maker" className={footerLinkClass}>
+                    DIY Maker — linh kiện & máy tự động
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:underline">
-                    Máy tự động hóa cho xưởng
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:underline">
-                    Thiết bị IoT nông nghiệp
+                  <Link href="/parts" className={footerLinkClass}>
+                    Sản phẩm in 3D
                   </Link>
                 </li>
               </ul>
             </div>
 
-            {/* Cột 3: Tài liệu & Hướng dẫn */}
             <div>
-              <h3 className="mb-3 text-sm font-semibold text-white">
-                Tài liệu & Hướng dẫn
+              <h3 className={`mb-3 ${footerHeadingClass}`}>DỰ ÁN</h3>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/projects" className={footerLinkClass}>
+                    Các dự án DIY
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className={`mb-3 ${footerHeadingClass}`}>
+                TÀI LIỆU KỸ THUẬT
               </h3>
               <ul className="space-y-2">
                 <li>
-                  <Link href="/docs/3d-files" className="hover:underline">
+                  <Link href="/technical-docs" className={footerLinkClass}>
+                    Tổng quan tài liệu
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/technical-docs/file-3d"
+                    className={footerLinkClass}
+                  >
                     File 3D
                   </Link>
                 </li>
                 <li>
-                  <Link href="/docs/schematics" className="hover:underline">
+                  <Link
+                    href="/technical-docs/schematics"
+                    className={footerLinkClass}
+                  >
                     Sơ đồ mạch
                   </Link>
                 </li>
                 <li>
-                  <Link href="/docs/guides" className="hover:underline">
-                    Hướng dẫn kỹ thuật
+                  <Link
+                    href="/technical-docs/datasheets"
+                    className={footerLinkClass}
+                  >
+                    Datasheet & hướng dẫn
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/technical-docs/code-samples"
+                    className={footerLinkClass}
+                  >
+                    Code mẫu
                   </Link>
                 </li>
               </ul>
             </div>
 
-            {/* Cột 4: Blog */}
             <div>
-              <h3 className="mb-3 text-sm font-semibold text-white">Blog</h3>
+              <h3 className={`mb-3 ${footerHeadingClass}`}>BLOG</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link href="#" className="hover:underline">
-                    Bài viết mới
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:underline">
-                    Kiến thức DIY & Maker
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:underline">
-                    Case Study Tự động hóa
+                  <Link href="/blog" className={footerLinkClass}>
+                    Blog kỹ thuật
                   </Link>
                 </li>
               </ul>
             </div>
 
-            {/* Cột 5: Thông tin liên hệ */}
             <div>
-              <h3 className="mb-3 text-sm font-semibold text-white">
-                Thông tin liên hệ
-              </h3>
-              <ul className="space-y-2">
+              <h3 className={`mb-3 ${footerHeadingClass}`}>LIÊN HỆ</h3>
+              <ul className={`space-y-2 ${footerListTextClass}`}>
                 <li>Hotline: 0xxx xxx xxx</li>
                 <li>Email: contact@aiotautotech.com</li>
                 <li>Địa chỉ: (địa chỉ của bạn)</li>

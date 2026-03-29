@@ -4,10 +4,8 @@ import { getApiUrl } from '@/lib/apiConfig';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import DiyMakerSection from '@/components/home/DiyMakerSection';
-import TechDocsSection from '@/components/home/TechDocsSection';
 import { navItems } from '@/components/layout/nav-items';
 import BlogSection from '@/components/home/BlogSection';
-import ProjectSection from '@/components/home/ProjectSection';
 
 export interface Post {
   id: string;
@@ -38,10 +36,8 @@ export default async function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-black">
       <Header navItems={navItems} />
-      <main className="flex-1 pt-24">
-        <ProjectSection />
+      <main className="flex-1 pt-[52px] md:pt-24">
         <DiyMakerSection />
-        <TechDocsSection />
         <BlogSection posts={posts} />
       </main>
       <Footer />

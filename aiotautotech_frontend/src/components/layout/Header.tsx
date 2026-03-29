@@ -10,21 +10,48 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { MobileMenu, NavItem } from '@/components/layout/MobileMenu';
-import { useState, forwardRef } from 'react';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useMemo, useState, forwardRef } from 'react';
 
 interface HeaderProps {
+  /** Giữ để tương thích với các trang truyền navItems; menu hiển thị cố định trong Header. */
   navItems: NavItem[];
 }
 
-const Header = forwardRef<HTMLElement, HeaderProps>(({ navItems }, ref) => {
+/** Menu chính: HOME, SẢN PHẨM, DỰ ÁN, TÀI LIỆU KỸ THUẬT, BLOG */
+const MAIN_NAV_ITEMS: NavItem[] = [
+  { href: '/', title: 'HOME', subtitle: 'Trang chủ' },
+  {
+    href: '/diy-maker',
+    title: 'SẢN PHẨM',
+    subtitle: 'Linh kiện DIY – Máy tự động',
+  },
+  { href: '/projects', title: 'DỰ ÁN', subtitle: 'Các dự án DIY' },
+  {
+    href: '/technical-docs',
+    title: 'TÀI LIỆU KỸ THUẬT',
+    subtitle: 'Hướng dẫn, datasheet, file 3D',
+  },
+  { href: '/blog', title: 'BLOG', subtitle: 'Blog kỹ thuật' },
+];
+
+const ADMIN_NAV_ITEM: NavItem = {
+  href: '/admin',
+  title: 'ADMIN',
+  subtitle: 'Trang quản trị',
+};
+
+const Header = forwardRef<HTMLElement, HeaderProps>(({ navItems: _navItems }, ref) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAdmin, isLoading } = useIsAdmin();
+
+  const mainNavItems = useMemo(() => {
+    if (isLoading) return MAIN_NAV_ITEMS;
+    return isAdmin ? [...MAIN_NAV_ITEMS, ADMIN_NAV_ITEM] : MAIN_NAV_ITEMS;
+  }, [isAdmin, isLoading]);
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const closeMenu = () => setIsMenuOpen(false);
-
-  const filteredNavItems = navItems.filter(
-    (item) => item.title !== 'Giải pháp Tự động hóa'
-  );
 
   return (
     <header
@@ -86,19 +113,25 @@ const Header = forwardRef<HTMLElement, HeaderProps>(({ navItems }, ref) => {
 
         {/* HÀNG DƯỚI: TOP NAVIGATION DESKTOP */}
         <div className="hidden md:block">
-          <nav className="mx-auto flex max-w-6xl items-start justify-between gap-2 px-4 py-2 text-sm md:px-6">
-            {filteredNavItems.map((item) => (
+          <nav className="mx-auto flex max-w-6xl flex-wrap items-start justify-center gap-x-1.5 gap-y-2 px-4 py-2 text-sm md:gap-x-2 md:px-6">
+            {mainNavItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex-1 rounded-lg bg-black/10 px-2 py-2 text-center transition-colors duration-200 hover:bg-black/20"
+                className={
+                  item.href === '/admin'
+                    ? 'group shrink-0 bg-amber-500/25 px-5 py-2 ring-1 ring-amber-300/40 transition-colors duration-200 hover:bg-amber-500/35 sm:px-6 lg:px-7'
+                    : 'group shrink-0 bg-black/10 px-5 py-2 transition-colors duration-200 hover:bg-black/20 sm:px-6 lg:px-7'
+                }
               >
-                <div className="flex flex-col leading-tight">
-                  <span className="font-semibold text-white">{item.title}</span>
+                <div className="flex flex-col items-center leading-tight">
+                  <span className="whitespace-nowrap font-semibold text-white">
+                    {item.title}
+                  </span>
                   <span
                     className="
-                      hidden lg:block
-                      mt-0.5 text-xs text-gray-300 group-hover:text-white
+                      mt-0.5 hidden text-center text-xs text-gray-300
+                      group-hover:text-white lg:block
                     "
                   >
                     {item.subtitle}
@@ -112,7 +145,7 @@ const Header = forwardRef<HTMLElement, HeaderProps>(({ navItems }, ref) => {
         {/* MOBILE MENU: CHỈ HIỂN THỊ TRÊN MÀN HÌNH NHỎ */}
         <MobileMenu
           open={isMenuOpen}
-          items={filteredNavItems}
+          items={mainNavItems}
           onClose={closeMenu}
         />
       </div>

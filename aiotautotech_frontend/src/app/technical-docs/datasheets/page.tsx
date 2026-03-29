@@ -159,6 +159,17 @@ export default function DatasheetLibraryPage() {
               <li>
                 <span className="text-gray-300">&gt;</span>
               </li>
+              <li>
+                <Link
+                  href="/technical-docs"
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  Tài liệu kỹ thuật
+                </Link>
+              </li>
+              <li>
+                <span className="text-gray-300">&gt;</span>
+              </li>
               <li className="font-medium text-gray-800">
                 Datasheet & Hướng dẫn
               </li>
