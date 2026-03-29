@@ -50,7 +50,7 @@ function MobileAccordionSection({
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between py-1.5 text-left text-sm font-semibold uppercase tracking-wide text-white"
+        className="flex w-full items-center justify-between py-1 text-left text-sm font-semibold uppercase tracking-wide text-white"
       >
         <span>{title}</span>
         <span className="ml-2 text-gray-400">
@@ -68,7 +68,7 @@ function MobileAccordionSection({
       >
         <div
           ref={contentRef}
-          className={`pb-1.5 pt-1 transform transition-all duration-300 ${
+          className={`pb-1 pt-0.5 transform transition-all duration-300 ${
             isOpen ? 'translate-y-0 opacity-100' : '-translate-y-1 opacity-0'
           }`}
         >
@@ -88,7 +88,7 @@ export default function Footer() {
 
   return (
     <footer className="mt-0 border-t border-gray-700 bg-[#3a4754]">
-      <div className="mx-auto max-w-6xl px-4 pt-4 pb-8 md:pt-10 md:pb-12 lg:px-6 text-xs text-gray-300">
+      <div className="mx-auto max-w-6xl px-4 pt-4 pb-2 sm:px-5 md:pt-6 md:pb-3 lg:px-6 text-xs text-gray-300">
         {/* ====== GIAO DIỆN MOBILE (DẠNG ACCORDION) ====== */}
         <div className="md:hidden">
           <MobileAccordionSection
@@ -98,7 +98,7 @@ export default function Footer() {
             onToggle={() => toggleSection('products')}
             withBorderBottom={true}
           >
-            <ul className="mt-1 space-y-1">
+            <ul className="mt-0.5 space-y-0.5">
               <li>
                 <Link href="/diy-maker" className={footerLinkClass}>
                   DIY Maker — linh kiện & máy tự động
@@ -119,7 +119,7 @@ export default function Footer() {
             onToggle={() => toggleSection('projects')}
             withBorderBottom={true}
           >
-            <ul className="mt-1 space-y-1">
+            <ul className="mt-0.5 space-y-0.5">
               <li>
                 <Link href="/projects" className={footerLinkClass}>
                   Các dự án DIY
@@ -135,7 +135,7 @@ export default function Footer() {
             onToggle={() => toggleSection('docs')}
             withBorderBottom={true}
           >
-            <ul className="mt-1 space-y-1">
+            <ul className="mt-0.5 space-y-0.5">
               <li>
                 <Link href="/technical-docs" className={footerLinkClass}>
                   Tổng quan tài liệu
@@ -183,7 +183,7 @@ export default function Footer() {
             onToggle={() => toggleSection('blog')}
             withBorderBottom={true}
           >
-            <ul className="mt-1 space-y-1">
+            <ul className="mt-0.5 space-y-0.5">
               <li>
                 <Link href="/blog" className={footerLinkClass}>
                   Blog kỹ thuật
@@ -199,7 +199,7 @@ export default function Footer() {
             onToggle={() => toggleSection('contact')}
             withBorderBottom={false}
           >
-            <ul className={`mt-1 space-y-1 ${footerListTextClass}`}>
+            <ul className={`mt-0.5 space-y-0.5 ${footerListTextClass}`}>
               <li>Hotline: 0xxx xxx xxx</li>
               <li>Email: contact@aiotautotech.com</li>
               <li>Địa chỉ: (địa chỉ của bạn)</li>
@@ -209,7 +209,7 @@ export default function Footer() {
 
         {/* ====== GIAO DIỆN DESKTOP (DẠNG CỘT) ====== */}
         <div className="hidden md:block">
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             <div>
               <h3 className={`mb-3 ${footerHeadingClass}`}>SẢN PHẨM</h3>
               <ul className="space-y-2">
@@ -305,8 +305,8 @@ export default function Footer() {
         </div>
 
         {/* PHẦN GIỚI THIỆU THƯƠNG HIỆU & BẢN QUYỀN */}
-        <div className="mt-6 border-t border-gray-700 pt-5">
-          <div className="mb-4 flex items-center justify-center space-x-2 md:justify-start">
+        <div className="mt-5 border-t border-gray-700 pt-4">
+          <div className="mb-3 flex items-center justify-center space-x-2 md:justify-start">
             <Image
               src="/aiotautotech-icon.png"
               alt={`${brandName} Logo`}
@@ -344,7 +344,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-6 border-t border-gray-700 pt-4 text-center text-[11px] text-gray-500">
+        <div className="mt-5 border-t border-gray-700 pt-3 text-center text-[11px] text-gray-500">
           <p className="text-center">
             © 2025 {brandName} — All rights reserved.
           </p>

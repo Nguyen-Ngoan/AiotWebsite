@@ -225,7 +225,7 @@ export default function BlogDetailPage() {
     return (
       <div className="min-h-screen flex flex-col bg-black text-gray-100">
         <Header navItems={navItems} />
-        <main className="flex-1 flex items-center justify-center px-4 pt-12 md:pt-28">
+        <main className="flex-1 flex items-center justify-center px-4 pt-16 md:pt-32">
           <div className="text-center">
             <p className="text-xs uppercase tracking-[0.18em] text-gray-500 mb-2">
               Blog
@@ -248,7 +248,7 @@ export default function BlogDetailPage() {
     return (
       <div className="min-h-screen flex flex-col bg-black text-gray-100">
         <Header navItems={navItems} />
-        <main className="flex-1 flex items-center justify-center px-4 pt-12 md:pt-28">
+        <main className="flex-1 flex items-center justify-center px-4 pt-16 md:pt-32">
           <div className="max-w-xl text-center">
             <p className="text-xs uppercase tracking-[0.18em] text-red-500 mb-2">
               Blog
@@ -277,7 +277,7 @@ export default function BlogDetailPage() {
     <div className="min-h-screen flex flex-col bg-black text-gray-100">
       <Header navItems={navItems} />
 
-      <main className="flex-1 pt-12 pb-16 px-6 sm:px-8 md:pt-28">
+      <main className="flex-1 pb-8 px-6 sm:px-8 pt-16 md:pt-32">
         {/* <div className="absolute inset-0 -z-10 bg-gradient-to-b from-gray-900 via-black to-black" /> */}
 
         <article className="mx-auto w-full max-w-3xl">
@@ -402,8 +402,8 @@ export default function BlogDetailPage() {
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
-          <div className="mt-10 border-t border-gray-800 pt-6 text-xs text-gray-500">
-            <p>
+          <div className="mt-8 border-t border-gray-800 pt-4 text-xs text-gray-500">
+            <p className="mb-0">
               Bài viết này thuộc blog của AIOT AUTOTECH, chia sẻ kinh nghiệm về
               ESP32, stepper, tự động hoá và AI ứng dụng trong sản xuất nhỏ.
             </p>
