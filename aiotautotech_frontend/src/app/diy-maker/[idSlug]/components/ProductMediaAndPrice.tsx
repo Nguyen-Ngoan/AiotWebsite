@@ -27,9 +27,6 @@ export interface ProductMediaAndPriceProps {
   typeLabel?: string;
   tags?: string[];
 
-  stock_tracking?: boolean;
-  stock_qty?: number | null;
-  min_order_qty?: number | null;
   technical_docs?: TechnicalDoc[];
   currency?: string;
 }
@@ -53,9 +50,6 @@ export function ProductMediaAndPrice({
   statusLabel,
   typeLabel,
   tags = [],
-  stock_tracking,
-  stock_qty,
-  min_order_qty,
   technical_docs = [],
   currency,
 }: ProductMediaAndPriceProps) {
@@ -158,18 +152,6 @@ export function ProductMediaAndPrice({
   };
 
   const displayCurrency = currency || 'VND';
-
-  const stockLabel = (() => {
-    if (!stock_tracking) return 'Không theo dõi tồn kho';
-    if (stock_qty == null) return 'Chưa cập nhật số lượng';
-    if (stock_qty <= 0) return 'Hết hàng';
-    return `Còn khoảng ${stock_qty} sản phẩm`;
-  })();
-
-  const minOrderLabel =
-    min_order_qty && min_order_qty > 1
-      ? `Tối thiểu ${min_order_qty} sản phẩm / đơn`
-      : 'Không giới hạn số lượng tối thiểu';
 
   return (
     <>
@@ -388,14 +370,6 @@ export function ProductMediaAndPrice({
                   {tag}
                 </span>
               ))}
-            </div>
-
-            {/* Kho hàng */}
-            <div className="mt-2 space-y-1">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                Tồn kho
-              </div>
-              <p className="text-[12px] text-gray-200">{stockLabel}</p>
             </div>
           </div>
         </div>

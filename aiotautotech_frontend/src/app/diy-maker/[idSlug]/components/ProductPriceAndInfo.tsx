@@ -8,9 +8,6 @@ export interface ProductPriceAndInfoProps {
   statusLabel?: string;
   typeLabel?: string;
   tags?: string[];
-  stock_tracking?: boolean;
-  stock_qty?: number | null;
-  min_order_qty?: number | null;
   currency?: string;
 }
 
@@ -20,19 +17,9 @@ export function ProductPriceAndInfo({
   statusLabel,
   typeLabel,
   tags = [],
-  stock_tracking,
-  stock_qty,
-  min_order_qty,
   currency,
 }: ProductPriceAndInfoProps) {
   const displayCurrency = currency || 'VND';
-
-  const stockLabel = (() => {
-    if (!stock_tracking) return 'Không theo dõi tồn kho';
-    if (stock_qty == null) return 'Chưa cập nhật số lượng';
-    if (stock_qty <= 0) return 'Hết hàng';
-    return `Còn khoảng ${stock_qty} sản phẩm`;
-  })();
 
   return (
     <div className="w-full text-xs text-gray-300">
@@ -80,14 +67,6 @@ export function ProductPriceAndInfo({
               {tag}
             </span>
           ))}
-        </div>
-
-        {/* Kho hàng */}
-        <div className="mt-2 space-y-1">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-            Tồn kho
-          </div>
-          <p className="text-[12px] text-gray-200">{stockLabel}</p>
         </div>
       </div>
     </div>

@@ -36,10 +36,6 @@ export function ProductHero({ title, idSlug }: ProductHeroProps) {
             <Link href="/diy-maker" className="hover:text-gray-300">
               Sản phẩm DIY
             </Link>
-            <span className="text-gray-500">&gt;</span>
-            <span className="text-gray-300 line-clamp-1 max-w-[260px] sm:max-w-[360px]">
-              {displayTitle}
-            </span>
           </span>
         </nav>
 

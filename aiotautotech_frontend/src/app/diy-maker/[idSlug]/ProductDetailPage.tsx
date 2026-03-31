@@ -227,7 +227,6 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
     sku,
     stock_tracking,
     stock_qty = null, // Cung cấp giá trị mặc định là null
-    min_order_qty,
     tags,
     created_at,
     updated_at,
@@ -344,9 +343,6 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
               statusLabel={statusLabel}
               typeLabel={typeLabel}
               tags={tags}
-              stock_tracking={stock_tracking}
-              stock_qty={stock_qty}
-              min_order_qty={min_order_qty}
               currency={currency}
             />
 

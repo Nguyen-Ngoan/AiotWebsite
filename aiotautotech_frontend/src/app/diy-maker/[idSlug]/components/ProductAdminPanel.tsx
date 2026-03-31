@@ -61,7 +61,7 @@ export function ProductAdminPanel({
   totalMaterialCost,
   materials,
 }: ProductAdminPanelProps) {
-  const [isMainOpen, setIsMainOpen] = useState(true);
+  const [isMainOpen, setIsMainOpen] = useState(false);
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
   const [isMaterialsPanelOpen, setIsMaterialsPanelOpen] = useState(false);
 
