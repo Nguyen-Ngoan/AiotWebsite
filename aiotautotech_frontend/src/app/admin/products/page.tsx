@@ -230,7 +230,7 @@ export default function AdminProductsListPage() {
                 return (
                   <li
                     key={product.id}
-                    className="odd:bg-muted/55 even:bg-card dark:odd:bg-muted/35 dark:even:bg-card"
+                    className="odd:bg-[#001a1a] even:bg-[#0d4040]"
                   >
                     <article
                       className={cn(
@@ -238,7 +238,7 @@ export default function AdminProductsListPage() {
                         'hover:shadow-md'
                       )}
                     >
-                      <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-muted">
+                      <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-black/25">
                         {thumb ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -248,21 +248,21 @@ export default function AdminProductsListPage() {
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center">
-                            <ImageIcon className="h-8 w-8 text-muted-foreground/60" />
+                            <ImageIcon className="h-8 w-8 text-gray-500" />
                           </div>
                         )}
                       </div>
                       <div className="flex min-w-0 flex-1 flex-col">
-                        <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
+                        <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-gray-50">
                           {product.title || '—'}
                         </h3>
                         {product.sku ? (
-                          <p className="mt-1 truncate text-xs text-muted-foreground">
+                          <p className="mt-1 truncate text-xs text-gray-400">
                             SKU: {product.sku}
                           </p>
                         ) : null}
                         <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                          <span className="text-sm font-semibold tabular-nums text-blue-600 dark:text-blue-400">
+                          <span className="text-sm font-semibold tabular-nums text-cyan-300">
                             {formatPrice(
                               product.base_price,
                               product.currency
@@ -278,11 +278,16 @@ export default function AdminProductsListPage() {
                           </span>
                         </div>
                         <div className="mt-auto flex items-end justify-between gap-2 pt-2">
-                          <span className="text-[11px] text-muted-foreground">
+                          <span className="text-[11px] text-gray-400">
                             {shortDate(product)}
                           </span>
                           <div className="flex shrink-0 gap-1">
-                            <Button variant="secondary" size="sm" asChild>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              asChild
+                              className="border-0 bg-white/10 text-gray-100 hover:bg-white/20"
+                            >
                               <Link
                                 href={`/admin/products/${product.id}/edit`}
                               >
@@ -292,7 +297,7 @@ export default function AdminProductsListPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-8 px-2 text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40"
+                              className="h-8 px-2 text-red-400 hover:bg-red-950/50 hover:text-red-300"
                               onClick={() =>
                                 handleDelete(
                                   product.id,
