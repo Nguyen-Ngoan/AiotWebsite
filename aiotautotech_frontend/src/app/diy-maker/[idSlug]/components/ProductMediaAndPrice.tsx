@@ -35,7 +35,7 @@ export interface ProductMediaAndPriceProps {
 const ModelViewer = dynamic(() => import('./ModelViewer'), {
   ssr: false,
   loading: () => (
-    <div className="h-full w-full bg-[#111] rounded-lg flex items-center justify-center text-sm text-gray-400">
+    <div className="h-full w-full bg-[#111] rounded-md flex items-center justify-center text-sm text-gray-400">
       Đang tải trình xem 3D...
     </div>
   ),
@@ -155,7 +155,7 @@ export function ProductMediaAndPrice({
 
   return (
     <>
-      <section className="space-y-4 rounded-2xl bg-zinc-900 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
+      <section className="space-y-4 rounded-lg bg-zinc-900 p-4 shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 lg:gap-5">
           {/* Cột mới: Tech Doc Thumbnails (luôn hiển thị) */}
           {technical_docs.length > 0 && (
@@ -229,7 +229,7 @@ export function ProductMediaAndPrice({
               onTouchEnd={onTouchEnd}
             >
               <div
-                className="group relative cursor-pointer overflow-hidden rounded-xl border border-gray-800 bg-black/60"
+                className="group relative cursor-pointer overflow-hidden rounded-md border border-gray-800 bg-black/60"
                 onClick={() => setOpenLightbox(true)}
               >
                 {displayedImage ? (
@@ -298,7 +298,7 @@ export function ProductMediaAndPrice({
                     <div
                       key={`${url}-${idx}`}
                       onClick={() => handleChangeImage(url, idx)}
-                      className={`h-12 w-12 md:h-14 md:w-14 cursor-pointer overflow-hidden rounded-lg bg-black/60 transition-all duration-200 ${
+                      className={`h-12 w-12 md:h-14 md:w-14 cursor-pointer overflow-hidden rounded-md bg-black/60 transition-all duration-200 ${
                         displayedImage === url
                           ? 'border-2 border-blue-400'
                           : 'border-2 border-transparent hover:border-gray-500'
@@ -312,7 +312,7 @@ export function ProductMediaAndPrice({
                     </div>
                   ))}
                   {galleryUrls.length > 6 && (
-                    <span className="flex h-12 md:h-14 items-center justify-center rounded-lg border border-dashed border-gray-700 bg-black/50 px-3 text-[11px] text-gray-400">
+                    <span className="flex h-12 md:h-14 items-center justify-center rounded-md border border-dashed border-gray-700 bg-black/50 px-3 text-[11px] text-gray-400">
                       +{galleryUrls.length - 6} ảnh khác
                     </span>
                   )}
@@ -393,7 +393,7 @@ export function ProductMediaAndPrice({
           onClick={() => setViewingStlInModal(null)}
         >
           <div
-            className="relative flex h-[85vh] w-[90vw] max-w-4xl flex-col rounded-lg bg-[#0f1015] shadow-2xl ring-1 ring-white/10"
+            className="relative flex h-[85vh] w-[90vw] max-w-4xl flex-col rounded-md bg-[#0f1015] shadow-2xl ring-1 ring-white/10"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-gray-800 p-4">

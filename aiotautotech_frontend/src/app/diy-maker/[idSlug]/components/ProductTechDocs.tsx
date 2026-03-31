@@ -20,7 +20,7 @@ interface StlDoc extends TechnicalDoc {
 const ModelViewer = dynamic(() => import('./ModelViewer'), {
   ssr: false,
   loading: () => (
-    <div className="h-[400px] w-full bg-[#111] rounded-lg flex items-center justify-center text-sm text-gray-400">
+    <div className="h-[400px] w-full bg-[#111] rounded-md flex items-center justify-center text-sm text-gray-400">
       Đang tải trình xem 3D...
     </div>
   ),
@@ -72,7 +72,7 @@ export function ProductTechDocs({ docs }: ProductTechDocsProps) {
 
   return (
     <Fragment>
-      <details className="group rounded-xl border border-gray-800 bg-[#050608]">
+      <details className="group rounded-md border border-gray-800 bg-[#050608]">
         <summary className="flex cursor-pointer list-none items-center justify-between py-2 pl-3 pr-3 sm:pl-4 sm:pr-4">
           <div className="flex items-center">
             <h2 className="text-lg font-semibold text-[#8883c8]">
@@ -374,7 +374,7 @@ export function ProductTechDocs({ docs }: ProductTechDocsProps) {
           onClick={() => setViewingDocInModal(null)}
         >
           <div
-            className="relative flex h-[85vh] w-[90vw] max-w-4xl flex-col rounded-lg bg-[#0f1015] shadow-2xl ring-1 ring-white/10"
+            className="relative flex h-[85vh] w-[90vw] max-w-4xl flex-col rounded-md bg-[#0f1015] shadow-2xl ring-1 ring-white/10"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-gray-800 p-4">

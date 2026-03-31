@@ -78,7 +78,7 @@ export function ProductAdminPanel({
     : [];
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-[#050608]">
+    <div className="rounded-md border border-gray-800 bg-[#050608]">
       <div
         className="flex cursor-pointer list-none items-center justify-between gap-4 py-2 pl-3 pr-3 sm:pl-4 sm:pr-4"
         onClick={() => setIsMainOpen(!isMainOpen)}
@@ -179,7 +179,7 @@ export function ProductAdminPanel({
 
           {/* Materials List Section */}
           {materials && materials.length > 0 && (
-            <div className="mt-4 rounded-lg border border-gray-700/60 bg-black/30">
+            <div className="mt-4 rounded-md border border-gray-700/60 bg-black/30">
               <div
                 className="flex cursor-pointer list-none items-center justify-between p-2 hover:bg-gray-800/50"
                 onClick={(e) => {
@@ -278,7 +278,7 @@ export function ProductAdminPanel({
 
           {/* AI Structured Data Section */}
           {structuredDataForAI && (
-            <div className="mt-4 rounded-lg border border-gray-700/60 bg-black/30">
+            <div className="mt-4 rounded-md border border-gray-700/60 bg-black/30">
               <div
                 className="flex cursor-pointer list-none items-center justify-between p-2 hover:bg-gray-800/50"
                 onClick={(e) => {

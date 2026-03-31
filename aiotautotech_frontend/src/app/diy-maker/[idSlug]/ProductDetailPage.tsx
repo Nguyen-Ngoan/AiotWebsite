@@ -196,7 +196,7 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
       <div className="min-h-screen bg-black text-gray-100">
         <Header navItems={navItems} />
         <main className="mx-auto max-w-6xl px-4 py-10">
-          <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-6 text-sm text-red-100">
+          <div className="rounded-md border border-red-500/40 bg-red-500/10 p-6 text-sm text-red-100">
             Không tìm thấy sản phẩm. Có thể sản phẩm đã bị xóa hoặc bạn truy cập
             sai liên kết.
           </div>
