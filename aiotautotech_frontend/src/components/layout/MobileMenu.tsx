@@ -27,7 +27,7 @@ export function MobileMenu({ open, items, onClose }: MobileMenuProps) {
 
   return (
     <div className="mt-3 md:hidden">
-      <div className="rounded-xl border border-gray-200 bg-white/95 p-3 shadow-md dark:border-gray-800 dark:bg-gray-900/95">
+      <div className="border border-gray-200 bg-white/95 p-3 shadow-md dark:border-gray-800 dark:bg-gray-900/95">
         <div className="space-y-1">
           {publicItems.map((item) => (
             <Link
@@ -64,7 +64,7 @@ export function MobileMenu({ open, items, onClose }: MobileMenuProps) {
               <Link
                 href={adminItem.href}
                 onClick={onClose}
-                className="block border border-amber-200/80 bg-amber-50/90 px-4 py-2 transition-colors duration-200 hover:bg-amber-100/90 dark:border-amber-800 dark:bg-amber-950/40 dark:hover:bg-amber-950/60"
+                className="block px-4 py-2 transition-colors duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <div className="flex flex-col leading-tight">
                   <span className={titleClass}>{adminItem.title}</span>
