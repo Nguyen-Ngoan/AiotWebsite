@@ -113,8 +113,8 @@ export default function DiyMakerPage(_: DiyMakerPageProps) {
             </ol>
           </nav>
           <div className="mb-6">
-            <h1 className="text-xl font-semibold text-gray-50 sm:text-2xl">
-              Sản phẩm DIY – Mạch điều khiển, board mạch. Chi tiết, case in 3D
+            <h1 className="text-base font-semibold leading-snug text-gray-50 sm:text-lg">
+              BỘ TRỤC TUYẾN TÍNH, TAY KẸP, CƠ CẤU TỰ ĐỘNG HOÁ, BOARD ĐIỀU KHIỂN, CHI TIẾT KỸ THUẬT IN 3D
             </h1>
             <p className="mt-1 max-w-2xl text-xs text-gray-400 sm:text-sm">
               Các sản phẩm AIOT-AutoTech thiết kế cho nhu cầu DIY, nghiên cứu,

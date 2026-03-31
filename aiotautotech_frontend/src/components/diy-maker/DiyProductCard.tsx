@@ -63,7 +63,7 @@ export function DiyProductCard({ product }: DiyProductCardProps) {
   return (
     <Link
       href={detailHref}
-      className="group flex h-full min-w-0 flex-col bg-[#111111] px-4 py-3 shadow-lg shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/15 sm:px-5 sm:py-4"
+      className="group flex h-full min-w-0 flex-col bg-[#1a1a1a] px-4 py-3 shadow-lg shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/15 sm:px-5 sm:py-4"
     >
       <h2 className="mb-3 line-clamp-2 w-full text-sm font-semibold text-gray-100 transition-colors group-hover:text-blue-300 sm:text-base">
         {product.title || 'Sản phẩm chưa đặt tên'}
