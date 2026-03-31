@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getApiUrl } from '@/lib/apiConfig';
 import { navItems } from '@/components/layout/nav-items';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
+import { BlogBreadcrumb } from '@/components/blog/BlogBreadcrumb';
+import { useMainHeaderOffset } from '@/hooks/useMainHeaderOffset';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
 interface Post {
@@ -74,8 +76,7 @@ export default function BlogPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const headerRef = useRef<HTMLElement>(null);
-  const [mainPaddingTop, setMainPaddingTop] = useState(0);
+  const { headerRef, paddingTop } = useMainHeaderOffset();
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -96,55 +97,12 @@ export default function BlogPage() {
     fetchPosts();
   }, []);
 
-  useEffect(() => {
-    const updatePadding = () => {
-      if (headerRef.current) {
-        setMainPaddingTop(headerRef.current.offsetHeight);
-      }
-    };
-    updatePadding();
-    window.addEventListener('resize', updatePadding);
-    return () => window.removeEventListener('resize', updatePadding);
-  }, []);
-
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <Header ref={headerRef} navItems={navItems} />
-      <main
-        className="flex-1"
-        style={{
-          paddingTop: mainPaddingTop > 0 ? `${mainPaddingTop}px` : '7rem',
-        }}
-      >
+      <main className="flex-1" style={{ paddingTop }}>
         <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
-          {/* Breadcrumb */}
-          <nav aria-label="Breadcrumb" className="mb-4">
-            <ol className="flex items-center space-x-2 text-sm">
-              <li className="flex">
-                <div className="flex items-center">
-                  <Link href="/" className="text-gray-400 hover:text-gray-500">
-                    <svg
-                      className="h-4 w-4 shrink-0"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M9.293 2.293a1 1 0 011.414 0l7 7A1 1 0 0117 11h-1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-3a1 1 0 00-1-1H9a1 1 0 00-1 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-6H3a1 1 0 01-.707-1.707l7-7z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="sr-only">Trang chủ</span>
-                  </Link>
-                </div>
-              </li>
-              <li>
-                <span className="text-gray-300">&gt;</span>
-              </li>
-              <li className="font-medium text-gray-800">Blog</li>
-            </ol>
-          </nav>
+          <BlogBreadcrumb page="list" tone="light" className="mb-4" />
 
           <div className="flex flex-wrap items-center justify-between gap-4">
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-gray-900">

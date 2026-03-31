@@ -8,6 +8,8 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { getApiUrl } from '@/lib/apiConfig';
 import { navItems } from '@/components/layout/nav-items';
+import { BlogBreadcrumb } from '@/components/blog/BlogBreadcrumb';
+import { useMainHeaderOffset } from '@/hooks/useMainHeaderOffset';
 import 'highlight.js/styles/vs2015.css';
 
 interface Post {
@@ -28,6 +30,7 @@ export default function BlogDetailPage() {
       : undefined;
 
   const router = useRouter();
+  const { headerRef, paddingTop } = useMainHeaderOffset(24);
 
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
@@ -224,8 +227,11 @@ export default function BlogDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-black text-gray-100">
-        <Header navItems={navItems} />
-        <main className="flex-1 flex items-center justify-center px-4 pt-16 md:pt-32">
+        <Header ref={headerRef} navItems={navItems} />
+        <main
+          className="flex flex-1 items-center justify-center px-4"
+          style={{ paddingTop }}
+        >
           <div className="text-center">
             <p className="text-xs uppercase tracking-[0.18em] text-gray-500 mb-2">
               Blog
@@ -247,8 +253,11 @@ export default function BlogDetailPage() {
   if (error || !post) {
     return (
       <div className="min-h-screen flex flex-col bg-black text-gray-100">
-        <Header navItems={navItems} />
-        <main className="flex-1 flex items-center justify-center px-4 pt-16 md:pt-32">
+        <Header ref={headerRef} navItems={navItems} />
+        <main
+          className="flex flex-1 items-center justify-center px-4"
+          style={{ paddingTop }}
+        >
           <div className="max-w-xl text-center">
             <p className="text-xs uppercase tracking-[0.18em] text-red-500 mb-2">
               Blog
@@ -275,38 +284,20 @@ export default function BlogDetailPage() {
   // --- MAIN UI ---
   return (
     <div className="min-h-screen flex flex-col bg-black text-gray-100">
-      <Header navItems={navItems} />
+      <Header ref={headerRef} navItems={navItems} />
 
-      <main className="flex-1 pb-8 px-6 sm:px-8 pt-16 md:pt-32">
+      <main
+        className="flex-1 px-6 pb-8 sm:px-8"
+        style={{ paddingTop }}
+      >
         {/* <div className="absolute inset-0 -z-10 bg-gradient-to-b from-gray-900 via-black to-black" /> */}
 
         <article className="mx-auto w-full max-w-3xl">
-          {/* breadcrumb + actions */}
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <Link
-              href="/blog"
-              className="inline-flex items-center text-xs font-semibold text-blue-400 hover:text-blue-300"
-            >
-              ← Blog • AIOT AUTOTECH
-            </Link>
-
-            <div className="flex items-center gap-2">
-              <Link
-                href={`/admin/posts/${post.id}/edit`}
-                className="inline-flex items-center rounded-full border border-gray-700 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-gray-200 hover:bg-gray-900/80"
-              >
-                Edit
-              </Link>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={deleting}
-                className="inline-flex items-center rounded-full border border-red-500/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-red-400 hover:bg-red-900/40 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {deleting ? 'Đang xoá...' : 'Xoá'}
-              </button>
-            </div>
-          </div>
+          <BlogBreadcrumb
+            tone="dark"
+            page="detail"
+            className="mb-4"
+          />
 
           {/* title */}
           <h1 className="mb-3 text-xl sm:text-2xl font-semibold text-gray-50 leading-tight">
@@ -314,24 +305,42 @@ export default function BlogDetailPage() {
           </h1>
 
           {/* meta */}
-          <p className="mb-8 text-xs text-gray-500">
-            {createdDate && (
-              <>
-                {createdDate}
-                {' • '}
-              </>
-            )}
-            Tác giả:{' '}
-            <span className="font-medium text-gray-200">
-              {post.author || 'Ẩn danh'}
+          <div className="mb-8 flex min-w-0 flex-row flex-nowrap items-center justify-between gap-x-2 overflow-x-auto text-xs text-gray-500 sm:gap-x-4">
+            <p className="min-w-0 flex-1 pr-1 sm:pr-2">
+              {createdDate && (
+                <>
+                  {createdDate}
+                  {' • '}
+                </>
+              )}
+              Tác giả:{' '}
+              <span className="font-medium text-gray-200">
+                {post.author || 'Ẩn danh'}
+              </span>
+            </p>
+            <span className="inline-flex shrink-0 flex-nowrap items-center gap-x-3 sm:gap-x-5 md:gap-x-6">
+              <Link
+                href={`/admin/posts/${post.id}/edit-info`}
+                className="font-semibold text-blue-400 hover:text-blue-300"
+              >
+                Edit Info
+              </Link>
+              <Link
+                href={`/admin/posts/${post.id}/edit`}
+                className="font-semibold text-blue-400 hover:text-blue-300"
+              >
+                Edit
+              </Link>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="inline border-0 bg-transparent p-0 font-semibold text-red-400 hover:text-red-300 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
             </span>
-            <Link
-              href={`/admin/posts/${post.id}/edit-info`}
-              className="ml-2 font-semibold text-blue-400 hover:text-blue-300"
-            >
-              Edit Info
-            </Link>
-          </p>
+          </div>
 
           {/* nội dung (KaTeX sẽ xử lý $...$ trong đây) */}
           <div

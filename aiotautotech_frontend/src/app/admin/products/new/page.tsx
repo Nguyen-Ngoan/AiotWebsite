@@ -38,8 +38,7 @@ export default function NewProductPage() {
       throw new Error(msg);
     }
 
-    // OK -> chuyển về trang listing DIY maker
-    router.push('/diy-maker');
+    router.push('/admin/products');
   };
 
   return (

@@ -26,6 +26,12 @@ const LINKS: {
   icon: ComponentType<{ className?: string }>;
 }[] = [
   {
+    href: '/admin/products',
+    title: 'Quản lý sản phẩm',
+    description: 'Danh sách, thêm, sửa, xóa sản phẩm DIY.',
+    icon: ShoppingBagIcon,
+  },
+  {
     href: '/admin/projects',
     title: 'Quản lý dự án',
     description: 'Danh sách dự án DIY, chỉnh sửa metadata.',
@@ -66,12 +72,6 @@ const LINKS: {
     title: 'Bài viết blog',
     description: 'Tạo bài viết mới.',
     icon: PencilSquareIcon,
-  },
-  {
-    href: '/admin/products/new',
-    title: 'Sản phẩm DIY',
-    description: 'Thêm sản phẩm linh kiện / máy.',
-    icon: ShoppingBagIcon,
   },
 ];
 
