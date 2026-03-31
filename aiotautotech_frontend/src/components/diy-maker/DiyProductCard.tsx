@@ -63,39 +63,39 @@ export function DiyProductCard({ product }: DiyProductCardProps) {
   return (
     <Link
       href={detailHref}
-      className="group flex flex-col rounded-2xl border border-gray-800 bg-[#111111] p-3 shadow-lg shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/15 sm:p-4"
+      className="group flex h-full min-w-0 flex-col bg-[#111111] px-4 py-3 shadow-lg shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/15 sm:px-5 sm:py-4"
     >
-      <h2 className="mb-3 line-clamp-2 text-sm font-semibold text-gray-100 transition-colors group-hover:text-blue-300 sm:text-base">
+      <h2 className="mb-3 line-clamp-2 w-full text-sm font-semibold text-gray-100 transition-colors group-hover:text-blue-300 sm:text-base">
         {product.title || 'Sản phẩm chưa đặt tên'}
       </h2>
 
-      <div className="grid grid-cols-5 gap-4">
-        <div className="col-span-2">
-          {mainImage && (
-            <div className="aspect-[3/2] overflow-hidden rounded-xl bg-black/60">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={mainImage}
-                alt={product.title || 'Ảnh sản phẩm'}
-                className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="col-span-3">
-          <div
-            className="prose prose-xs prose-invert max-w-none text-gray-400"
-            dangerouslySetInnerHTML={{
-              __html:
-                product.short_description ||
-                'Chưa có mô tả ngắn cho sản phẩm này.',
-            }}
-          />
-        </div>
+      <div className="w-full shrink-0">
+        {mainImage ? (
+          <div className="aspect-[3/2] w-full overflow-hidden bg-black/60">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={mainImage}
+              alt={product.title || 'Ảnh sản phẩm'}
+              className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+            />
+          </div>
+        ) : (
+          <div className="flex aspect-[3/2] w-full items-center justify-center bg-black/50 text-xs text-gray-500">
+            Chưa có ảnh
+          </div>
+        )}
       </div>
 
-      <div className="mt-auto flex items-baseline justify-between gap-2 pt-4">
+      <div
+        className="prose prose-xs prose-invert mt-3 w-full min-w-0 max-w-none flex-1 text-gray-400"
+        dangerouslySetInnerHTML={{
+          __html:
+            product.short_description ||
+            'Chưa có mô tả ngắn cho sản phẩm này.',
+        }}
+      />
+
+      <div className="mt-auto flex w-full items-baseline justify-between gap-2 pt-4">
         <div className="text-base font-semibold text-blue-300">{priceLabel}</div>
       </div>
     </Link>
