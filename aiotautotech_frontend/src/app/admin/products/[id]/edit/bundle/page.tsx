@@ -5,6 +5,7 @@ export default function EditProductBundlePage() {
     <EditProductPageContent
       initialTab="bundle"
       showTabsHeader={false}
+      showFooter={false}
       pageTitle="Bundle"
     />
   );

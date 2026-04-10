@@ -5,6 +5,7 @@ export default function EditProductBasicPage() {
     <EditProductPageContent
       initialTab="basic"
       showTabsHeader={false}
+      showFooter={false}
       pageTitle="Basic Information"
     />
   );

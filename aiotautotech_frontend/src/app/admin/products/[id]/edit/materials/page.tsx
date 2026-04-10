@@ -5,6 +5,7 @@ export default function EditProductMaterialsPage() {
     <EditProductPageContent
       initialTab="materials"
       showTabsHeader={false}
+      showFooter={false}
       pageTitle="Materials"
     />
   );

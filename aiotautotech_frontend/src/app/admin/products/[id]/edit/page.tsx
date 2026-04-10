@@ -66,12 +66,14 @@ interface EditProductPageContentProps {
   initialTab?: TabKey | 'materials';
   showTabsHeader?: boolean;
   pageTitle?: string;
+  showFooter?: boolean;
 }
 
 export function EditProductPageContent({
   initialTab = 'docs',
   showTabsHeader = true,
   pageTitle = 'Edit Product',
+  showFooter = true,
 }: EditProductPageContentProps) {
   const router = useRouter();
   const params = useParams();
@@ -430,7 +432,7 @@ export function EditProductPageContent({
           )}
         </div>
       </main>
-      <Footer />
+      {showFooter && <Footer />}
     </div>
   );
 }
