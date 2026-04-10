@@ -18,6 +18,7 @@ interface PostEditorProps {
   onChange: (html: string) => void;
   placeholder?: string;
   toolbarActions?: ReactNode;
+  fixedHeightPx?: number;
 }
 
 const Separator = () => (
@@ -228,6 +229,7 @@ export default function PostEditor({
   onChange,
   placeholder,
   toolbarActions,
+  fixedHeightPx,
 }: PostEditorProps) {
   const [showSymbols, setShowSymbols] = useState(false);
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -375,7 +377,9 @@ export default function PostEditor({
     <div
       className="relative flex w-full flex-col rounded-none border border-[#2a2a2a] bg-[#121212] shadow-sm sm:h-full sm:max-h-[calc(100vh-250px)]"
       style={
-        isMobile && viewportHeight > 0
+        fixedHeightPx && fixedHeightPx > 0
+          ? { height: `${Math.round(fixedHeightPx)}px` }
+          : isMobile && viewportHeight > 0
           ? { height: `${Math.round(viewportHeight)}px` }
           : undefined
       }

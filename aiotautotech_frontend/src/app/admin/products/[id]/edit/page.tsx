@@ -1,7 +1,7 @@
 // src/app/admin/products/[id]/edit/page.tsx
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { slugify } from '@/lib/slugify';
 import { useRouter, useParams } from 'next/navigation';
 
@@ -58,6 +58,28 @@ function parseNumber(value: string | number | null | undefined): number | null {
   return Number.isNaN(num) ? null : num;
 }
 
+const getViewportSnapshot = () =>
+  typeof window === 'undefined'
+    ? 0
+    : window.visualViewport?.height ?? window.innerHeight;
+
+const subscribeViewport = (callback: () => void) => {
+  if (typeof window === 'undefined') return () => {};
+
+  const visualViewport = window.visualViewport;
+  const handler = () => callback();
+
+  visualViewport?.addEventListener('resize', handler);
+  visualViewport?.addEventListener('scroll', handler);
+  window.addEventListener('resize', handler);
+
+  return () => {
+    visualViewport?.removeEventListener('resize', handler);
+    visualViewport?.removeEventListener('scroll', handler);
+    window.removeEventListener('resize', handler);
+  };
+};
+
 // -------------------- PAGE COMPONENT --------------------
 interface EditProductPageContentProps {
   initialTab?: TabKey | 'materials';
@@ -91,6 +113,12 @@ export function EditProductPageContent({
 
   const headerRef = useRef<HTMLElement>(null);
   const [mainPaddingTop, setMainPaddingTop] = useState(0);
+  const viewportHeight = useSyncExternalStore(
+    subscribeViewport,
+    getViewportSnapshot,
+    () => 0
+  );
+  const isDescriptionEditorMode = !showTabsHeader && activeTab === 'description';
 
   // --------- FETCH PRODUCT DATA ---------
   useEffect(() => {
@@ -331,13 +359,26 @@ export function EditProductPageContent({
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header ref={headerRef} navItems={navItems} />
       <main
-        className="flex-1"
+        className={`flex-1 ${isDescriptionEditorMode ? 'overflow-hidden' : ''}`}
         style={{
           paddingTop: mainPaddingTop > 0 ? `${mainPaddingTop}px` : '7rem',
+          ...(isDescriptionEditorMode && viewportHeight > 0
+            ? { height: `${Math.round(viewportHeight)}px` }
+            : {}),
         }}
       >
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="mb-4 flex items-center justify-between gap-2">
+        <div
+          className={`mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 ${
+            isDescriptionEditorMode
+              ? 'flex h-full flex-col overflow-hidden py-2 sm:py-4'
+              : 'py-6'
+          }`}
+        >
+          <div
+            className={`flex items-center justify-between gap-2 ${
+              isDescriptionEditorMode ? 'mb-2 shrink-0' : 'mb-4'
+            }`}
+          >
             <h1 className="text-xl font-semibold text-gray-900">
               {pageTitle}
             </h1>
@@ -370,9 +411,13 @@ export function EditProductPageContent({
             <form
               onSubmit={handleSubmit}
               id="product-edit-form"
-              className="max-w-4xl"
+              className={`max-w-4xl ${isDescriptionEditorMode ? 'flex-1 min-h-0' : ''}`}
             >
-              <div className="bg-white rounded-lg lg:shadow-sm lg:border lg:border-gray-200 lg:p-5">
+              <div
+                className={`bg-white rounded-lg lg:shadow-sm lg:border lg:border-gray-200 lg:p-5 ${
+                  isDescriptionEditorMode ? 'flex h-full min-h-0 flex-col' : ''
+                }`}
+              >
                 {showTabsHeader && (
                   <TabsHeader
                     activeTab={activeTab as TabKey}
