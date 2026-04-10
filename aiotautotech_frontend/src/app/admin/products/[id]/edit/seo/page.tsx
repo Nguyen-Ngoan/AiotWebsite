@@ -5,7 +5,7 @@ export default function EditProductSeoPage() {
     <EditProductPageContent
       initialTab="seo"
       showTabsHeader={false}
-      pageTitle="Edit Product - SEO"
+      pageTitle="SEO"
     />
   );
 }

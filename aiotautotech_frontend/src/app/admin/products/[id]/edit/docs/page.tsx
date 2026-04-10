@@ -5,7 +5,7 @@ export default function EditProductDocsPage() {
     <EditProductPageContent
       initialTab="docs"
       showTabsHeader={false}
-      pageTitle="Edit Product - Technical Docs"
+      pageTitle="Technical Docs"
     />
   );
 }

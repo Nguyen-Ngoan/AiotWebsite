@@ -5,7 +5,7 @@ export default function EditProductFeaturesPage() {
     <EditProductPageContent
       initialTab="features"
       showTabsHeader={false}
-      pageTitle="Edit Product - Features"
+      pageTitle="Features"
     />
   );
 }

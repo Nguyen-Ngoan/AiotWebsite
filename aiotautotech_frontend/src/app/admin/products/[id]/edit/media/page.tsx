@@ -5,7 +5,7 @@ export default function EditProductMediaPage() {
     <EditProductPageContent
       initialTab="media"
       showTabsHeader={false}
-      pageTitle="Edit Product - Media"
+      pageTitle="Media"
     />
   );
 }

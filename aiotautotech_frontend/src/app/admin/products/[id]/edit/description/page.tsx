@@ -5,7 +5,7 @@ export default function EditProductDescriptionPage() {
     <EditProductPageContent
       initialTab="description"
       showTabsHeader={false}
-      pageTitle="Edit Product - Description"
+      pageTitle="Description"
     />
   );
 }
