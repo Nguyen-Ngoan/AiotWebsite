@@ -19,6 +19,7 @@ interface PostEditorProps {
   placeholder?: string;
   toolbarActions?: ReactNode;
   fixedHeightPx?: number;
+  mobileFloatingToolbar?: boolean;
 }
 
 const Separator = () => (
@@ -222,6 +223,22 @@ const IconRedo = () => (
   </svg>
 );
 
+const IconMore = () => (
+  <svg
+    className="h-4 w-4"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+  >
+    <circle cx="5" cy="12" r="1.5" />
+    <circle cx="12" cy="12" r="1.5" />
+    <circle cx="19" cy="12" r="1.5" />
+  </svg>
+);
+
 /* ================= COMPONENT ================= */
 
 export default function PostEditor({
@@ -230,11 +247,13 @@ export default function PostEditor({
   placeholder,
   toolbarActions,
   fixedHeightPx,
+  mobileFloatingToolbar = false,
 }: PostEditorProps) {
   const [showSymbols, setShowSymbols] = useState(false);
   const toolbarRef = useRef<HTMLDivElement>(null);
-  const [showScrollLeft, setShowScrollLeft] = useState(false);
-  const [showScrollRight, setShowScrollRight] = useState(false);
+  const toolbarShellRef = useRef<HTMLDivElement>(null);
+  const [toolbarHeight, setToolbarHeight] = useState(56);
+  const [showMoreTools, setShowMoreTools] = useState(false);
   const hasToolbarActions = Boolean(toolbarActions);
   const viewportHeight = useSyncExternalStore(
     subscribeViewport,
@@ -245,6 +264,17 @@ export default function PostEditor({
     typeof window !== 'undefined'
       ? window.matchMedia('(max-width: 640px)').matches
       : false;
+  const shouldUseFloatingToolbar = mobileFloatingToolbar && isMobile;
+  const shouldGroupToolbarButtons = isMobile;
+  const mobileToolbarBottomOffset =
+    typeof window !== 'undefined'
+      ? Math.max(
+          0,
+          window.innerHeight -
+            ((window.visualViewport?.offsetTop ?? 0) +
+              (window.visualViewport?.height ?? window.innerHeight))
+        )
+      : 0;
 
 
   const editor = useEditor({
@@ -275,32 +305,20 @@ export default function PostEditor({
     };
   }, [editor]);
 
-  // Logic để hiển thị/ẩn các nút cuộn của toolbar
   useEffect(() => {
-    const toolbar = toolbarRef.current;
-    if (!toolbar) return;
-
-    const checkScroll = () => {
-      const { scrollLeft, scrollWidth, clientWidth } = toolbar;
-      // Hiển thị nút cuộn trái nếu đã cuộn sang phải
-      setShowScrollLeft(scrollLeft > 0);
-      // Hiển thị nút cuộn phải nếu nội dung còn lại lớn hơn vùng hiển thị
-      setShowScrollRight(scrollLeft < scrollWidth - clientWidth - 1); // -1 để xử lý sai số pixel
+    if (!shouldUseFloatingToolbar) return;
+    const updateToolbarHeight = () => {
+      const nextHeight = toolbarShellRef.current?.offsetHeight;
+      if (nextHeight && nextHeight > 0) {
+        setToolbarHeight(nextHeight);
+      }
     };
-
-    // Kiểm tra lần đầu khi component mount
-    checkScroll();
-
-    // Thêm event listener để kiểm tra lại khi cuộn hoặc resize
-    toolbar.addEventListener('scroll', checkScroll);
-    window.addEventListener('resize', checkScroll);
-
-    // Dọn dẹp event listener khi component unmount
+    updateToolbarHeight();
+    window.addEventListener('resize', updateToolbarHeight);
     return () => {
-      toolbar.removeEventListener('scroll', checkScroll);
-      window.removeEventListener('resize', checkScroll);
+      window.removeEventListener('resize', updateToolbarHeight);
     };
-  }, [editor]); // Thêm editor vào dependency array để đảm bảo toolbarRef đã sẵn sàng
+  }, [shouldUseFloatingToolbar, showSymbols, viewportHeight]);
 
   if (!editor) return null;
 
@@ -320,13 +338,6 @@ export default function PostEditor({
 
   const insertSymbol = (symbol: string) => {
     editor.chain().focus().insertContent(symbol).run();
-  };
-
-  const scrollToolbar = (direction: 'left' | 'right') => {
-    toolbarRef.current?.scrollBy({
-      left: direction === 'left' ? -250 : 250,
-      behavior: 'smooth',
-    });
   };
 
   const symbolList = [
@@ -385,62 +396,29 @@ export default function PostEditor({
       }
     >
       {/* TOOLBAR CONTAINER */}
-      <div className="sticky top-0 z-20 rounded-none border-b border-[#2b2b2b] bg-[#1a1a1a] px-1 shadow-sm">
-        {/* Nút cuộn trái */}
-        {showScrollLeft && (
-          <button
-            type="button"
-            onClick={() => scrollToolbar('left')}
-            className={`absolute top-0 z-10 h-full w-8 bg-linear-to-r from-[#1a1a1a] via-[#1a1a1a]/80 to-transparent ${
-              hasToolbarActions ? 'left-10' : 'left-0'
-            }`}
-          >
-            <svg
-              className="h-4 w-4 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-        )}
-        {/* Nút cuộn phải */}
-        {showScrollRight && (
-          <button
-            type="button"
-            onClick={() => scrollToolbar('right')}
-            className="absolute right-0 top-0 z-10 h-full w-8 bg-linear-to-l from-[#1a1a1a] via-[#1a1a1a]/80 to-transparent"
-          >
-            <svg
-              className="ml-auto h-4 w-4 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </button>
-        )}
+      <div
+        ref={toolbarShellRef}
+        className={`rounded-none border-b border-[#2b2b2b] bg-[#1a1a1a] px-1 shadow-sm ${
+          shouldUseFloatingToolbar
+            ? 'fixed left-0 right-0 z-[80]'
+            : 'sticky top-0 z-20'
+        }`}
+        style={
+          shouldUseFloatingToolbar
+            ? {
+                bottom: `${mobileToolbarBottomOffset}px`,
+                paddingBottom: 'env(safe-area-inset-bottom)',
+              }
+            : undefined
+        }
+      >
         {/* SCROLL AREA */}
         <div className="relative flex items-center">
           <div
             ref={toolbarRef}
-            className={`hide-scrollbar w-full overflow-x-auto px-1 ${
-              hasToolbarActions ? 'pl-11 pr-32' : 'pr-32'
-            }`}
+            className={`w-full px-1 ${hasToolbarActions ? 'pl-11' : ''}`}
           >
-            <div className="flex w-max items-center gap-1.5 px-2 py-1 text-xs">
+            <div className="flex flex-wrap items-center gap-1.5 px-2 py-1 text-xs">
             {/* Bold / Italic */}
             <button
               type="button"
@@ -512,52 +490,66 @@ export default function PostEditor({
             <Separator />
 
             {/* Quote / Cite */}
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              className={iconButtonClass(editor.isActive('blockquote'))}
-            >
-              <IconQuote />
-              <span className="sr-only">Blockquote</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-              className={iconButtonClass(editor.isActive('codeBlock'))}
-            >
-              <IconCode />
-              <span className="sr-only">Code block</span>
-            </button>
-            <button
-              type="button"
-              onClick={insertCite}
-              className={iconButtonClass(false)}
-            >
-              <IconCite />
-              <span className="sr-only">Cite</span>
-            </button>
+            {shouldGroupToolbarButtons ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowMoreTools((prev) => !prev)}
+                  className={iconButtonClass(showMoreTools)}
+                >
+                  <IconMore />
+                  <span className="sr-only">More tools</span>
+                </button>
+                <Separator />
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                  className={iconButtonClass(editor.isActive('blockquote'))}
+                >
+                  <IconQuote />
+                  <span className="sr-only">Blockquote</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                  className={iconButtonClass(editor.isActive('codeBlock'))}
+                >
+                  <IconCode />
+                  <span className="sr-only">Code block</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={insertCite}
+                  className={iconButtonClass(false)}
+                >
+                  <IconCite />
+                  <span className="sr-only">Cite</span>
+                </button>
 
-            <Separator />
+                <Separator />
 
-            {/* Image */}
-            <button
-              type="button"
-              onClick={addImage}
-              className={iconButtonClass(false)}
-            >
-              <IconImage />
-              <span className="sr-only">Image</span>
-            </button>
+                <button
+                  type="button"
+                  onClick={addImage}
+                  className={iconButtonClass(false)}
+                >
+                  <IconImage />
+                  <span className="sr-only">Image</span>
+                </button>
 
-            {/* Symbols */}
-            <button
-              type="button"
-              onClick={() => setShowSymbols((v) => !v)}
-              className={iconButtonClass(showSymbols)}
-            >
-              <IconSymbol />
-              <span className="sr-only">Symbols</span>
-            </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSymbols((v) => !v)}
+                  className={iconButtonClass(showSymbols)}
+                >
+                  <IconSymbol />
+                  <span className="sr-only">Symbols</span>
+                </button>
+              </>
+            )}
 
             <div className="flex-1" />
 
@@ -586,6 +578,68 @@ export default function PostEditor({
             </div>
           )}
         </div>
+
+        {shouldGroupToolbarButtons && showMoreTools && (
+          <div className="absolute bottom-full right-2 mb-2 z-30 rounded-md border border-[#3a3a3a] bg-[#1a1a1a] p-1 shadow-lg">
+            <div className="grid grid-cols-5 gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  editor.chain().focus().toggleBlockquote().run();
+                  setShowMoreTools(false);
+                }}
+                className={iconButtonClass(editor.isActive('blockquote'))}
+                title="Blockquote"
+              >
+                <IconQuote />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  editor.chain().focus().toggleCodeBlock().run();
+                  setShowMoreTools(false);
+                }}
+                className={iconButtonClass(editor.isActive('codeBlock'))}
+                title="Code block"
+              >
+                <IconCode />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  insertCite();
+                  setShowMoreTools(false);
+                }}
+                className={iconButtonClass(false)}
+                title="Cite"
+              >
+                <IconCite />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  addImage();
+                  setShowMoreTools(false);
+                }}
+                className={iconButtonClass(false)}
+                title="Image"
+              >
+                <IconImage />
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSymbols((v) => !v);
+                  setShowMoreTools(false);
+                }}
+                className={iconButtonClass(showSymbols)}
+                title="Symbols"
+              >
+                <IconSymbol />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* SYMBOL BAR */}
@@ -610,7 +664,14 @@ export default function PostEditor({
       )}
 
       {/* BODY */}
-      <div className="min-h-0 flex-1 overflow-y-auto rounded-none bg-black px-3 py-2 text-sm text-gray-100 shadow-inner sm:min-h-[400px]">
+      <div
+        className="min-h-0 flex-1 overflow-y-auto rounded-none bg-black px-3 py-2 text-sm text-gray-100 shadow-inner sm:min-h-[400px]"
+        style={
+          shouldUseFloatingToolbar
+            ? { paddingBottom: `${toolbarHeight + 8}px` }
+            : undefined
+        }
+      >
         <EditorContent
           editor={editor}
           className={`

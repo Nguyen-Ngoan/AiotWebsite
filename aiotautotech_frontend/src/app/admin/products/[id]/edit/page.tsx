@@ -9,6 +9,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { getApiUrl } from '@/lib/apiConfig';
 import { navItems } from '@/components/layout/nav-items';
+import { CheckIcon, ChevronLeftIcon } from '@heroicons/react/24/outline';
 
 import {
   type ProductFormState as BaseProductFormState,
@@ -62,6 +63,11 @@ const getViewportSnapshot = () =>
   typeof window === 'undefined'
     ? 0
     : window.visualViewport?.height ?? window.innerHeight;
+
+const getViewportWidthSnapshot = () =>
+  typeof window === 'undefined'
+    ? 0
+    : window.visualViewport?.width ?? window.innerWidth;
 
 const subscribeViewport = (callback: () => void) => {
   if (typeof window === 'undefined') return () => {};
@@ -118,7 +124,15 @@ export function EditProductPageContent({
     getViewportSnapshot,
     () => 0
   );
+  const viewportWidth = useSyncExternalStore(
+    subscribeViewport,
+    getViewportWidthSnapshot,
+    () => 0
+  );
+  const isMobileViewport = viewportWidth > 0 && viewportWidth < 640;
+  const shouldShowHeader = !(viewportWidth > 0 && viewportWidth < 640);
   const isDescriptionEditorMode = !showTabsHeader && activeTab === 'description';
+  const useFixedActionBar = isMobileViewport;
 
   // --------- FETCH PRODUCT DATA ---------
   useEffect(() => {
@@ -214,6 +228,10 @@ export function EditProductPageContent({
   // --------- DYNAMIC HEADER PADDING ---------
   useEffect(() => {
     const updatePadding = () => {
+      if (!shouldShowHeader) {
+        setMainPaddingTop(0);
+        return;
+      }
       if (headerRef.current) {
         setMainPaddingTop(headerRef.current.offsetHeight);
       }
@@ -227,7 +245,7 @@ export function EditProductPageContent({
     return () => {
       window.removeEventListener('resize', updatePadding);
     };
-  }, []);
+  }, [shouldShowHeader]);
 
   // --------- NAVIGATION HANDLERS ---------
   const goToProductDetail = (slug?: string) => {
@@ -343,25 +361,44 @@ export function EditProductPageContent({
 
   if (!productId) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
-        <Header navItems={navItems} />
+      <div
+        data-product-edit-page
+        className="min-h-screen flex flex-col bg-gray-50"
+      >
+        {shouldShowHeader && <Header navItems={navItems} />}
         <main className="flex-1 flex items-center justify-center">
           <div className="text-center text-sm text-gray-600">
             Product ID not found in URL.
           </div>
         </main>
         <Footer />
+        <style jsx global>{`
+          [data-product-edit-page] [id*='scroll-to-top'],
+          [data-product-edit-page] [class*='scroll-to-top'],
+          [data-product-edit-page] [id*='back-to-top'],
+          [data-product-edit-page] [class*='back-to-top'],
+          [data-product-edit-page] button[aria-label*='top' i],
+          [data-product-edit-page] button[title*='top' i],
+          [data-product-edit-page] a[aria-label*='top' i],
+          [data-product-edit-page] a[title*='top' i] {
+            display: none !important;
+          }
+        `}</style>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header ref={headerRef} navItems={navItems} />
+    <div data-product-edit-page className="min-h-screen flex flex-col bg-gray-50">
+      {shouldShowHeader && <Header ref={headerRef} navItems={navItems} />}
       <main
         className={`flex-1 ${isDescriptionEditorMode ? 'overflow-hidden' : ''}`}
         style={{
-          paddingTop: mainPaddingTop > 0 ? `${mainPaddingTop}px` : '7rem',
+          paddingTop: shouldShowHeader
+            ? mainPaddingTop > 0
+              ? `${mainPaddingTop}px`
+              : '7rem'
+            : 0,
           ...(isDescriptionEditorMode && viewportHeight > 0
             ? { height: `${Math.round(viewportHeight)}px` }
             : {}),
@@ -370,38 +407,56 @@ export function EditProductPageContent({
         <div
           className={`mx-auto ${
             isDescriptionEditorMode
-              ? 'max-w-none px-0 flex h-full flex-col overflow-hidden py-2 sm:py-4'
-              : 'max-w-6xl px-4 sm:px-6 lg:px-8 py-6'
+              ? 'max-w-none px-0 flex h-full flex-col overflow-hidden pt-0 pb-2 sm:pb-4'
+              : 'max-w-6xl px-4 sm:px-6 lg:px-8 pt-0 pb-6'
           }`}
         >
           <div
-            className={`flex items-center justify-between gap-2 ${
+            className={`grid grid-cols-3 items-center gap-2 ${
               isDescriptionEditorMode
-                ? 'mb-2 shrink-0 px-3 sm:px-4'
+                ? 'mb-2 shrink-0 pr-3 sm:pr-4'
                 : 'mb-4'
+            } z-30 bg-gray-50/95 py-0.5 backdrop-blur-sm ${
+              useFixedActionBar
+                ? 'fixed left-0 right-0 border-b border-gray-200/70 px-2'
+                : 'sticky'
             }`}
+            style={{
+              top: shouldShowHeader ? `${mainPaddingTop}px` : 0,
+            }}
           >
-            <h1 className="text-xl font-semibold text-gray-900">
-              {pageTitle}
-            </h1>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-start">
               <button
                 type="button"
                 onClick={() => goToProductDetail(form.slug)}
-                className="inline-flex items-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50"
+                aria-label="Cancel"
+                title="Cancel"
               >
-                Cancel
+                <ChevronLeftIcon className="h-6 w-6" />
               </button>
+            </div>
+
+            <h1 className="text-center text-base font-semibold text-gray-900 sm:text-lg">
+              {pageTitle}
+            </h1>
+
+            <div className="flex items-center justify-end">
               <button
                 type="submit"
                 form="product-edit-form"
                 disabled={isSubmitting}
-                className="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-transparent bg-blue-600 text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                aria-label={isSubmitting ? 'Saving' : 'Save changes'}
+                title={isSubmitting ? 'Saving...' : 'Save changes'}
               >
-                {isSubmitting ? 'Saving...' : 'Save Changes'}
+                <CheckIcon className="h-5 w-5" />
               </button>
             </div>
           </div>
+          {useFixedActionBar && (
+            <div className="h-11 shrink-0" aria-hidden="true" />
+          )}
 
           {isLoading ? (
             <div className="text-sm text-gray-600">Loading data...</div>
@@ -470,6 +525,18 @@ export function EditProductPageContent({
         </div>
       </main>
       {showFooter && <Footer />}
+      <style jsx global>{`
+        [data-product-edit-page] [id*='scroll-to-top'],
+        [data-product-edit-page] [class*='scroll-to-top'],
+        [data-product-edit-page] [id*='back-to-top'],
+        [data-product-edit-page] [class*='back-to-top'],
+        [data-product-edit-page] button[aria-label*='top' i],
+        [data-product-edit-page] button[title*='top' i],
+        [data-product-edit-page] a[aria-label*='top' i],
+        [data-product-edit-page] a[title*='top' i] {
+          display: none !important;
+        }
+      `}</style>
     </div>
   );
 }

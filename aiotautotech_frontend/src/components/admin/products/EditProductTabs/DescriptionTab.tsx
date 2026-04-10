@@ -72,6 +72,7 @@ export default function DescriptionTab({ form, setForm }: DescriptionTabProps) {
           }}
           placeholder=""
           fixedHeightPx={editorHeight}
+          mobileFloatingToolbar
         />
       </div>
     </div>
