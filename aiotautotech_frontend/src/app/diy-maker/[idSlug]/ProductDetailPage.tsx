@@ -332,7 +332,7 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
         {/* Nội dung chính */}
         <div className="mt-2 grid gap-6 lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1.1fr)]">
           {/* Cột trái: media, mô tả, features, docs */}
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
             <ProductMediaAndPrice
               mainImage={mainImage}
               galleryUrls={galleryUrlsFinal}
@@ -352,7 +352,7 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
           </div>
 
           {/* Cột phải: thông tin meta + admin panel */}
-          <aside className="space-y-4 lg:pl-5">
+          <aside className="min-w-0 space-y-4 lg:pl-5">
             <ProductAdminPanel
               id={id}
               sku={sku}
