@@ -328,6 +328,7 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
           <ProductDetailTabs
             descriptionHtml={description_html}
             technicalDocs={technical_docs}
+            structuredDataForAI={productStructuredData}
             adminPanelProps={{
               id,
               sku,
@@ -335,7 +336,6 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
               statusLabel,
               created_at,
               updated_at,
-              structuredDataForAI: productStructuredData,
               totalMaterialCost,
               materials,
             }}

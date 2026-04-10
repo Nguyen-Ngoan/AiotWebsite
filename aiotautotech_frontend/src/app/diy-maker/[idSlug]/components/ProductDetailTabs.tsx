@@ -8,40 +8,50 @@ import {
   ProductAdminPanelProps,
 } from './ProductAdminPanel';
 import { TechnicalDoc } from './technical-doc';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 
 interface ProductDetailTabsProps {
   descriptionHtml?: string;
   technicalDocs?: TechnicalDoc[];
   adminPanelProps: ProductAdminPanelProps;
+  structuredDataForAI?: Record<string, any>;
 }
 
-type TabKey = 'description' | 'docs' | 'admin';
+type TabKey = 'description' | 'docs' | 'admin' | 'ai-data';
 
 export function ProductDetailTabs({
   descriptionHtml,
   technicalDocs,
   adminPanelProps,
+  structuredDataForAI,
 }: ProductDetailTabsProps) {
+  const { isAdmin } = useIsAdmin();
+
   const tabs = useMemo(
     () =>
       [
         {
           key: 'description' as TabKey,
-          label: 'Mô tả chi tiết',
+          label: 'MÔ TẢ CHI TIẾT',
           visible: Boolean(descriptionHtml),
         },
         {
           key: 'docs' as TabKey,
-          label: 'Tài liệu kỹ thuật',
+          label: 'TÀI LIỆU KỸ THUẬT',
           visible: Boolean(technicalDocs && technicalDocs.length > 0),
         },
         {
           key: 'admin' as TabKey,
-          label: 'Admin Panel',
+          label: 'ADMIN PANEL',
           visible: true,
         },
+        {
+          key: 'ai-data' as TabKey,
+          label: 'AI DATA',
+          visible: Boolean(isAdmin && structuredDataForAI),
+        },
       ].filter((tab) => tab.visible),
-    [descriptionHtml, technicalDocs]
+    [descriptionHtml, technicalDocs, isAdmin, structuredDataForAI]
   );
 
   const [activeTab, setActiveTab] = useState<TabKey>(
@@ -55,9 +65,9 @@ export function ProductDetailTabs({
   }, [activeTab, tabs]);
 
   return (
-    <section className="min-w-0 space-y-3">
-      <div className="hide-scrollbar -mx-1 overflow-x-auto px-1">
-        <div className="inline-flex min-w-full gap-2 rounded-md border border-gray-800 bg-[#050608] p-1">
+    <section className="min-w-0 rounded-md border border-gray-800 bg-[#050608]">
+      <div className="hide-scrollbar overflow-x-auto border-b border-gray-800 p-1">
+        <div className="inline-flex min-w-full gap-2">
           {tabs.map((tab) => {
             const isActive = tab.key === activeTab;
             return (
@@ -78,15 +88,18 @@ export function ProductDetailTabs({
         </div>
       </div>
 
-      <div className="min-w-0">
+      <div className="min-w-0 p-4 sm:p-6">
         {activeTab === 'description' && (
-          <ProductDescription descriptionHtml={descriptionHtml} defaultOpen />
+          <ProductDescription descriptionHtml={descriptionHtml} />
         )}
-        {activeTab === 'docs' && (
-          <ProductTechDocs docs={technicalDocs} defaultOpen />
-        )}
-        {activeTab === 'admin' && (
-          <ProductAdminPanel {...adminPanelProps} defaultOpen />
+        {activeTab === 'docs' && <ProductTechDocs docs={technicalDocs} />}
+        {activeTab === 'admin' && <ProductAdminPanel {...adminPanelProps} />}
+        {activeTab === 'ai-data' && structuredDataForAI && (
+          <div className="rounded-md border border-gray-700/60 bg-black/30 p-2">
+            <pre className="whitespace-pre-wrap break-all rounded-md bg-black/50 p-2 text-[10px] font-mono text-gray-300">
+              <code>{JSON.stringify(structuredDataForAI, null, 2)}</code>
+            </pre>
+          </div>
         )}
       </div>
     </section>

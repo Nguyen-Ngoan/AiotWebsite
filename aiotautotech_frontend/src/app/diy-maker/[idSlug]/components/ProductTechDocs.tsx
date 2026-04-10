@@ -9,7 +9,6 @@ import { TechnicalDoc } from './technical-doc';
 
 interface ProductTechDocsProps {
   docs?: TechnicalDoc[]; // Thay đổi từ object sang array
-  defaultOpen?: boolean;
 }
 
 interface StlDoc extends TechnicalDoc {
@@ -36,7 +35,7 @@ const formatBytes = (bytes: number, decimals = 1) => {
   return `(${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]})`;
 };
 
-export function ProductTechDocs({ docs, defaultOpen = false }: ProductTechDocsProps) {
+export function ProductTechDocs({ docs }: ProductTechDocsProps) {
   // State để quản lý việc hiển thị trình xem 3D cho file 3D (STL, STEP)
   const [visibleModelViewerId, setVisibleModelViewerId] = useState<
     string | null
@@ -73,45 +72,8 @@ export function ProductTechDocs({ docs, defaultOpen = false }: ProductTechDocsPr
 
   return (
     <Fragment>
-      <details
-        open={defaultOpen}
-        className="group rounded-md border border-gray-800 bg-[#050608]"
-      >
-        <summary className="flex cursor-pointer list-none items-center justify-between py-2 pl-3 pr-3 sm:pl-4 sm:pr-4">
-          <div className="flex items-center">
-            <h2 className="text-lg font-semibold text-[#8883c8]">
-              Tài liệu kỹ thuật
-            </h2>
-          </div>
-          <div className="relative ml-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-gray-700 text-gray-200">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="hidden h-3.5 w-3.5 group-open:block"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-3.5 w-3.5 group-open:hidden"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                clipRule="evenodd"
-              />
-            </svg>
-          </div>
-        </summary>
-        <div className="border-t border-gray-800 px-4 pb-4 pt-3 sm:px-6 sm:pb-4 sm:pt-3">
-          <ul className="space-y-3 text-sm">
+      <div>
+        <ul className="space-y-3 text-sm">
             {stepDocs.map((doc) => {
               const config = docDisplayConfig.step_model || {
                 label: doc.doc_type,
@@ -367,9 +329,8 @@ export function ProductTechDocs({ docs, defaultOpen = false }: ProductTechDocsPr
                 </li>
               );
             })}
-          </ul>
-        </div>
-      </details>
+        </ul>
+      </div>
 
       {/* Modal để xem trước 3D */}
       {viewingDocInModal && (
