@@ -2,6 +2,17 @@
 'use client';
 
 import Link from 'next/link';
+import {
+  InformationCircleIcon,
+  ChatBubbleLeftRightIcon,
+  SparklesIcon,
+  Squares2X2Icon,
+  PhotoIcon,
+  CursorArrowRaysIcon,
+  WrenchScrewdriverIcon,
+  CubeIcon,
+  SwatchIcon,
+} from '@heroicons/react/24/outline';
 
 export interface ProductAdminPanelProps {
   id: string;
@@ -43,26 +54,49 @@ export function ProductAdminPanel({
   totalMaterialCost,
   materials,
 }: ProductAdminPanelProps) {
+  const editSections = [
+    { key: 'basic', label: 'BASIC', icon: InformationCircleIcon },
+    { key: 'description', label: 'DESC', icon: ChatBubbleLeftRightIcon },
+    { key: 'features', label: 'FEATURES', icon: SparklesIcon },
+    { key: 'bundle', label: 'BUNDLE', icon: Squares2X2Icon },
+    { key: 'media', label: 'MEDIA', icon: PhotoIcon },
+    { key: 'seo', label: 'SEO', icon: CursorArrowRaysIcon },
+    { key: 'docs', label: 'DOCS', icon: WrenchScrewdriverIcon },
+    { key: 'materials', label: 'MATERIALS', icon: CubeIcon },
+  ] as const;
+
   const sortedMaterials = materials
     ? [...materials].sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     : [];
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-end gap-2">
-        <Link
-          href={`/admin/materials/`}
-          className="inline-flex items-center rounded-full border border-green-500 bg-green-600/80 px-3 py-1 text-[11px] font-medium text-white shadow-sm hover:bg-green-500"
-          title="Materials List"
-        >
-          Material
-        </Link>
-        <Link
-          href={`/admin/products/${id}/edit`}
-          className="inline-flex items-center rounded-full border border-blue-500 bg-blue-600/80 px-3 py-1 text-[11px] font-medium text-white shadow-sm hover:bg-blue-500"
-        >
-          Edit
-        </Link>
+      <div className="mb-4 space-y-2">
+        <div className="hide-scrollbar -mx-1 overflow-x-auto px-1">
+          <div className="inline-flex min-w-full items-center gap-2">
+            {editSections.map((section) => (
+              <Link
+                key={section.key}
+                href={`/admin/products/${id}/edit/${section.key}`}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-blue-500 bg-blue-600/80 text-white shadow-sm hover:bg-blue-500"
+                aria-label={section.label}
+                title={section.label}
+              >
+                <section.icon className="h-4 w-4" />
+              </Link>
+            ))}
+          </div>
+        </div>
+        <div className="flex justify-end">
+          <Link
+            href="/admin/materials/"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-green-500 bg-green-600/80 text-white shadow-sm hover:bg-green-500"
+            title="Materials List"
+            aria-label="MATERIAL LIST"
+          >
+            <SwatchIcon className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
       <div>
         <dl className="space-y-1 text-xs">

@@ -62,13 +62,22 @@ function parseNumber(value: string | number | null | undefined): number | null {
 }
 
 // -------------------- PAGE COMPONENT --------------------
+interface EditProductPageContentProps {
+  initialTab?: TabKey | 'materials';
+  showTabsHeader?: boolean;
+  pageTitle?: string;
+}
 
-export default function EditProductPage() {
+export function EditProductPageContent({
+  initialTab = 'docs',
+  showTabsHeader = true,
+  pageTitle = 'Edit Product',
+}: EditProductPageContentProps) {
   const router = useRouter();
   const params = useParams();
   const productId = (params as { id?: string }).id;
 
-  const [activeTab, setActiveTab] = useState<TabKey | 'materials'>('docs');
+  const [activeTab, setActiveTab] = useState<TabKey | 'materials'>(initialTab);
   const [form, setForm] = useState<ProductFormState>({
     ...createEmptyForm(),
     tech_doc_ids: [],
@@ -331,7 +340,7 @@ export default function EditProductPage() {
         <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="mb-4 flex items-center justify-between gap-2">
             <h1 className="text-xl font-semibold text-gray-900">
-              Edit Product
+              {pageTitle}
             </h1>
             <div className="flex items-center gap-2">
               <button
@@ -366,10 +375,12 @@ export default function EditProductPage() {
             >
               <div className="lg:col-span-2">
                 <div className="bg-white rounded-lg lg:shadow-sm lg:border lg:border-gray-200 lg:p-5">
-                  <TabsHeader
-                    activeTab={activeTab as TabKey}
-                    setActiveTab={setActiveTab as any}
-                  />
+                  {showTabsHeader && (
+                    <TabsHeader
+                      activeTab={activeTab as TabKey}
+                      setActiveTab={setActiveTab as any}
+                    />
+                  )}
 
                   {activeTab === 'basic' && (
                     <BasicInfoTab form={form} setForm={setForm} />
@@ -420,6 +431,26 @@ export default function EditProductPage() {
         </div>
       </main>
       <Footer />
+    </div>
+  );
+}
+
+export default function EditProductPage() {
+  const router = useRouter();
+  const params = useParams();
+  const productId = (params as { id?: string }).id;
+
+  useEffect(() => {
+    if (!productId) {
+      router.replace('/admin/products');
+      return;
+    }
+    router.replace(`/admin/products/${productId}/edit/basic`);
+  }, [productId, router]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 text-sm text-gray-600">
+      Redirecting to section editor...
     </div>
   );
 }
