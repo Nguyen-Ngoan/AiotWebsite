@@ -1,20 +1,26 @@
+'use client';
 // src/app/diy-maker/[idSlug]/components/ProductDescription.tsx
 
 import { KaTeXContent } from './KaTeXContent';
 
 interface ProductDescriptionProps {
   descriptionHtml?: string;
+  defaultOpen?: boolean;
 }
 
 export function ProductDescription({
   descriptionHtml,
+  defaultOpen = false,
 }: ProductDescriptionProps) {
   if (!descriptionHtml) {
     return null; // Không hiển thị gì nếu không có mô tả
   }
 
   return (
-    <details className="group rounded-md border border-gray-800 bg-[#050608]">
+    <details
+      open={defaultOpen}
+      className="group rounded-md border border-gray-800 bg-[#050608]"
+    >
       <summary className="flex cursor-pointer list-none items-center justify-between py-2 pl-3 pr-3 sm:pl-4 sm:pr-4">
         <div className="flex items-center">
           <h2 className="text-lg font-semibold text-[#8883c8]">

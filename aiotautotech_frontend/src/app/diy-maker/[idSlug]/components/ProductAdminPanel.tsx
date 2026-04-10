@@ -1,7 +1,7 @@
 // src/app/diy-maker/[idSlug]/components/ProductAdminPanel.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { ProductSpecItem } from '../ProductDetailPage';
 
@@ -27,6 +27,7 @@ export interface ProductAdminPanelProps {
     unit: string;
     current_cost: number;
   }[];
+  defaultOpen?: boolean;
 }
 
 function formatDate(dateStr?: string): string {
@@ -58,10 +59,15 @@ export function ProductAdminPanel({
   structuredDataForAI,
   totalMaterialCost,
   materials,
+  defaultOpen = false,
 }: ProductAdminPanelProps) {
-  const [isMainOpen, setIsMainOpen] = useState(false);
+  const [isMainOpen, setIsMainOpen] = useState(defaultOpen);
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false);
   const [isMaterialsPanelOpen, setIsMaterialsPanelOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMainOpen(defaultOpen);
+  }, [defaultOpen]);
 
   const hasAnyFeatures = Boolean(
     (keyFeatures && keyFeatures.length > 0) ||

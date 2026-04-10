@@ -9,6 +9,7 @@ import { TechnicalDoc } from './technical-doc';
 
 interface ProductTechDocsProps {
   docs?: TechnicalDoc[]; // Thay đổi từ object sang array
+  defaultOpen?: boolean;
 }
 
 interface StlDoc extends TechnicalDoc {
@@ -35,7 +36,7 @@ const formatBytes = (bytes: number, decimals = 1) => {
   return `(${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]})`;
 };
 
-export function ProductTechDocs({ docs }: ProductTechDocsProps) {
+export function ProductTechDocs({ docs, defaultOpen = false }: ProductTechDocsProps) {
   // State để quản lý việc hiển thị trình xem 3D cho file 3D (STL, STEP)
   const [visibleModelViewerId, setVisibleModelViewerId] = useState<
     string | null
@@ -72,7 +73,10 @@ export function ProductTechDocs({ docs }: ProductTechDocsProps) {
 
   return (
     <Fragment>
-      <details className="group rounded-md border border-gray-800 bg-[#050608]">
+      <details
+        open={defaultOpen}
+        className="group rounded-md border border-gray-800 bg-[#050608]"
+      >
         <summary className="flex cursor-pointer list-none items-center justify-between py-2 pl-3 pr-3 sm:pl-4 sm:pr-4">
           <div className="flex items-center">
             <h2 className="text-lg font-semibold text-[#8883c8]">

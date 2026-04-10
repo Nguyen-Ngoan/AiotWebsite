@@ -12,10 +12,8 @@ import {
 } from '@/lib/productMedia';
 import { ProductHero } from './components/ProductHero';
 import { ProductMediaAndPrice } from './components/ProductMediaAndPrice';
-import { ProductTechDocs } from './components/ProductTechDocs';
-import { ProductAdminPanel } from './components/ProductAdminPanel';
 import { TechnicalDoc } from './components/technical-doc';
-import { ProductDescription } from './components/ProductDescription';
+import { ProductDetailTabs } from './components/ProductDetailTabs';
 
 export interface ProductSpecItem {
   key?: string;
@@ -314,40 +312,34 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
         <ProductHero title={title} idSlug={breadCrumbIdSlug} />
 
         {/* Nội dung chính */}
-        <div className="mt-2 grid gap-6 lg:grid-cols-[minmax(0,1.8fr)_minmax(0,1.1fr)]">
-          {/* Cột trái: media, mô tả, features, docs */}
-          <div className="min-w-0 space-y-4">
-            <ProductMediaAndPrice
-              mainImage={mainImage}
-              galleryUrls={galleryUrlsFinal}
-              lightboxUrls={lightboxUrls}
-              technical_docs={technical_docs}
-              short_description={short_description}
-              priceLabel={priceLabel}
-              statusLabel={statusLabel}
-              tags={tags}
-              currency={currency}
-            />
+        <div className="mt-2 min-w-0 space-y-4">
+          <ProductMediaAndPrice
+            mainImage={mainImage}
+            galleryUrls={galleryUrlsFinal}
+            lightboxUrls={lightboxUrls}
+            technical_docs={technical_docs}
+            short_description={short_description}
+            priceLabel={priceLabel}
+            statusLabel={statusLabel}
+            tags={tags}
+            currency={currency}
+          />
 
-            <ProductDescription descriptionHtml={description_html} />
-
-            <ProductTechDocs docs={technical_docs} />
-          </div>
-
-          {/* Cột phải: thông tin meta + admin panel */}
-          <aside className="min-w-0 space-y-4 lg:pl-5">
-            <ProductAdminPanel
-              id={id}
-              sku={sku}
-              priceLabel={priceLabel}
-              statusLabel={statusLabel}
-              created_at={created_at}
-              updated_at={updated_at}
-              structuredDataForAI={productStructuredData}
-              totalMaterialCost={totalMaterialCost}
-              materials={materials}
-            />
-          </aside>
+          <ProductDetailTabs
+            descriptionHtml={description_html}
+            technicalDocs={technical_docs}
+            adminPanelProps={{
+              id,
+              sku,
+              priceLabel,
+              statusLabel,
+              created_at,
+              updated_at,
+              structuredDataForAI: productStructuredData,
+              totalMaterialCost,
+              materials,
+            }}
+          />
         </div>
       </main>
 
