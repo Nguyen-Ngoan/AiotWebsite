@@ -368,15 +368,17 @@ export function EditProductPageContent({
         }}
       >
         <div
-          className={`mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 ${
+          className={`mx-auto ${
             isDescriptionEditorMode
-              ? 'flex h-full flex-col overflow-hidden py-2 sm:py-4'
-              : 'py-6'
+              ? 'max-w-none px-0 flex h-full flex-col overflow-hidden py-2 sm:py-4'
+              : 'max-w-6xl px-4 sm:px-6 lg:px-8 py-6'
           }`}
         >
           <div
             className={`flex items-center justify-between gap-2 ${
-              isDescriptionEditorMode ? 'mb-2 shrink-0' : 'mb-4'
+              isDescriptionEditorMode
+                ? 'mb-2 shrink-0 px-3 sm:px-4'
+                : 'mb-4'
             }`}
           >
             <h1 className="text-xl font-semibold text-gray-900">
@@ -411,7 +413,7 @@ export function EditProductPageContent({
             <form
               onSubmit={handleSubmit}
               id="product-edit-form"
-              className={`max-w-4xl ${isDescriptionEditorMode ? 'flex-1 min-h-0' : ''}`}
+              className={`${isDescriptionEditorMode ? 'max-w-none flex-1 min-h-0' : 'max-w-4xl'}`}
             >
               <div
                 className={`bg-white rounded-lg lg:shadow-sm lg:border lg:border-gray-200 lg:p-5 ${

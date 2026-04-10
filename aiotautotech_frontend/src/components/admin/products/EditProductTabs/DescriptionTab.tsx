@@ -61,11 +61,6 @@ export default function DescriptionTab({ form, setForm }: DescriptionTabProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="mb-2">
-        <label className="block text-sm font-medium text-gray-700">
-          Nội dung mô tả chi tiết
-        </label>
-      </div>
       <div ref={editorAreaRef} className="flex-1 min-h-0">
         <PostEditor
           initialContent={form.descriptionHtml}
