@@ -24,7 +24,6 @@ export interface ProductMediaAndPriceProps {
 
   priceLabel?: string;
   statusLabel?: string;
-  typeLabel?: string;
   tags?: string[];
 
   technical_docs?: TechnicalDoc[];
@@ -48,7 +47,6 @@ export function ProductMediaAndPrice({
   short_description,
   priceLabel,
   statusLabel,
-  typeLabel,
   tags = [],
   technical_docs = [],
   currency,
@@ -355,11 +353,6 @@ export function ProductMediaAndPrice({
               {statusLabel && statusLabel !== 'Nháp' && (
                 <span className="inline-flex items-center rounded-full border border-emerald-500/60 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-100">
                   {statusLabel}
-                </span>
-              )}
-              {typeLabel && (
-                <span className="inline-flex items-center rounded-full border border-gray-600 px-2.5 py-1 text-[11px] font-medium text-gray-200">
-                  {typeLabel}
                 </span>
               )}
               {tags.map((tag) => (

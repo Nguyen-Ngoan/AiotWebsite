@@ -40,7 +40,6 @@ export interface Product {
   slug?: string;
   short_description?: string;
   description_html?: string;
-  product_type?: string;
   status?: 'draft' | 'active' | 'archived' | string;
   base_price?: number | null;
   currency?: string;
@@ -114,19 +113,6 @@ function getStatusLabel(status?: string): string {
       return 'Đã ẩn';
     default:
       return status || 'Không rõ';
-  }
-}
-
-function getTypeLabel(product_type?: string): string {
-  switch (product_type) {
-    case 'simple':
-      return 'Simple';
-    case 'bundle':
-      return 'Bundle';
-    case 'kit':
-      return 'Kit / DIY';
-    default:
-      return product_type || 'Khác';
   }
 }
 
@@ -220,7 +206,6 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
     slug,
     short_description,
     description_html,
-    product_type,
     status,
     base_price,
     currency,
@@ -242,7 +227,6 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
 
   const priceLabel = formatPrice(base_price, currency);
   const statusLabel = getStatusLabel(status);
-  const typeLabel = getTypeLabel(product_type);
 
   const productImages: ProductImage[] = Array.isArray(images) ? images : [];
 
@@ -341,7 +325,6 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
               short_description={short_description}
               priceLabel={priceLabel}
               statusLabel={statusLabel}
-              typeLabel={typeLabel}
               tags={tags}
               currency={currency}
             />
@@ -358,7 +341,6 @@ async function ProductDetailPageImpl({ params }: ProductDetailPageProps) {
               sku={sku}
               priceLabel={priceLabel}
               statusLabel={statusLabel}
-              typeLabel={typeLabel}
               created_at={created_at}
               updated_at={updated_at}
               structuredDataForAI={productStructuredData}

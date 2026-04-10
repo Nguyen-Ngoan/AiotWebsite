@@ -11,7 +11,6 @@ export interface ProductAdminPanelProps {
   sku?: string;
   priceLabel?: string;
   statusLabel?: string;
-  typeLabel?: string;
   created_at?: string;
   updated_at?: string;
   keyFeatures?: string[];
@@ -49,7 +48,6 @@ export function ProductAdminPanel({
   priceLabel,
   sku,
   statusLabel,
-  typeLabel,
   created_at,
   updated_at,
   keyFeatures,
@@ -150,10 +148,6 @@ export function ProductAdminPanel({
             <div className="flex justify-between gap-2">
               <dt className="text-gray-500">Trạng thái</dt>
               <dd className="text-gray-100">{statusLabel}</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-gray-500">Loại</dt>
-              <dd className="text-gray-100">{typeLabel}</dd>
             </div>
             <div className="flex justify-between gap-2">
               <dt className="text-gray-500">Giá</dt>
