@@ -32,9 +32,6 @@ export interface ProductMaterial {
   current_cost: number;
 }
 
-import ProductSummaryCard from '../../ProductSummaryCard';
-import ProductPricingCard from '../../ProductPricingCard';
-
 import {
   TabsHeader,
   BasicInfoTab,
@@ -373,61 +370,54 @@ export function EditProductPageContent({
             <form
               onSubmit={handleSubmit}
               id="product-edit-form"
-              className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+              className="max-w-4xl"
             >
-              <div className="lg:col-span-2">
-                <div className="bg-white rounded-lg lg:shadow-sm lg:border lg:border-gray-200 lg:p-5">
-                  {showTabsHeader && (
-                    <TabsHeader
-                      activeTab={activeTab as TabKey}
-                      setActiveTab={setActiveTab as any}
-                    />
-                  )}
+              <div className="bg-white rounded-lg lg:shadow-sm lg:border lg:border-gray-200 lg:p-5">
+                {showTabsHeader && (
+                  <TabsHeader
+                    activeTab={activeTab as TabKey}
+                    setActiveTab={setActiveTab as any}
+                  />
+                )}
 
-                  {activeTab === 'basic' && (
-                    <BasicInfoTab form={form} setForm={setForm} />
-                  )}
+                {activeTab === 'basic' && (
+                  <BasicInfoTab form={form} setForm={setForm} />
+                )}
 
-                  {activeTab === 'description' && (
-                    <DescriptionTab form={form} setForm={setForm} />
-                  )}
+                {activeTab === 'description' && (
+                  <DescriptionTab form={form} setForm={setForm} />
+                )}
 
-                  {activeTab === 'features' && (
-                    <FeaturesTab form={form} setForm={setForm} />
-                  )}
+                {activeTab === 'features' && (
+                  <FeaturesTab form={form} setForm={setForm} />
+                )}
 
-                  {activeTab === 'bundle' && <BundleTab form={form} />}
+                {activeTab === 'bundle' && <BundleTab form={form} />}
 
-                  {activeTab === 'media' && (
-                    <MediaTab
-                      productId={productId}
-                      form={form}
-                      setForm={setForm}
-                    />
-                  )}
+                {activeTab === 'media' && (
+                  <MediaTab
+                    productId={productId}
+                    form={form}
+                    setForm={setForm}
+                  />
+                )}
 
-                  {activeTab === 'seo' && (
-                    <SeoTab form={form} setForm={setForm} />
-                  )}
+                {activeTab === 'seo' && (
+                  <SeoTab form={form} setForm={setForm} />
+                )}
 
-                  {activeTab === 'docs' && (
-                    <DocsTab
-                      productId={productId}
-                      form={form}
-                      setForm={setForm}
-                    />
-                  )}
+                {activeTab === 'docs' && (
+                  <DocsTab
+                    productId={productId}
+                    form={form}
+                    setForm={setForm}
+                  />
+                )}
 
-                  {activeTab === 'materials' && (
-                    <MaterialsTab form={form} setForm={setForm} />
-                  )}
-                </div>
+                {activeTab === 'materials' && (
+                  <MaterialsTab form={form} setForm={setForm} />
+                )}
               </div>
-
-              <aside className="space-y-4">
-                <ProductSummaryCard form={form} />
-                {/* Nút Lưu & Huỷ ở cuối trang đã được loại bỏ */}
-              </aside>
             </form>
           )}
         </div>
