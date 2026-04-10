@@ -20,7 +20,14 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { PlusCircle, ChevronRight, ArrowUpDown, ImageIcon } from 'lucide-react';
+import { ChevronLeftIcon } from '@heroicons/react/24/solid';
+import {
+  Plus,
+  ArrowUpDown,
+  ImageIcon,
+  Pencil,
+  Trash2,
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -148,48 +155,49 @@ export default function MaterialsListPage() {
 
   return (
     <div className="container mx-auto p-0 sm:p-4">
-      <div className="mb-4 flex items-center space-x-2 px-4 pt-4 text-sm text-muted-foreground sm:px-2 sm:pt-0">
-        <Link href="/" className="hover:text-primary">
-          Home
-        </Link>
-        <ChevronRight className="h-4 w-4" />
-        <span>Materials</span>
-      </div>
       <Card className="border-none shadow-none sm:border sm:shadow-sm">
-        <CardHeader>
-          <div className="flex items-center justify-between px-4 sm:px-0">
-            <div>
-              <CardTitle>QUẢN LÝ VẬT TƯ</CardTitle>
-              <CardDescription>
-                Xem, tạo, sửa, và xóa các vật tư.
-              </CardDescription>
+        <CardHeader className="p-0">
+          <div className="grid grid-cols-3 items-center px-0 pt-1">
+            <div className="flex items-center justify-start">
+              <Button asChild variant="ghost" size="icon" className="rounded-full">
+                <Link href="/" aria-label="Back to home" title="Back to home">
+                  <ChevronLeftIcon className="h-6 w-6" />
+                </Link>
+              </Button>
             </div>
-            <Button asChild className="rounded-full">
-              <Link href="/admin/materials/new">
-                <PlusCircle className="mr-2 h-4 w-4" /> Add
+            <CardTitle className="text-center">QUẢN LÝ VẬT TƯ</CardTitle>
+            <div className="flex items-center justify-end pr-1 sm:pr-0">
+            <Button
+              asChild
+              size="icon"
+              className="h-8 w-8 rounded-full bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <Link href="/admin/materials/new" aria-label="Add material" title="Add material">
+                <Plus className="h-3.5 w-3.5" />
               </Link>
             </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
-          <Table>
+          <Table className="min-w-[680px]">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px] pl-4 sm:pl-6">Ảnh</TableHead>
+                <TableHead className="w-[80px] pl-4 sm:pl-6">Image</TableHead>
                 <TableHead>
                   <Button
                     variant="ghost"
                     onClick={() => handleSort('name')}
                     className="hover:bg-transparent hover:text-primary"
                   >
-                    Tên Vật Tư
+                    Material Name
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                   </Button>
                 </TableHead>
-                <TableHead className="text-right">Giá (VND)</TableHead>
-                <TableHead>Đơn vị</TableHead>
+                <TableHead className="text-right">Price (VND)</TableHead>
+                <TableHead>Unit</TableHead>
                 <TableHead className="pr-4 text-right sm:pr-6">
-                  Hành động
+                  Actions
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -246,18 +254,26 @@ export default function MaterialsListPage() {
                     </TableCell>
                     <TableCell>{material.unit}</TableCell>
                     <TableCell className="pr-4 text-right sm:pr-6">
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="icon"
+                        title="Sửa vật tư"
+                        aria-label="Sửa vật tư"
+                      >
                         <Link href={`/admin/materials/${material.id}/edit`}>
-                          Sửa
+                          <Pencil className="h-4 w-4" />
                         </Link>
                       </Button>
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         className="text-red-500 hover:text-red-600"
                         onClick={() => handleDelete(material.id, material.name)}
+                        title="Xóa vật tư"
+                        aria-label="Xóa vật tư"
                       >
-                        Xóa
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>

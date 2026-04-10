@@ -9,8 +9,6 @@ import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -22,8 +20,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import Link from 'next/link';
 import { getApiUrl } from '@/lib/apiConfig';
+import { CheckIcon, ChevronLeftIcon } from '@heroicons/react/24/outline';
 import { X, Upload } from 'lucide-react';
 
 const PREDEFINED_UNITS = ['piece', 'kg', 'g', 'meter', 'cm', 'l', 'ml'];
@@ -225,15 +223,44 @@ export default function EditMaterialPage({
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto px-4 pb-6 pt-0 sm:px-6 lg:px-8">
       <form onSubmit={handleSubmit}>
-        <Card>
-          <CardHeader>
-            <CardTitle>Edit Material</CardTitle>
+        <Card className="border-none shadow-none lg:border lg:shadow-sm">
+          <CardHeader className="px-0 pb-3 pt-1">
+            <div className="grid grid-cols-3 items-center gap-2">
+              <div className="flex items-center justify-start">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full"
+                  onClick={() => router.push('/admin/materials')}
+                  aria-label="Cancel"
+                  title="Cancel"
+                >
+                  <ChevronLeftIcon className="h-5 w-5" />
+                </Button>
+              </div>
+              <CardTitle className="text-center">Edit Material</CardTitle>
+              <div className="flex items-center justify-end">
+                <Button
+                  type="submit"
+                  size="icon"
+                  className="rounded-full bg-blue-600 text-white hover:bg-blue-700"
+                  disabled={isLoading}
+                  aria-label={isLoading ? 'Saving' : 'Save changes'}
+                  title={isLoading ? 'Saving...' : 'Save changes'}
+                >
+                  <CheckIcon className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 px-0 pb-0 pt-0 lg:p-5">
             <div className="grid gap-2">
-              <Label htmlFor="name">Tên linh kiện (TV)</Label>
+              <Label className="text-sm font-medium text-gray-700" htmlFor="name">
+                Tên linh kiện (TV)
+              </Label>
               <Input
                 id="name"
                 value={name}
@@ -242,7 +269,9 @@ export default function EditMaterialPage({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="english_name">Tên tiếng Anh</Label>
+              <Label className="text-sm font-medium text-gray-700" htmlFor="english_name">
+                Tên tiếng Anh
+              </Label>
               <Input
                 id="english_name"
                 value={englishName}
@@ -251,7 +280,9 @@ export default function EditMaterialPage({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="description">Mô tả</Label>
+              <Label className="text-sm font-medium text-gray-700" htmlFor="description">
+                Mô tả
+              </Label>
               <textarea
                 id="description"
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -261,7 +292,9 @@ export default function EditMaterialPage({
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="specifications">Thông số kỹ thuật</Label>
+              <Label className="text-sm font-medium text-gray-700" htmlFor="specifications">
+                Thông số kỹ thuật
+              </Label>
               <textarea
                 id="specifications"
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -272,7 +305,9 @@ export default function EditMaterialPage({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="current_cost">Giá / Đơn vị (VND)</Label>
+                <Label className="text-sm font-medium text-gray-700" htmlFor="current_cost">
+                  Giá / Đơn vị (VND)
+                </Label>
                 <Input
                   id="current_cost"
                   type="number"
@@ -282,7 +317,9 @@ export default function EditMaterialPage({
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="unit">Đơn vị tính</Label>
+                <Label className="text-sm font-medium text-gray-700" htmlFor="unit">
+                  Đơn vị tính
+                </Label>
                 <Select onValueChange={setUnit} value={unit} required>
                   <SelectTrigger id="unit">
                     <SelectValue placeholder="Chọn đơn vị" />
@@ -300,7 +337,7 @@ export default function EditMaterialPage({
 
             {/* Image Upload Section */}
             <div className="grid gap-2">
-              <Label>Hình ảnh</Label>
+              <Label className="text-sm font-medium text-gray-700">Hình ảnh</Label>
               <div className="flex flex-wrap gap-4">
                 {images.map((img) => (
                   <div
@@ -348,14 +385,6 @@ export default function EditMaterialPage({
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end gap-2">
-            <Button variant="outline" asChild>
-              <Link href="/admin/materials">Cancel</Link>
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </CardFooter>
         </Card>
       </form>
     </div>
